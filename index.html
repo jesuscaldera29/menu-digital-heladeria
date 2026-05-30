@@ -662,20 +662,21 @@
 
       if (hasVisualExtras) {
         container.className = "grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scroll mb-6";
-        container.innerHTML = visualExtras.map(ve => `
-              <label class="relative cursor-pointer group visual-extra-label">
-              <input type="checkbox" name="visualAccOption" value='${JSON.stringify(ve).replace(/'/g, "&#39;")}' class="peer sr-only" onchange="handleAccChange(this)">
-              <div class="border-2 border-gray-100 rounded-2xl p-3 flex flex-col items-center text-center transition-all duration-300 ease-out bg-white peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:shadow-xl peer-checked:-translate-y-1 peer-checked:scale-105 group-hover:border-orange-200">
-                  <div class="w-16 h-16 rounded-full bg-gray-100 mb-2 overflow-hidden shadow-inner flex items-center justify-center transition-transform duration-300 peer-checked:rotate-3 peer-checked:scale-110">
+        container.innerHTML = visualExtras.map((ve, index) => `
+              <div class="border-2 border-gray-100 rounded-2xl p-3 flex flex-col items-center text-center transition-all bg-white relative">
+                  <div class="w-16 h-16 rounded-full bg-gray-100 mb-2 overflow-hidden shadow-inner flex items-center justify-center">
                       ${ve.image_url ? `<img src="${ve.image_url}" class="w-full h-full object-cover">` : `<span class="text-2xl">✨</span>`}
                   </div>
-                  <span class="text-sm font-black text-gray-800 leading-tight transition-colors duration-300 peer-checked:text-orange-700">${ve.name}</span>
-                  <span class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1 bg-orange-100 px-2 py-0.5 rounded-full transition-all duration-300 peer-checked:bg-orange-500 peer-checked:text-white">${ve.price > 0 ? '+$' + Number(ve.price).toLocaleString() : 'GRATIS'}</span>
+                  <span class="text-sm font-black text-gray-800 leading-tight">${ve.name}</span>
+                  <span class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1 bg-orange-50 px-2 py-0.5 rounded-full mb-3">${ve.price > 0 ? '+$' + Number(ve.price).toLocaleString() : 'GRATIS'}</span>
+                  
+                  <div class="flex items-center gap-3 w-full justify-center mt-auto border-t pt-2">
+                    <button type="button" class="w-7 h-7 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-lg hover:bg-gray-300 transition-colors" onclick="updateVisualAccCount('${index}', -1)">−</button>
+                    <span id="visualAccCount_${index}" class="font-bold text-gray-800 w-4 text-center">0</span>
+                    <button type="button" class="w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-200 transition-colors" onclick="updateVisualAccCount('${index}', 1)">+</button>
+                  </div>
+                  <input type="hidden" name="visualAccOptionVal" id="visualAccInput_${index}" value='${JSON.stringify(ve).replace(/'/g, "&#39;")}' data-count="0">
               </div>
-              <div class="absolute -top-2 -right-2 w-7 h-7 bg-orange-500 rounded-full text-white flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-all transform scale-0 peer-checked:scale-110 duration-300 shadow-lg border-2 border-white z-10 animate-bounce">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-              </div>
-            </label>
           `).join('');
       } else {
         container.className = "space-y-2.5 max-h-[250px] overflow-y-auto pr-2 custom-scroll mb-6";
@@ -705,18 +706,10 @@
       if (delta > 0 && currentAccLimit) {
         let totalSelected = 0;
         document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
-        const checkedVisual = document.querySelectorAll('input[name="visualAccOption"]:checked').length;
+        document.querySelectorAll('input[name="visualAccOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
         
-        if (totalSelected + checkedVisual >= currentAccLimit) {
-          const errDiv = document.getElementById('accLimitError');
-          const modalContent = document.getElementById('accModalContent');
-          document.getElementById('accLimitNumber').innerText = currentAccLimit;
-          errDiv.classList.remove('hidden');
-          modalContent.classList.add('animate-shake');
-          setTimeout(() => {
-            errDiv.classList.add('hidden');
-            modalContent.classList.remove('animate-shake');
-          }, 3000);
+        if (totalSelected >= currentAccLimit) {
+          showAccLimitError();
           return;
         }
       }
@@ -728,31 +721,44 @@
       display.innerText = current;
     };
 
-    window.handleAccChange = function (checkbox) {
-      if (!currentAccLimit) return;
+    window.updateVisualAccCount = function(idx, delta) {
+      const input = document.getElementById('visualAccInput_' + idx);
+      const display = document.getElementById('visualAccCount_' + idx);
+      if (!input || !display) return;
       
-      let totalSelected = 0;
-      document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
-      const checkedVisual = document.querySelectorAll('input[name="visualAccOption"]:checked').length;
-
-      if (totalSelected + checkedVisual > currentAccLimit) {
-        checkbox.checked = false;
+      let current = parseInt(input.getAttribute('data-count')) || 0;
+      
+      if (delta > 0 && currentAccLimit) {
+        let totalSelected = 0;
+        document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
+        document.querySelectorAll('input[name="visualAccOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
         
-        // Mostrar alerta visual elegante
-        const errDiv = document.getElementById('accLimitError');
-        const modalContent = document.getElementById('accModalContent');
-        
-        document.getElementById('accLimitNumber').innerText = currentAccLimit;
-        errDiv.classList.remove('hidden');
-        modalContent.classList.add('animate-shake');
-        
-        // Quitar la alerta después de 3 segundos
-        setTimeout(() => {
-          errDiv.classList.add('hidden');
-          modalContent.classList.remove('animate-shake');
-        }, 3000);
+        if (totalSelected >= currentAccLimit) {
+          showAccLimitError();
+          return;
+        }
       }
+      
+      current += delta;
+      if (current < 0) current = 0;
+      
+      input.setAttribute('data-count', current);
+      display.innerText = current;
     };
+
+    function showAccLimitError() {
+      const errDiv = document.getElementById('accLimitError');
+      const modalContent = document.getElementById('accModalContent');
+      document.getElementById('accLimitNumber').innerText = currentAccLimit;
+      errDiv.classList.remove('hidden');
+      modalContent.classList.add('animate-shake');
+      setTimeout(() => {
+        errDiv.classList.add('hidden');
+        modalContent.classList.remove('animate-shake');
+      }, 3000);
+    }
+
+    // handleAccChange is deprecated as we don't use checkboxes anymore
 
     window.closeAccompanimentsModal = function () {
       document.getElementById('accompanimentsModal').style.display = 'none';
@@ -773,8 +779,14 @@
       });
 
       const selectedVisuals = [];
-      document.querySelectorAll('input[name="visualAccOption"]:checked').forEach(cb => {
-        selectedVisuals.push(JSON.parse(cb.value));
+      document.querySelectorAll('input[name="visualAccOptionVal"]').forEach(inp => {
+        const count = parseInt(inp.getAttribute('data-count')) || 0;
+        if (count > 0) {
+          const valObj = JSON.parse(inp.value);
+          for (let i = 0; i < count; i++) {
+            selectedVisuals.push(valObj);
+          }
+        }
       });
 
       addToCart(currentAccProductId, selectedText, selectedVisuals);
