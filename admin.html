@@ -779,10 +779,15 @@
     class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm"
     style="display:none">
     <div class="bg-white w-full max-w-lg rounded-[32px] p-8 my-10 shadow-2xl transform transition-all relative">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-3xl font-black tracking-tight" id="detailOrderTitle">📋 Detalle de Pedido</h2>
-        <button onclick="closeOrderDetailModal()"
-          class="text-gray-400 hover:text-black transition-colors text-2xl">&times;</button>
+      <div class="flex items-start sm:items-center justify-between mb-6 gap-4">
+        <h2 class="text-2xl sm:text-3xl font-black tracking-tight" id="detailOrderTitle">📋 Detalle</h2>
+        <div class="flex gap-3 items-center">
+          <button onclick="printOrderTicket()" class="bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 hover:bg-black transition-colors shadow">
+            🖨️ Imprimir
+          </button>
+          <button onclick="closeOrderDetailModal()"
+            class="text-gray-400 hover:text-black transition-colors text-2xl leading-none">&times;</button>
+        </div>
       </div>
       <div class="space-y-6 text-sm">
         <div class="border-b pb-3">
