@@ -119,11 +119,36 @@ async function loadSettings() {
 
       const bankInfoDisplay = document.getElementById('bankInfoDisplay');
       if (bankInfoDisplay) {
-        let text = '';
-        if (data.bank_info) text += '🏦 ' + data.bank_info + '\n';
-        if (data.nequi_info) text += '📱 Nequi: ' + data.nequi_info;
-        
-        bankInfoDisplay.innerText = text.trim() || 'No hay datos bancarios configurados.';
+        try {
+          let accounts = [];
+          if (data.bank_info && data.bank_info.trim().startsWith('[')) {
+              accounts = JSON.parse(data.bank_info);
+          } else if (data.bank_info) {
+              // legacy text support
+              accounts = [{ bank_name: 'Banco', account_type: 'Transferencia', account_number: data.bank_info }];
+          }
+          if (data.nequi_info) {
+              accounts.push({ bank_name: 'Nequi', account_type: 'Billetera Digital', account_number: data.nequi_info });
+          }
+
+          if (accounts.length > 0) {
+              bankInfoDisplay.innerHTML = accounts.map(acc => `
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center">
+                  <div>
+                    <p class="font-bold text-sm text-gray-800">🏦 ${acc.bank_name} <span class="text-xs text-gray-500 font-normal">(${acc.account_type})</span></p>
+                    <p class="text-lg font-black text-pink-600 mt-1" style="user-select: all;">${acc.account_number}</p>
+                  </div>
+                  <button type="button" onclick="copyBankNumber('${acc.account_number}', this)" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-100 transition-colors flex items-center gap-1 active:scale-95">
+                    <span>📋</span> Copiar
+                  </button>
+                </div>
+              `).join('');
+          } else {
+              bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay cuentas bancarias configuradas.</p>';
+          }
+        } catch(e) {
+          bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay datos bancarios.</p>';
+        }
       }
 
       // Populate tables for en-el-local
@@ -788,6 +813,45 @@ function closeTicket() {
   await loadProducts();
 })();
 
+window.copyBankNumber = function(number, btn) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(number).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span>✅</span> ¡Copiado!';
+            btn.classList.add('bg-green-100', 'text-green-700');
+            btn.classList.remove('bg-pink-50', 'text-pink-600');
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('bg-green-100', 'text-green-700');
+                btn.classList.add('bg-pink-50', 'text-pink-600');
+            }, 2000);
+        }).catch(err => {
+            console.error('Error copying text: ', err);
+            alert('No se pudo copiar el número.');
+        });
+    } else {
+        // Fallback
+        const textArea = document.createElement("textarea");
+        textArea.value = number;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span>✅</span> ¡Copiado!';
+            btn.classList.add('bg-green-100', 'text-green-700');
+            btn.classList.remove('bg-pink-50', 'text-pink-600');
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('bg-green-100', 'text-green-700');
+                btn.classList.add('bg-pink-50', 'text-pink-600');
+            }, 2000);
+        } catch (err) {
+            console.error('Fallback error: ', err);
+        }
+        document.body.removeChild(textArea);
+    }
+}
 // ==========================================
 // PWA INSTALL LOGIC (PUBLIC MENU)
 // ==========================================

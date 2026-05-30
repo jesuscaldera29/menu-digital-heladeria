@@ -200,7 +200,19 @@ async function loadSettings() {
             if (nequiInfoInput) nequiInfoInput.value = data.nequi_info || '';
 
             const bankInfoInput = document.getElementById('bankInfoInput');
-            if (bankInfoInput) bankInfoInput.value = data.bank_info || '';
+            if (bankInfoInput) {
+                bankInfoInput.value = data.bank_info || '';
+                try {
+                    if (data.bank_info && data.bank_info.trim().startsWith('[')) {
+                        window.bankAccountsList = JSON.parse(data.bank_info);
+                    } else {
+                        window.bankAccountsList = [];
+                    }
+                } catch(e) {
+                    window.bankAccountsList = [];
+                }
+                if (typeof renderBankAccounts === 'function') renderBankAccounts();
+            }
 
             const logoPreview = document.getElementById('logoPreview');
             const logoPlaceholder = document.getElementById('logoPlaceholder');
@@ -306,6 +318,60 @@ async function saveMenuConfig(event) {
         btn.innerText = originalText;
         btn.disabled = false;
     }
+}
+
+// Funciones para gestionar Cuentas Bancarias
+window.bankAccountsList = [];
+
+window.renderBankAccounts = function() {
+    const container = document.getElementById('bankAccountsContainer');
+    const hiddenInput = document.getElementById('bankInfoInput');
+    if (!container || !hiddenInput) return;
+
+    hiddenInput.value = JSON.stringify(window.bankAccountsList);
+
+    if (window.bankAccountsList.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-400 italic">No hay cuentas bancarias configuradas.</p>';
+        return;
+    }
+
+    container.innerHTML = window.bankAccountsList.map((acc, index) => `
+        <div class="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
+            <div>
+                <p class="font-bold text-sm">🏦 ${acc.bank_name} <span class="text-xs font-normal text-gray-500">(${acc.account_type})</span></p>
+                <p class="text-gray-800 font-mono text-sm mt-1">${acc.account_number}</p>
+            </div>
+            <button type="button" onclick="removeBankAccount(${index})" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors">🗑️</button>
+        </div>
+    `).join('');
+}
+
+window.addBankAccount = function() {
+    const nameInput = document.getElementById('newBankName');
+    const typeInput = document.getElementById('newBankType');
+    const numInput = document.getElementById('newBankNum');
+
+    if (!nameInput.value || !typeInput.value || !numInput.value) {
+        showToast('⚠️ Llena todos los campos del banco', 'error');
+        return;
+    }
+
+    window.bankAccountsList.push({
+        bank_name: nameInput.value.trim(),
+        account_type: typeInput.value.trim(),
+        account_number: numInput.value.trim()
+    });
+
+    nameInput.value = '';
+    typeInput.value = '';
+    numInput.value = '';
+
+    renderBankAccounts();
+}
+
+window.removeBankAccount = function(index) {
+    window.bankAccountsList.splice(index, 1);
+    renderBankAccounts();
 }
 
 // Generate QR Codes

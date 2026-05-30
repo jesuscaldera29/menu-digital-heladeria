@@ -391,18 +391,14 @@
             </div>
 
             <!-- Contenedor Transferencia -->
-            <div id="transferDetailsContainer"
-              class="bg-pink-50 border-2 border-pink-500 p-4 rounded-2xl hidden transition-all">
-              <div class="flex justify-between items-start mb-2">
-                <label class="text-sm font-black text-pink-600">Paga a esta cuenta</label>
-                <button type="button" onclick="copyBankInfo()"
-                  class="bg-white border border-pink-200 text-pink-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-pink-100 transition-colors flex items-center gap-1">
-                  <span>📋</span> Copiar
-                </button>
+            <div id="transferDetailsContainer" class="hidden transition-all">
+              <div class="bg-pink-50 border-2 border-pink-500 p-4 rounded-2xl">
+                <label class="text-sm font-black text-pink-600 block mb-3">💳 Paga a estas cuentas</label>
+                <div id="bankInfoDisplay" class="space-y-3">
+                  <p class="text-sm text-gray-500 italic">Cargando datos...</p>
+                </div>
+                <p class="text-xs text-gray-500 mt-3 pt-3 border-t border-pink-200">Transfiere el total y envíanos el comprobante por WhatsApp al confirmar el pedido.</p>
               </div>
-              <p id="bankInfoDisplay" class="text-base md:text-lg font-black text-gray-900 mb-2 whitespace-pre-wrap">
-                Cargando datos...</p>
-              <p class="text-xs text-gray-500">Transfiere el total y confirmamos tu pedido por WhatsApp.</p>
             </div>
           </div>
 
