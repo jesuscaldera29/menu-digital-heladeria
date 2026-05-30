@@ -1445,6 +1445,9 @@ window.editVisualExtra = async function(extraId) {
             document.getElementById('veFormTitle').innerText = '✏️ Editar Extra';
             document.getElementById('btnSaveVisualExtra').innerHTML = '💾 Guardar Cambios';
             document.getElementById('btnCancelEditVe').classList.remove('hidden');
+            
+            // Scroll to form
+            document.getElementById('veFormTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } catch(e) {
         console.error(e);
