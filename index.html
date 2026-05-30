@@ -443,6 +443,9 @@
               <div class="flex justify-between text-green-600 mb-1 hidden" id="summaryTipRow"><span>Propina:</span>
                 <span id="summaryTip">+$0</span>
               </div>
+              <div class="flex justify-between text-orange-600 mb-1 hidden" id="summaryDeliveryRow"><span>Domicilio:</span>
+                <span id="summaryDelivery">+$0</span>
+              </div>
               <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between font-black text-lg">
                 <span>Total:</span> <span id="summaryTotal" class="text-red-600">$0</span>
               </div>
@@ -609,6 +612,8 @@
         addressContainer.style.display = 'none';
         tableContainer.style.display = 'none';
       }
+      
+      if (typeof updateCartUI === 'function') updateCartUI();
     }
 
     // SELECCIÓN DE PAGO

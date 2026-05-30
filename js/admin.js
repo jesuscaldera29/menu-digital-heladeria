@@ -214,6 +214,11 @@ async function loadSettings() {
                 if (typeof renderBankAccounts === 'function') renderBankAccounts();
             }
 
+            const deliveryFeeInput = document.getElementById('deliveryFeeInput');
+            if (deliveryFeeInput) {
+                deliveryFeeInput.value = data.delivery_fee || 0;
+            }
+
             const logoPreview = document.getElementById('logoPreview');
             const logoPlaceholder = document.getElementById('logoPlaceholder');
             if (logoPreview && data.logo_url) {
@@ -295,6 +300,7 @@ async function saveMenuConfig(event) {
     const brandColor = document.getElementById('brandColorInput')?.value || '#f97316';
     const nequiInfo = document.getElementById('nequiInfoInput')?.value || '';
     const bankInfo = document.getElementById('bankInfoInput')?.value || '';
+    const deliveryFee = parseFloat(document.getElementById('deliveryFeeInput')?.value) || 0;
 
     const btn = event.target;
     const originalText = btn.innerText;
@@ -307,7 +313,8 @@ async function saveMenuConfig(event) {
             table_count: tableCount,
             brand_color: brandColor,
             nequi_info: nequiInfo,
-            bank_info: bankInfo
+            bank_info: bankInfo,
+            delivery_fee: deliveryFee
         }).eq('business_id', businessId);
 
         if (error) throw error;

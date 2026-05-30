@@ -320,6 +320,11 @@
                 <p class="text-[10px] text-gray-400 mt-2">Agrega las cuentas a las que tus clientes pueden transferir. Si la lista está vacía, no saldrá la opción de Transferencia en el checkout.</p>
                 <input type="hidden" id="bankInfoInput">
               </div>
+              <div class="pt-4 border-t border-gray-100">
+                <label class="font-bold text-xs text-gray-500 uppercase tracking-widest block mb-1">Tarifa de Domicilio ($)</label>
+                <input type="number" id="deliveryFeeInput" class="input !mt-1" placeholder="Ej: 5000" min="0">
+                <p class="text-[10px] text-gray-400 mt-1">Costo adicional que se suma al total cuando el cliente elige "Domicilio".</p>
+              </div>
               <button class="btn btn-primary w-full" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
             </div>
 

@@ -9,6 +9,7 @@ let currentBusinessId = null;
 let currentBusinessSlug = null;
 let currentTipPercentage = 0;
 let currentCoupon = null;
+let deliveryFee = 0;
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -68,6 +69,7 @@ async function loadSettings() {
     if (data) {
       whatsappNumber = data.whatsapp || '';
       currency = data.currency || 'COP';
+      deliveryFee = Number(data.delivery_fee) || 0;
 
       // Update page title
       if (data.business_name) {
@@ -366,7 +368,10 @@ function updateCartUI() {
   }
 
   let tip = subtotal * (currentTipPercentage / 100);
-  let total = subtotal - discount + tip;
+  const deliveryMethod = document.getElementById('deliveryMethod')?.value || 'Domicilio';
+  let appliedDeliveryFee = (deliveryMethod === 'Domicilio') ? deliveryFee : 0;
+
+  let total = subtotal - discount + tip + appliedDeliveryFee;
   if (total < 0) total = 0;
 
   const cartTotal = document.getElementById('cartTotal');
@@ -398,6 +403,27 @@ function updateCartUI() {
       } else {
         tipRow.classList.add('hidden');
       }
+
+      const deliveryRow = document.getElementById('summaryDeliveryRow');
+      const deliveryVal = document.getElementById('summaryDelivery');
+      if (appliedDeliveryFee > 0) {
+        if(deliveryRow) deliveryRow.classList.remove('hidden');
+        if(deliveryVal) deliveryVal.textContent = `+$${appliedDeliveryFee.toLocaleString()}`;
+      } else {
+        if(deliveryRow) deliveryRow.classList.add('hidden');
+      }
+
+      document.getElementById('summaryTotal').textContent = `$${total.toLocaleString()}`;
+    } else if (appliedDeliveryFee > 0) {
+      breakdown.classList.remove('hidden');
+      document.getElementById('summarySubtotal').textContent = `$${subtotal.toLocaleString()}`;
+      document.getElementById('summaryDiscountRow').classList.add('hidden');
+      document.getElementById('summaryTipRow').classList.add('hidden');
+      
+      const deliveryRow = document.getElementById('summaryDeliveryRow');
+      const deliveryVal = document.getElementById('summaryDelivery');
+      if(deliveryRow) deliveryRow.classList.remove('hidden');
+      if(deliveryVal) deliveryVal.textContent = `+$${appliedDeliveryFee.toLocaleString()}`;
 
       document.getElementById('summaryTotal').textContent = `$${total.toLocaleString()}`;
     } else {
@@ -629,7 +655,8 @@ async function processOrder() {
     }
     
     let tip = subtotal * (currentTipPercentage / 100);
-    let total = subtotal - discount + tip;
+    let appliedDeliveryFee = (delivery === 'Domicilio') ? deliveryFee : 0;
+    let total = subtotal - discount + tip + appliedDeliveryFee;
     if (total < 0) total = 0;
 
     const { data: order, error: orderErr } = await supabaseClient.from('orders').insert([{
@@ -644,7 +671,8 @@ async function processOrder() {
       business_id: currentBusinessId,
       tip,
       coupon_code: currentCoupon ? currentCoupon.code : '',
-      discount
+      discount,
+      delivery_fee: appliedDeliveryFee
     }]).select().single();
 
     if (orderErr) throw orderErr;
@@ -711,8 +739,9 @@ function showTicket(order, items) {
   // Subtotal, Discount, Tip Breakdown in Ticket
   const discount = Number(order.discount || 0);
   const tip = Number(order.tip || 0);
+  const orderDeliveryFee = Number(order.delivery_fee || 0);
   const total = Number(order.total || 0);
-  const subtotal = total + discount - tip;
+  const subtotal = total + discount - tip - orderDeliveryFee;
 
   document.getElementById('tSubtotal').textContent = `$${subtotal.toLocaleString()}`;
 
@@ -732,6 +761,22 @@ function showTicket(order, items) {
     tipVal.textContent = `+$${tip.toLocaleString()}`;
   } else {
     tipRow.classList.add('hidden');
+  }
+
+  let tDeliveryRow = document.getElementById('tDeliveryRow');
+  if (!tDeliveryRow) {
+    tDeliveryRow = document.createElement('div');
+    tDeliveryRow.id = 'tDeliveryRow';
+    tDeliveryRow.className = 'flex justify-between text-orange-600';
+    tDeliveryRow.innerHTML = `<span>Domicilio</span> <span id="tDeliveryVal"></span>`;
+    document.getElementById('tTipRow').parentNode.appendChild(tDeliveryRow);
+  }
+  
+  if (orderDeliveryFee > 0) {
+    tDeliveryRow.classList.remove('hidden');
+    document.getElementById('tDeliveryVal').textContent = `+$${orderDeliveryFee.toLocaleString()}`;
+  } else {
+    tDeliveryRow.classList.add('hidden');
   }
 
   document.getElementById('tTotal').textContent = `$${total.toLocaleString()}`;
@@ -756,13 +801,15 @@ function sendTicketWhatsApp() {
 
   const discount = Number(order.discount || 0);
   const tip = Number(order.tip || 0);
+  const orderDeliveryFee = Number(order.delivery_fee || 0);
   const total = Number(order.total || 0);
-  const subtotal = total + discount - tip;
+  const subtotal = total + discount - tip - orderDeliveryFee;
 
   msg += `\n━━━━━━━━━━━━━━━━━━━\n`;
   msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
   if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cupón'}): -$${discount.toLocaleString()}\n`;
   if (tip > 0) msg += `Propina: +$${tip.toLocaleString()}\n`;
+  if (orderDeliveryFee > 0) msg += `Domicilio: +$${orderDeliveryFee.toLocaleString()}\n`;
   msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
 
   msg += `👤 *CLIENTE:* ${order.customer_name}\n📞 *TELÉFONO:* ${order.customer_phone}\n📦 *TIPO:* ${order.delivery_method}\n💳 *PAGO:* ${order.payment_method}\n`;
