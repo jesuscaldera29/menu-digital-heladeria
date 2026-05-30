@@ -906,6 +906,10 @@
       } else if (method === 'Transf/Nequi') {
         if (cashCont) cashCont.classList.add('hidden');
         if (transfCont) transfCont.classList.remove('hidden');
+        const selectedBank = document.querySelector('input[name="specificBank"]:checked');
+        if (selectedBank) {
+            document.getElementById('paymentMethod').value = selectedBank.value;
+        }
       } else {
         if (cashCont) cashCont.classList.add('hidden');
         if (transfCont) transfCont.classList.add('hidden');

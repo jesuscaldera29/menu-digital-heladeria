@@ -132,16 +132,19 @@ async function loadSettings() {
           }
 
           if (accounts.length > 0) {
-              bankInfoDisplay.innerHTML = accounts.map(acc => `
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center">
-                  <div>
-                    <p class="font-bold text-sm text-gray-800">🏦 ${acc.bank_name} <span class="text-xs text-gray-500 font-normal">(${acc.account_type})</span></p>
-                    <p class="text-lg font-black text-pink-600 mt-1" style="user-select: all;">${acc.account_number}</p>
+              bankInfoDisplay.innerHTML = accounts.map((acc, idx) => `
+                <label class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div class="flex items-center gap-3">
+                    <input type="radio" name="specificBank" value="${acc.bank_name}" class="w-4 h-4 text-pink-600 focus:ring-pink-500 border-gray-300" onchange="document.getElementById('paymentMethod').value = this.value" ${idx === 0 ? 'checked' : ''}>
+                    <div>
+                      <p class="font-bold text-sm text-gray-800">🏦 ${acc.bank_name} <span class="text-xs text-gray-500 font-normal">(${acc.account_type})</span></p>
+                      <p class="text-lg font-black text-pink-600 mt-1" style="user-select: all;">${acc.account_number}</p>
+                    </div>
                   </div>
-                  <button type="button" onclick="copyBankNumber('${acc.account_number}', this)" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-100 transition-colors flex items-center gap-1 active:scale-95">
+                  <button type="button" onclick="copyBankNumber('${acc.account_number}', this); event.preventDefault();" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-100 transition-colors flex items-center gap-1 active:scale-95">
                     <span>📋</span> Copiar
                   </button>
-                </div>
+                </label>
               `).join('');
           } else {
               bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay cuentas bancarias configuradas.</p>';
