@@ -508,7 +508,7 @@ function toggleOrderDetails() {
       }
       
       const displayName = allAcc.length 
-        ? `${p.name} <span class="text-xs text-gray-500 block">(Acompañamientos: ${allAcc.join(', ')})</span>`
+        ? `${p.name} <span class="text-xs text-gray-500 block">(Extras: ${allAcc.join(', ')})</span>`
         : p.name;
       html += `<div class="order-item">
         <span>${displayName}</span>
@@ -586,7 +586,7 @@ async function processOrder() {
       subtotal += itemPrice * item.qty;
       
       const displayName = allAcc.length 
-        ? `${p.name} (Acompañamientos: ${allAcc.join(', ')})`
+        ? `${p.name} (Extras: ${allAcc.join(', ')})`
         : p.name;
       orderItems.push({ id: p.id, name: displayName, qty: item.qty, price: itemPrice });
     }
