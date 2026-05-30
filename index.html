@@ -508,11 +508,10 @@
 
         <div id="tLinkContainer" class="mt-6" style="display:none">
           <a id="tStatusLink" href="#" target="_blank"
-            class="block w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-2xl text-center font-black shadow-[0_0_20px_rgba(234,88,12,0.4)] animate-pulse active:scale-95 transition-all">
-            <span class="text-2xl block mb-1">🔍</span>
-            RASTREAR MI PEDIDO EN VIVO
-            <p class="text-[10px] font-medium text-orange-100 uppercase tracking-widest mt-1">Sigue el estado en tiempo
-              real</p>
+            class="block w-full bg-white border-2 border-gray-100 text-gray-800 p-4 rounded-2xl text-center shadow-sm hover:shadow-md hover:border-gray-300 active:scale-95 transition-all">
+            <span class="text-2xl block mb-2">📍</span>
+            <h4 class="font-black text-lg tracking-tight leading-none mb-1">Rastrear mi pedido en vivo</h4>
+            <p class="text-xs font-medium text-gray-500">Haz clic aquí para ver el estado de tu orden en tiempo real.</p>
           </a>
         </div>
       </div>
@@ -520,8 +519,8 @@
       <!-- BOTONES DEL TICKET -->
       <div class="flex flex-col gap-3 w-full mt-6">
         <button onclick="sendTicketWhatsApp()"
-          class="bg-white border-2 border-gray-100 text-gray-800 hover:bg-gray-50 py-4 rounded-2xl font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
-          <span class="text-xl">📲</span> Enviar por WhatsApp
+          class="bg-[#25D366] text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-[#20bd5a]">
+          <span class="text-xl">📲</span> Enviar Pedido al Local
         </button>
         <div class="flex gap-3">
           <button onclick="downloadTicket()"
