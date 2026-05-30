@@ -80,6 +80,16 @@ async function loadSettings() {
         if (subtitle) subtitle.textContent = data.business_name;
       }
 
+      const pillFee = document.getElementById('pillDeliveryFee');
+      if (pillFee) {
+          if (deliveryFee > 0) {
+              pillFee.textContent = `+$${deliveryFee.toLocaleString()}`;
+              pillFee.classList.remove('hidden');
+          } else {
+              pillFee.classList.add('hidden');
+          }
+      }
+
       // Inject dynamic brand color
       window.businessSettings = data;
       if (data.brand_color) {

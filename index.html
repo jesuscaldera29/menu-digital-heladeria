@@ -289,7 +289,7 @@
             <h2 class="text-xl md:text-2xl font-black">MI PEDIDO</h2>
             <p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">Resumen total</p>
           </div>
-          <div class="text-red-600 font-black text-2xl md:text-3xl">
+          <div class="text-black font-black text-2xl md:text-3xl">
             $<span id="cartTotalBottom">0</span>
           </div>
         </div>
@@ -317,6 +317,7 @@
               <div class="option-pill active" onclick="selectDelivery('Domicilio', this)">
                 <span>🛵</span>
                 <label>DOMICILIO</label>
+                <div id="pillDeliveryFee" class="text-[10px] text-gray-500 font-bold hidden"></div>
               </div>
               <div class="option-pill" onclick="selectDelivery('A la mesa', this)">
                 <span>🍽️</span>
@@ -447,7 +448,7 @@
                 <span id="summaryDelivery">+$0</span>
               </div>
               <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between font-black text-lg">
-                <span>Total:</span> <span id="summaryTotal" class="text-red-600">$0</span>
+                <span>Total:</span> <span id="summaryTotal" class="text-black">$0</span>
               </div>
             </div>
           </div>
