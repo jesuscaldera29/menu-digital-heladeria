@@ -702,7 +702,7 @@
       if (hasVisualExtras) {
         container.className = "grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scroll mb-6";
         container.innerHTML = visualExtras.map((ve, index) => `
-              <div class="border-2 border-gray-100 rounded-2xl p-3 flex flex-col items-center text-center transition-all bg-white relative">
+              <div id="visualExtraCard_${index}" class="border-2 border-gray-100 rounded-2xl p-3 flex flex-col items-center text-center transition-all duration-200 bg-white relative">
                   <div class="cursor-pointer hover:scale-105 active:scale-95 transition-all flex flex-col items-center w-full" onclick="updateVisualAccCount('${index}', 1)">
                     <div class="w-16 h-16 rounded-full bg-gray-100 mb-2 overflow-hidden shadow-inner flex items-center justify-center">
                         ${ve.image_url ? `<img src="${ve.image_url}" class="w-full h-full object-cover pointer-events-none">` : `<span class="text-2xl pointer-events-none">✨</span>`}
@@ -785,6 +785,20 @@
 
       input.setAttribute('data-count', current);
       display.innerText = current;
+
+      const card = document.getElementById('visualExtraCard_' + idx);
+      if (card) {
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => card.style.transform = 'scale(1)', 150);
+
+        if (current > 0) {
+          card.classList.add('border-orange-500', 'bg-orange-50', 'shadow-md');
+          card.classList.remove('border-gray-100', 'bg-white');
+        } else {
+          card.classList.remove('border-orange-500', 'bg-orange-50', 'shadow-md');
+          card.classList.add('border-gray-100', 'bg-white');
+        }
+      }
     };
 
     function showAccLimitError() {
