@@ -476,19 +476,7 @@
           <p class="text-sm text-gray-500 uppercase tracking-widest" id="ticketOrderId">#0000</p>
         </div>
 
-        <div class="space-y-2 mb-6 text-sm">
-          <div class="flex justify-between"><span class="text-gray-500">Cliente:</span> <strong id="tName"></strong>
-          </div>
-          <div class="flex justify-between"><span class="text-gray-500">Teléfono:</span> <strong id="tPhone"></strong>
-          </div>
-          <div class="flex justify-between"><span class="text-gray-500">Tipo:</span> <strong id="tType"></strong></div>
-          <div id="tAddressRow" class="flex justify-between"><span class="text-gray-500">Lugar:</span> <strong
-              id="tAddress"></strong></div>
-          <div class="flex justify-between"><span class="text-gray-500">Pago:</span> <strong id="tPayment"></strong>
-          </div>
-        </div>
-
-        <div class="border-t border-b border-dashed border-gray-300 py-4 mb-4">
+        <div class="border-b border-dashed border-gray-300 py-4 mb-4">
           <h3 class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Tus Productos</h3>
           <div id="tItems" class="space-y-2 text-sm font-medium"></div>
         </div>
@@ -501,9 +489,21 @@
               id="tTip"></span></div>
         </div>
 
-        <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
+        <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl mb-6">
           <span class="font-black text-gray-500 uppercase">Total a Pagar</span>
           <span class="text-2xl font-black text-red-600" id="tTotal"></span>
+        </div>
+
+        <div class="space-y-2 mb-6 text-sm border-t border-dashed border-gray-300 pt-4">
+          <div class="flex justify-between"><span class="text-gray-500">Cliente:</span> <strong id="tName"></strong>
+          </div>
+          <div class="flex justify-between"><span class="text-gray-500">Teléfono:</span> <strong id="tPhone"></strong>
+          </div>
+          <div class="flex justify-between"><span class="text-gray-500">Tipo:</span> <strong id="tType"></strong></div>
+          <div id="tAddressRow" class="flex justify-between"><span class="text-gray-500">Lugar:</span> <strong
+              id="tAddress"></strong></div>
+          <div class="flex justify-between"><span class="text-gray-500">Pago:</span> <strong id="tPayment"></strong>
+          </div>
         </div>
 
         <div id="tLinkContainer" class="mt-6" style="display:none">
