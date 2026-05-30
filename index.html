@@ -363,8 +363,19 @@
               <span class="w-1.5 h-4 bg-black rounded-full"></span>
               <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase">Método de Pago</h3>
             </div>
-            <div id="paymentPillsContainer" class="flex gap-2 md:gap-4 flex-wrap">
-              <!-- Cargado desde JS -->
+            <div class="flex gap-2 md:gap-4 flex-wrap">
+              <div class="option-pill active" onclick="selectPayment('Efectivo', this)">
+                <span>💵</span>
+                <label>EFECTIVO</label>
+              </div>
+              <div class="option-pill" onclick="selectPayment('Transf/Nequi', this)">
+                <span>🏦</span>
+                <label>TRANSF/NEQUI</label>
+              </div>
+              <div class="option-pill" onclick="selectPayment('Tarjeta', this)">
+                <span>💳</span>
+                <label>TARJETA</label>
+              </div>
             </div>
             <input type="hidden" id="paymentMethod" value="Efectivo">
 
@@ -888,37 +899,16 @@
 
       const cashCont = document.getElementById('cashDetailsContainer');
       const transfCont = document.getElementById('transferDetailsContainer');
-      const bankInfoDisplay = document.getElementById('bankInfoDisplay');
 
       if (method === 'Efectivo') {
         if (cashCont) cashCont.classList.remove('hidden');
         if (transfCont) transfCont.classList.add('hidden');
-      } else if (method === 'Tarjeta') {
-        if (cashCont) cashCont.classList.add('hidden');
-        if (transfCont) transfCont.classList.add('hidden');
-      } else {
+      } else if (method === 'Transf/Nequi') {
         if (cashCont) cashCont.classList.add('hidden');
         if (transfCont) transfCont.classList.remove('hidden');
-        
-        // Mostrar info bancaria específica de este método
-        if (window.businessAccounts) {
-           const specificAccount = window.businessAccounts.find(a => a.bank_name === method);
-           if (specificAccount && bankInfoDisplay) {
-               bankInfoDisplay.innerHTML = `
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center">
-                  <div>
-                    <p class="font-bold text-sm text-gray-800">🏦 ${specificAccount.bank_name} <span class="text-xs text-gray-500 font-normal">(${specificAccount.account_type})</span></p>
-                    <p class="text-lg font-black text-pink-600 mt-1" style="user-select: all;">${specificAccount.account_number}</p>
-                  </div>
-                  <button type="button" onclick="copyBankNumber('${specificAccount.account_number}', this)" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-100 transition-colors flex items-center gap-1 active:scale-95">
-                    <span>📋</span> Copiar
-                  </button>
-                </div>
-               `;
-           } else if (bankInfoDisplay) {
-               bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay datos para esta cuenta.</p>';
-           }
-        }
+      } else {
+        if (cashCont) cashCont.classList.add('hidden');
+        if (transfCont) transfCont.classList.add('hidden');
       }
     };
 

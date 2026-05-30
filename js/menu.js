@@ -118,52 +118,37 @@ async function loadSettings() {
       }
 
       const bankInfoDisplay = document.getElementById('bankInfoDisplay');
-      const paymentPillsContainer = document.getElementById('paymentPillsContainer');
-      
-      try {
-        let accounts = [];
-        if (data.bank_info && data.bank_info.trim().startsWith('[')) {
-            accounts = JSON.parse(data.bank_info);
-        } else if (data.bank_info) {
-            // legacy text support
-            accounts = [{ bank_name: 'Transferencia', account_type: 'Transferencia', account_number: data.bank_info }];
-        }
-        if (data.nequi_info) {
-            accounts.push({ bank_name: 'Nequi', account_type: 'Billetera Digital', account_number: data.nequi_info });
-        }
-        window.businessAccounts = accounts;
+      if (bankInfoDisplay) {
+        try {
+          let accounts = [];
+          if (data.bank_info && data.bank_info.trim().startsWith('[')) {
+              accounts = JSON.parse(data.bank_info);
+          } else if (data.bank_info) {
+              // legacy text support
+              accounts = [{ bank_name: 'Banco', account_type: 'Transferencia', account_number: data.bank_info }];
+          }
+          if (data.nequi_info) {
+              accounts.push({ bank_name: 'Nequi', account_type: 'Billetera Digital', account_number: data.nequi_info });
+          }
 
-        if (paymentPillsContainer) {
-          let pillsHtml = `
-            <div class="option-pill active" onclick="selectPayment('Efectivo', this)">
-              <span>💵</span>
-              <label>EFECTIVO</label>
-            </div>
-          `;
-          
-          accounts.forEach(acc => {
-            let icon = '🏦';
-            if (acc.bank_name.toLowerCase().includes('nequi')) icon = '📱';
-            else if (acc.bank_name.toLowerCase().includes('daviplata')) icon = '📱';
-            pillsHtml += `
-              <div class="option-pill" onclick="selectPayment('${acc.bank_name}', this)">
-                <span>${icon}</span>
-                <label>${acc.bank_name.toUpperCase()}</label>
-              </div>
-            `;
-          });
-
-          pillsHtml += `
-            <div class="option-pill" onclick="selectPayment('Tarjeta', this)">
-              <span>💳</span>
-              <label>TARJETA</label>
-            </div>
-          `;
-          paymentPillsContainer.innerHTML = pillsHtml;
+          if (accounts.length > 0) {
+              bankInfoDisplay.innerHTML = accounts.map(acc => `
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center">
+                  <div>
+                    <p class="font-bold text-sm text-gray-800">🏦 ${acc.bank_name} <span class="text-xs text-gray-500 font-normal">(${acc.account_type})</span></p>
+                    <p class="text-lg font-black text-pink-600 mt-1" style="user-select: all;">${acc.account_number}</p>
+                  </div>
+                  <button type="button" onclick="copyBankNumber('${acc.account_number}', this)" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-100 transition-colors flex items-center gap-1 active:scale-95">
+                    <span>📋</span> Copiar
+                  </button>
+                </div>
+              `).join('');
+          } else {
+              bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay cuentas bancarias configuradas.</p>';
+          }
+        } catch(e) {
+          bankInfoDisplay.innerHTML = '<p class="text-sm text-gray-500 italic">No hay datos bancarios.</p>';
         }
-
-      } catch(e) {
-        console.warn('Error parsing bank info:', e);
       }
 
       // Populate tables for en-el-local
