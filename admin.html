@@ -223,15 +223,25 @@
       </div>
 
       <!-- TABS -->
-      <nav class="flex bg-white/10 p-1 rounded-2xl backdrop-blur-md">
-        <button onclick="showSection('products', event)"
-          class="nav-tab active px-5 py-2 rounded-xl text-sm font-bold transition-all">Productos</button>
-        <button onclick="showSection('orders', event)"
-          class="nav-tab px-5 py-2 rounded-xl text-sm font-bold transition-all">Pedidos</button>
-        <button onclick="showSection('customers', event)"
-          class="nav-tab px-5 py-2 rounded-xl text-sm font-bold transition-all">Clientes</button>
-        <button onclick="showSection('reports', event)"
-          class="nav-tab px-5 py-2 rounded-xl text-sm font-bold transition-all">Reportes</button>
+      <nav id="adminNavTabs" class="flex bg-white/10 p-1 rounded-2xl backdrop-blur-md flex-wrap gap-1">
+        <button id="tab-products" onclick="showSection('products', event)"
+          class="nav-tab active px-4 py-2 rounded-xl text-xs font-bold transition-all">🍔 Productos</button>
+        <button id="tab-orders" onclick="showSection('orders', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🛒 Pedidos</button>
+        <button id="tab-customers" onclick="showSection('customers', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">👤 Clientes</button>
+        <button id="tab-reports" onclick="showSection('reports', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📊 Reportes</button>
+        <button id="tab-expenses" onclick="showSection('expenses', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💰 Gastos</button>
+        <button id="tab-staff" onclick="showSection('staff', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">👥 Personal</button>
+        <button id="tab-coupons" onclick="showSection('coupons', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🎫 Cupones</button>
+        <button id="tab-credits" onclick="showSection('credits', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💳 Créditos</button>
+        <button id="tab-recipes" onclick="showSection('recipes', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📖 Recetas</button>
       </nav>
 
       <div class="flex items-center gap-2">
@@ -326,6 +336,10 @@
                 <button onclick="addNewCategory()" class="bg-black text-white px-4 rounded-xl font-bold">+</button>
               </div>
             </div>
+            <div class="mt-4 flex items-center gap-2">
+              <input type="checkbox" id="prodFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
+              <label for="prodFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+            </div>
             <input type="file" id="prodImage" accept="image/*" class="input" onchange="previewImage(event)">
             <img id="prodPreview" class="preview">
             <button class="btn btn-primary mt-5" onclick="addProduct(event)">➕ Agregar</button>
@@ -401,11 +415,14 @@
     <!-- SECTION: CLIENTES -->
     <div id="section-customers" class="section-content">
       <div class="card">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
           <h2 class="text-2xl font-black">👤 Directorio de Clientes</h2>
-          <button onclick="deleteSelectedCustomers()"
-            class="btn btn-danger !w-auto !py-2 !px-6 !text-sm flex items-center gap-2">🗑️ Eliminar
-            Seleccionados</button>
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="openImportModal('customers')" class="btn bg-blue-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar CSV</button>
+            <button onclick="openImportModal('products')" class="btn bg-purple-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar Productos CSV</button>
+            <button onclick="deleteSelectedCustomers()"
+              class="btn btn-danger !w-auto !py-2 !px-6 !text-sm flex items-center gap-2">🗑️ Eliminar Seleccionados</button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="admin-table">
@@ -468,7 +485,243 @@
       </div>
     </div>
 
+    <!-- SECTION: GASTOS -->
+    <div id="section-expenses" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 space-y-6">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">💰 Registrar Gasto</h2>
+            <select id="expenseCategory" class="input">
+              <option value="Ingredientes">🧂 Ingredientes</option>
+              <option value="Servicios">💡 Servicios</option>
+              <option value="Personal">👤 Personal</option>
+              <option value="Arriendo">🏠 Arriendo</option>
+              <option value="Transporte">🚚 Transporte</option>
+              <option value="Otro">📦 Otro</option>
+            </select>
+            <input type="text" id="expenseDescription" class="input" placeholder="Descripción del gasto">
+            <input type="number" id="expenseAmount" class="input" placeholder="Monto ($)" min="0">
+            <input type="date" id="expenseDate" class="input">
+            <button class="btn btn-primary mt-4" onclick="addExpense(event)">➕ Registrar Gasto</button>
+          </div>
+          <div class="card bg-red-50 border-red-100">
+            <p class="text-xs font-black text-red-600 uppercase tracking-widest">Gastos del Mes</p>
+            <h3 id="expensesMonthTotal" class="text-3xl font-black mt-2">$0</h3>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-black">📋 Historial de Gastos</h2>
+              <select id="expenseTimeFilter" onchange="loadExpenses()" class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold">
+                <option value="month">Este Mes</option>
+                <option value="week">Esta Semana</option>
+                <option value="all">Todos</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="admin-table"><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Acciones</th></tr></thead>
+                <tbody id="expensesList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Cierre de Caja -->
+      <div class="card mt-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-black">📊 Cierre de Caja</h2>
+          <button onclick="startCashClosing()" class="btn btn-primary !w-auto !px-8">🔒 Iniciar Cierre de Caja</button>
+        </div>
+        <div id="cashClosingResult" class="hidden"></div>
+        <div class="overflow-x-auto mt-4">
+          <table class="admin-table"><thead><tr><th>Fecha</th><th>Esperado</th><th>Declarado</th><th>Diferencia</th><th>Pedidos</th></tr></thead>
+            <tbody id="cashClosingsList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: PERSONAL -->
+    <div id="section-staff" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 space-y-6">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">👥 Agregar Empleado</h2>
+            <input type="text" id="staffName" class="input" placeholder="Nombre completo">
+            <select id="staffRole" class="input">
+              <option value="Administrador">Administrador</option>
+              <option value="Cajero">Cajero</option>
+              <option value="Repartidor">Repartidor</option>
+            </select>
+            <input type="tel" id="staffPhone" class="input" placeholder="Teléfono">
+            <input type="email" id="staffEmail" class="input" placeholder="Email (Usuario para Login)">
+            <input type="password" id="staffPassword" class="input" placeholder="Contraseña">
+            <button class="btn btn-primary mt-4" onclick="addStaff(event)">➕ Agregar Empleado</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Equipo de Trabajo</h2>
+            <div id="staffList" class="space-y-4"></div>
+          </div>
+          <div class="card mt-8">
+            <h2 class="text-2xl font-black mb-6">⏰ Registro de Turnos</h2>
+            <div class="overflow-x-auto">
+              <table class="admin-table"><thead><tr><th>Empleado</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Acciones</th></tr></thead>
+                <tbody id="shiftsList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: CUPONES -->
+    <div id="section-coupons" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">🎫 Crear Cupón</h2>
+            <input type="text" id="couponCode" class="input" placeholder="Código (ej: DESCUENTO20)" oninput="this.value=this.value.toUpperCase()">
+            <select id="couponType" class="input">
+              <option value="percentage">% Porcentaje</option>
+              <option value="fixed">$ Monto Fijo</option>
+            </select>
+            <input type="number" id="couponValue" class="input" placeholder="Valor del descuento" min="0">
+            <input type="number" id="couponMinOrder" class="input" placeholder="Pedido mínimo ($) - Opcional" min="0">
+            <input type="number" id="couponMaxUses" class="input" placeholder="Máximo usos (vacío = ilimitado)" min="1">
+            <input type="date" id="couponValidUntil" class="input">
+            <button class="btn btn-primary mt-4" onclick="createCoupon(event)">🎫 Crear Cupón</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Cupones Activos</h2>
+            <div id="couponsList" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: CRÉDITOS -->
+    <div id="section-credits" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">💳 Nueva Cuenta de Crédito</h2>
+            <input type="text" id="creditName" class="input" placeholder="Nombre del cliente">
+            <input type="tel" id="creditPhone" class="input" placeholder="Teléfono">
+            <input type="number" id="creditLimit" class="input" placeholder="Límite de crédito ($)" min="0">
+            <button class="btn btn-primary mt-4" onclick="createCreditAccount(event)">💳 Crear Cuenta</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Cuentas de Crédito</h2>
+            <div id="creditsList" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: RECETAS -->
+    <div id="section-recipes" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">📖 Nueva Receta</h2>
+            <input type="text" id="recipeName" class="input" placeholder="Nombre de la receta">
+            <select id="recipeProduct" class="input"><option value="">Vincular a producto (opcional)</option></select>
+            <textarea id="recipeInstructions" class="input" placeholder="Instrucciones de preparación..." rows="3"></textarea>
+            <div class="mt-4">
+              <label class="font-bold text-xs text-gray-500 uppercase">Ingredientes</label>
+              <div id="recipeIngredientsForm" class="space-y-2 mt-2">
+                <div class="flex gap-2">
+                  <input type="text" class="input !mt-0 flex-1 ri-name" placeholder="Ingrediente">
+                  <input type="text" class="input !mt-0 w-20 ri-qty" placeholder="Cant.">
+                  <input type="text" class="input !mt-0 w-20 ri-unit" placeholder="Unidad">
+                  <input type="number" class="input !mt-0 w-24 ri-cost" placeholder="Costo" min="0">
+                </div>
+              </div>
+              <button onclick="addIngredientRow()" class="text-sm text-orange-600 font-bold mt-2">+ Agregar ingrediente</button>
+            </div>
+            <button class="btn btn-primary mt-4" onclick="saveRecipe(event)">📖 Guardar Receta</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Recetas Guardadas</h2>
+            <div id="recipesList" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- MODAL: CIERRE DE CAJA -->
+  <div id="cashClosingModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-2">🔒 Cierre de Caja Ciego</h2>
+      <p class="text-sm text-gray-500 mb-6">Ingresa el monto total que tienes en caja. El sistema comparará con las ventas del día.</p>
+      <input type="number" id="declaredCashAmount" class="input" placeholder="Monto declarado ($)" min="0">
+      <textarea id="cashClosingNotes" class="input" placeholder="Notas (opcional)" rows="2"></textarea>
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button class="btn btn-primary" onclick="submitCashClosing()">✅ Confirmar Cierre</button>
+        <button class="btn btn-danger" onclick="document.getElementById('cashClosingModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR PAGO CRÉDITO -->
+  <div id="creditPaymentModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-4">💵 Registrar Abono</h2>
+      <input type="hidden" id="paymentCreditAccountId">
+      <p id="paymentCreditInfo" class="text-sm text-gray-600 mb-4"></p>
+      <input type="number" id="paymentAmount" class="input" placeholder="Monto del abono ($)" min="0">
+      <input type="text" id="paymentNotes" class="input" placeholder="Notas (opcional)">
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button class="btn btn-primary" onclick="submitCreditPayment()">💵 Registrar Abono</button>
+        <button class="btn btn-danger" onclick="document.getElementById('creditPaymentModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DIVIDIR CUENTA -->
+  <div id="splitBillModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-4">✂️ Dividir Cuenta</h2>
+      <input type="hidden" id="splitOrderId">
+      <p id="splitTotal" class="text-lg font-bold text-red-600 mb-4"></p>
+      <div class="flex gap-3 mb-6">
+        <button onclick="splitBill(2)" class="btn bg-gray-100 text-black flex-1">2 personas</button>
+        <button onclick="splitBill(3)" class="btn bg-gray-100 text-black flex-1">3 personas</button>
+        <button onclick="splitBill(4)" class="btn bg-gray-100 text-black flex-1">4 personas</button>
+      </div>
+      <div class="flex gap-3 items-center mb-4">
+        <input type="number" id="customSplitCount" class="input !mt-0" placeholder="Número personas" min="2">
+        <button onclick="splitBill(parseInt(document.getElementById('customSplitCount').value))" class="btn btn-primary !w-auto !px-6">Dividir</button>
+      </div>
+      <div id="splitResult" class="hidden bg-green-50 p-4 rounded-xl mt-4"></div>
+      <button class="btn btn-danger mt-4" onclick="document.getElementById('splitBillModal').style.display='none'">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORTAR CSV -->
+  <div id="importModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-2" id="importModalTitle">📤 Importar</h2>
+      <p class="text-sm text-gray-500 mb-4" id="importModalDesc"></p>
+      <input type="file" id="importFile" accept=".csv" class="input">
+      <div id="importPreview" class="mt-4 max-h-40 overflow-y-auto text-xs"></div>
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button id="btnImportConfirm" class="btn btn-primary" onclick="confirmImport()">✅ Importar</button>
+        <button class="btn btn-danger" onclick="document.getElementById('importModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL DE EDICIÓN -->
   <div id="editModal"
@@ -490,6 +743,10 @@
         <input type="number" id="editAccompanimentsLimit" class="input"
           placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
         <input type="text" id="editCategory" class="input" placeholder="Categoría">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="editFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
+          <label for="editFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+        </div>
         <input type="file" id="editImage" class="input">
         <img id="editPreview" class="preview">
       </div>
@@ -533,9 +790,21 @@
           <p class="font-bold text-gray-500 uppercase text-xs mb-2">Productos</p>
           <div id="detailProducts" class="space-y-2"></div>
         </div>
+        <div id="detailTipRow" class="border-b pb-3 hidden">
+          <p class="font-bold text-gray-500 uppercase text-xs">Propina</p>
+          <p id="detailTip" class="font-semibold text-green-600 mt-1"></p>
+        </div>
+        <div id="detailDiscountRow" class="border-b pb-3 hidden">
+          <p class="font-bold text-gray-500 uppercase text-xs">Descuento</p>
+          <p id="detailDiscount" class="font-semibold text-blue-600 mt-1"></p>
+        </div>
         <div class="border-t pt-4 flex justify-between items-center">
           <p class="font-black text-lg">Total:</p>
           <p id="detailTotal" class="font-black text-2xl text-red-600"></p>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button onclick="openSplitBillModal()" class="btn bg-purple-100 text-purple-700 !text-sm flex-1">✂️ Dividir Cuenta</button>
+          <button onclick="assignDriver()" class="btn bg-blue-100 text-blue-700 !text-sm flex-1">🛵 Asignar Repartidor</button>
         </div>
 
         <div class="border-t pt-4" id="detailTrackingContainer">
@@ -759,7 +1028,10 @@
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="js/supabase-config.js?v=3"></script>
-  <script src="js/admin.js?v=3"></script>
+  <script src="js/admin.js?v=4"></script>
+  <script src="js/admin-expenses.js?v=1"></script>
+  <script src="js/admin-staff.js?v=1"></script>
+  <script src="js/admin-features.js?v=1"></script>
   <script>
     // Registrar Service Worker para PWA
     if ('serviceWorker' in navigator) {

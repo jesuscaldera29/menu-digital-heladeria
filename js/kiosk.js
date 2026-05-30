@@ -1,0 +1,833 @@
+// ===== KIOSK.JS - SELF SERVICE KIOSK =====
+let products = [];
+let cart = {};
+let categories = [];
+let activeCategory = 'Todos';
+let currency = 'COP';
+let currentBusinessId = null;
+let currentBusinessSlug = null;
+let currentCoupon = null;
+let businessName = '';
+
+// Inactivity timer variables
+let inactivityTimer = null;
+let inactivityCountdown = 60;
+const INACTIVITY_TIMEOUT = 60; // 60 seconds of inactivity to reset
+
+// Modal state variables
+let currentSelectedProductId = null;
+let tempSelectedAccompaniments = [];
+let tempSelectedVisualExtras = [];
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-black/95 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl z-[999] opacity-100 transition-all duration-300 transform translate-y-0 text-lg';
+  if (type === 'error') {
+    t.classList.add('bg-red-600');
+  } else {
+    t.classList.remove('bg-red-600');
+  }
+  setTimeout(() => {
+    t.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-black/95 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl z-[999] opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-5 text-lg';
+  }, 3000);
+}
+
+// Reset inactivity timer on any user activity
+function resetInactivityTimer() {
+  // Only activate if we are not on the welcome screen
+  const welcomeScreen = document.getElementById('kioskWelcome');
+  if (welcomeScreen && welcomeScreen.style.display === 'none') {
+    clearInterval(inactivityTimer);
+    inactivityCountdown = INACTIVITY_TIMEOUT;
+    
+    const indicator = document.getElementById('inactivityIndicator');
+    const timerEl = document.getElementById('inactivityTimer');
+    if (indicator) indicator.classList.remove('hidden');
+    if (timerEl) timerEl.textContent = inactivityCountdown;
+
+    inactivityTimer = setInterval(() => {
+      inactivityCountdown--;
+      if (timerEl) timerEl.textContent = inactivityCountdown;
+
+      if (inactivityCountdown <= 0) {
+        clearInterval(inactivityTimer);
+        resetKiosk();
+        showToast('🕒 Pedido cancelado por inactividad');
+      }
+    }, 1000);
+  }
+}
+
+// Listen to user interactions to reset timer
+window.addEventListener('click', resetInactivityTimer);
+window.addEventListener('touchstart', resetInactivityTimer);
+
+// Resolve business
+async function initKioskBusiness() {
+  // 1. Check URL Parameter ?slug=xxx
+  const urlParams = new URLSearchParams(window.location.search);
+  let slug = urlParams.get('slug');
+
+  // 2. Check path slug (e.g. /slug/kiosk.html)
+  if (!slug) {
+    const pathParts = window.location.pathname.split('/');
+    // Check if any path part matches a business slug (exclude known static page names)
+    const exclude = ['', 'index.html', 'admin.html', 'kiosk.html', 'order-status.html'];
+    for (let part of pathParts) {
+      if (part && !exclude.includes(part) && !part.includes('.')) {
+        slug = part;
+        break;
+      }
+    }
+  }
+
+  // 3. Fallback: Check if there's a logged-in business owner
+  if (!slug) {
+    const biz = await getCurrentBusiness();
+    if (biz) {
+      slug = biz.slug;
+    }
+  }
+
+  if (!slug) {
+    document.body.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white font-bold p-8 text-center">
+        <span class="text-6xl mb-4">⚠️</span>
+        <h1 class="text-3xl mb-2">Error de Configuración</h1>
+        <p class="text-gray-400 max-w-md">No se pudo identificar el negocio para este kiosko. Por favor añade el slug del negocio en la URL:</p>
+        <code class="bg-gray-800 text-yellow-400 px-4 py-2 rounded-xl mt-4 text-lg">kiosk.html?slug=nombre-del-negocio</code>
+      </div>
+    `;
+    return false;
+  }
+
+  const business = await getBusinessBySlug(slug);
+  if (!business || !business.is_active) {
+    document.body.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white font-bold p-8 text-center">
+        <span class="text-6xl mb-4">⚠️</span>
+        <h1 class="text-3xl mb-2">Negocio No Encontrado</h1>
+        <p class="text-gray-400">El negocio especificado no existe o está desactivado.</p>
+      </div>
+    `;
+    return false;
+  }
+
+  currentBusinessId = business.id;
+  currentBusinessSlug = business.slug;
+  businessName = business.business_name;
+  return true;
+}
+
+// Load Kiosk settings
+async function loadKioskSettings() {
+  if (!currentBusinessId) return;
+  try {
+    const { data } = await supabaseClient
+      .from('settings')
+      .select('*')
+      .eq('business_id', currentBusinessId)
+      .single();
+
+    if (data) {
+      currency = data.currency || 'COP';
+      
+      // Update names and logos on interface
+      const welcomeName = document.getElementById('kioskWelcomeName');
+      const headerName = document.getElementById('kioskHeaderName');
+      if (welcomeName) welcomeName.textContent = data.business_name || businessName;
+      if (headerName) headerName.textContent = data.business_name || businessName;
+
+      if (data.logo_url) {
+        const welcomeIcon = document.getElementById('kioskWelcomeIcon');
+        const headerIcon = document.getElementById('kioskHeaderIcon');
+        if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-cover">`;
+        if (headerIcon) headerIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-12 h-12 object-cover rounded-full">`;
+      }
+
+      // Populate table dropdown
+      const tableSelect = document.getElementById('kCustomerTable');
+      if (tableSelect && data.table_count) {
+        let options = '<option value="">Selecciona tu Mesa</option>';
+        for (let i = 1; i <= data.table_count; i++) {
+          options += `<option value="${i}">Mesa ${i}</option>`;
+        }
+        tableSelect.innerHTML = options;
+      }
+    }
+  } catch (err) {
+    console.error('Error loading kiosk settings:', err);
+  }
+}
+
+// Load Kiosk products
+async function loadKioskProducts() {
+  if (!currentBusinessId) return;
+  try {
+    const { data } = await supabaseClient
+      .from('products')
+      .select('*')
+      .eq('business_id', currentBusinessId)
+      .eq('available', true)
+      .order('category');
+
+    products = data || [];
+
+    // Load visual extras
+    try {
+      const { data: extrasData } = await supabaseClient
+        .from('product_extras')
+        .select('*')
+        .eq('business_id', currentBusinessId);
+      window.allVisualExtras = extrasData || [];
+    } catch (e) {
+      window.allVisualExtras = [];
+    }
+
+    categories = ['Todos', ...new Set(products.map(p => p.category))].filter(c => c !== 'Acompañantes' && c !== 'Acompañantes del dia');
+    renderKioskCategories();
+    renderKioskProducts();
+  } catch (err) {
+    console.error('Error loading kiosk products:', err);
+  }
+}
+
+// Render categories
+function renderKioskCategories() {
+  const container = document.getElementById('categoriesContainer');
+  if (!container) return;
+  container.innerHTML = categories.map(c => {
+    const emoji = { 'Desayunos': '🍳', 'Almuerzos': '🍲', 'Comidas Rápidas': '🍔', 'Bebidas': '🥤', 'Postres': '🍰' }[c] || '📂';
+    return `<button class="category-tab shrink-0 px-6 py-4 rounded-2xl font-black text-base shadow-sm transition-all flex items-center gap-2 ${c === activeCategory ? 'active' : 'text-gray-600'}" onclick="setKioskCategory('${c}')">
+      <span>${emoji}</span> ${c.toUpperCase()}
+    </button>`;
+  }).join('');
+}
+
+function setKioskCategory(cat) {
+  activeCategory = cat;
+  renderKioskCategories();
+  renderKioskProducts();
+}
+
+// Render products grid
+function renderKioskProducts() {
+  const container = document.getElementById('productsGrid');
+  if (!container) return;
+
+  let filtered = products.filter(p => p.category !== 'Acompañantes' && p.category !== 'Acompañantes del dia' && (activeCategory === 'Todos' || p.category === activeCategory));
+  
+  // Sort featured products first
+  filtered.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="col-span-full py-20 text-center text-gray-400 font-bold">No hay productos en esta categoría</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => `
+    <div class="kiosk-product-card relative flex flex-col h-full border border-gray-100 ${p.is_featured ? 'border-2 border-orange-500/30' : ''}">
+      ${p.is_featured ? `<span class="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-10">🔥 RECOMENDADO</span>` : ''}
+      
+      <div class="h-44 w-full bg-gray-100 relative overflow-hidden flex items-center justify-center">
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover">` : '<span class="text-5xl">🍽️</span>'}
+      </div>
+      
+      <div class="p-6 flex flex-col flex-grow justify-between">
+        <div>
+          <h4 class="text-lg font-black text-gray-900 leading-tight mb-2 line-clamp-2">${p.name}</h4>
+          <p class="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-3">${p.description || 'Delicioso sabor preparado al instante.'}</p>
+        </div>
+        
+        <div class="flex items-center justify-between mt-auto pt-2">
+          <div class="text-xl font-black text-red-600">$${Number(p.price).toLocaleString()}</div>
+          <button onclick="handleProductTap('${p.id}')" class="bg-black text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl active:scale-90 transition-all shadow-md">
+            ＋
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Start Order Flow
+function startOrder() {
+  const welcome = document.getElementById('kioskWelcome');
+  const main = document.getElementById('kioskMain');
+  if (welcome) welcome.style.display = 'none';
+  if (main) main.classList.remove('hidden');
+  
+  cart = {};
+  currentCoupon = null;
+  currentSelectedProductId = null;
+  
+  document.getElementById('kCustomerName').value = '';
+  document.getElementById('kCustomerTable').value = '';
+  document.getElementById('kCouponInput').value = '';
+  const cRes = document.getElementById('kCouponResult');
+  if (cRes) cRes.classList.add('hidden');
+
+  updateKioskCartUI();
+  resetInactivityTimer();
+}
+
+// Reset Kiosk Flow
+function resetKiosk() {
+  clearInterval(inactivityTimer);
+  const welcome = document.getElementById('kioskWelcome');
+  const main = document.getElementById('kioskMain');
+  const indicator = document.getElementById('inactivityIndicator');
+  
+  if (welcome) welcome.style.display = 'flex';
+  if (main) main.classList.add('hidden');
+  if (indicator) indicator.classList.add('hidden');
+  
+  // Hide all modals
+  document.getElementById('accompanimentsModal').classList.add('hidden');
+  document.getElementById('kTicketModal').classList.add('hidden');
+}
+
+// Handle Product selection (check for accompaniments)
+function handleProductTap(prodId) {
+  const p = products.find(x => String(x.id) === String(prodId));
+  if (!p) return;
+
+  const hasAcc = p.accompaniments && p.accompaniments.trim() !== '';
+  const extras = (window.allVisualExtras || []).filter(e => String(e.product_id) === String(p.id));
+  const hasExtras = extras.length > 0;
+
+  if (hasAcc || hasExtras) {
+    openAccompanimentsModal(p, extras);
+  } else {
+    addToCart(p.id);
+  }
+}
+
+// Open Accompaniments Touch Modal
+function openAccompanimentsModal(product, visualExtras) {
+  currentSelectedProductId = product.id;
+  tempSelectedAccompaniments = [];
+  tempSelectedVisualExtras = [];
+
+  document.getElementById('accModalTitle').textContent = product.name;
+  
+  const limit = product.accompaniments_limit || 999;
+  const limitLabel = document.getElementById('accModalLimit');
+  if (limitLabel) {
+    if (product.accompaniments_limit) {
+      limitLabel.textContent = `Elige hasta ${limit} opciones`;
+    } else {
+      limitLabel.textContent = 'Elige tus acompañamientos';
+    }
+  }
+
+  const container = document.getElementById('accModalContent');
+  container.innerHTML = '';
+
+  let html = '';
+
+  // 1. Text accompaniments
+  if (product.accompaniments) {
+    const accList = product.accompaniments.split(',').map(x => x.trim()).filter(Boolean);
+    if (accList.length) {
+      html += `
+      <div>
+        <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Acompañamientos (Máx. ${limit})</h4>
+        <div class="flex flex-wrap gap-2">
+          ${accList.map((acc, index) => `
+            <button onclick="toggleTextAcc('${acc}', this, ${limit})" class="px-5 py-3 border-2 border-gray-100 bg-white font-bold rounded-2xl text-sm text-gray-600 active:scale-95 transition-all text-left">
+              ${acc}
+            </button>
+          `).join('')}
+        </div>
+      </div>`;
+    }
+  }
+
+  // 2. Visual Extras
+  if (visualExtras && visualExtras.length) {
+    html += `
+    <div class="border-t border-gray-100 pt-6">
+      <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Adicionales / Opciones</h4>
+      <div class="grid grid-cols-2 gap-4">
+        ${visualExtras.map(extra => `
+          <div onclick="toggleVisualExtra('${extra.id}', '${extra.name}', ${extra.price || 0}, this)" class="flex items-center gap-3 border-2 border-gray-100 bg-white p-4 rounded-2xl cursor-pointer active:scale-98 transition-all">
+            ${extra.image_url ? `<img src="${extra.image_url}" alt="${extra.name}" class="w-12 h-12 object-cover rounded-xl shrink-0">` : '<div class="w-12 h-12 bg-gray-50 flex items-center justify-center text-xl rounded-xl shrink-0">➕</div>'}
+            <div class="text-left flex-grow">
+              <p class="font-bold text-sm text-gray-800 leading-tight">${extra.name}</p>
+              <p class="font-black text-xs text-red-600 mt-1">${extra.price > 0 ? '+$' + Number(extra.price).toLocaleString() : 'Gratis'}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+  updateAccModalTotal(product.price);
+  
+  // Connect Confirm Button
+  const confirmBtn = document.getElementById('btnConfirmAcc');
+  confirmBtn.onclick = () => {
+    addToCart(product.id, tempSelectedAccompaniments, tempSelectedVisualExtras);
+    closeAccompanimentsModal();
+  };
+
+  document.getElementById('accompanimentsModal').classList.remove('hidden');
+  document.getElementById('accompanimentsModal').classList.add('flex');
+}
+
+function toggleTextAcc(name, el, limit) {
+  const idx = tempSelectedAccompaniments.indexOf(name);
+  if (idx > -1) {
+    tempSelectedAccompaniments.splice(idx, 1);
+    el.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
+    el.classList.add('border-gray-100', 'bg-white', 'text-gray-600');
+  } else {
+    if (tempSelectedAccompaniments.length >= limit) {
+      return showToast(`⚠️ Solo puedes elegir hasta ${limit} opciones`, 'error');
+    }
+    tempSelectedAccompaniments.push(name);
+    el.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600');
+    el.classList.remove('border-gray-100', 'bg-white', 'text-gray-600');
+  }
+}
+
+function toggleVisualExtra(id, name, price, el) {
+  const existingIdx = tempSelectedVisualExtras.findIndex(x => x.id === id);
+  if (existingIdx > -1) {
+    tempSelectedVisualExtras.splice(existingIdx, 1);
+    el.classList.remove('border-orange-500', 'bg-orange-50');
+  } else {
+    tempSelectedVisualExtras.push({ id, name, price });
+    el.classList.add('border-orange-500', 'bg-orange-50');
+  }
+
+  // Update Modal Total
+  const p = products.find(x => String(x.id) === String(currentSelectedProductId));
+  if (p) {
+    updateAccModalTotal(p.price);
+  }
+}
+
+function updateAccModalTotal(basePrice) {
+  let extraTotal = basePrice;
+  tempSelectedVisualExtras.forEach(e => {
+    extraTotal += Number(e.price || 0);
+  });
+  document.getElementById('accModalTotal').textContent = `$${extraTotal.toLocaleString()}`;
+}
+
+function closeAccompanimentsModal() {
+  document.getElementById('accompanimentsModal').classList.add('hidden');
+  document.getElementById('accompanimentsModal').classList.remove('flex');
+}
+
+// Add to Cart
+function addToCart(id, accompaniments = [], visualExtras = []) {
+  const accKey = accompaniments.length ? accompaniments.join(',') : '';
+  const veKey = visualExtras.length ? visualExtras.map(v => v.id).sort().join(',') : '';
+  const key = `${id}_${accKey}_${veKey}`;
+  
+  if (cart[key]) {
+    cart[key].qty++;
+  } else {
+    cart[key] = { id, qty: 1, accompaniments, visualExtras };
+  }
+  
+  updateKioskCartUI();
+  showToast('✅ Agregado al carrito');
+}
+
+// Change Quantity in Cart
+function updateQty(key, delta) {
+  if (!cart[key]) return;
+  cart[key].qty += delta;
+  if (cart[key].qty <= 0) {
+    delete cart[key];
+  }
+  updateKioskCartUI();
+}
+
+// Update Cart View
+function updateKioskCartUI() {
+  const container = document.getElementById('cartList');
+  const badge = document.getElementById('cartCountBadge');
+  const form = document.getElementById('kioskForm');
+  
+  if (!container) return;
+
+  const cartKeys = Object.keys(cart);
+  let totalQty = 0;
+  let subtotal = 0;
+
+  if (cartKeys.length === 0) {
+    container.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center text-gray-400 font-bold py-20 text-center">
+        <span class="text-6xl mb-4">🛒</span>
+        <p class="text-lg">Tu carrito está vacío</p>
+        <p class="text-xs font-normal text-gray-400 mt-1">Selecciona productos a la izquierda para agregarlos.</p>
+      </div>`;
+    if (badge) badge.textContent = '0 items';
+    if (form) form.classList.add('hidden');
+    
+    document.getElementById('kCartSubtotal').textContent = '$0';
+    document.getElementById('kCartTotal').textContent = '$0';
+    document.getElementById('kDiscountRow').classList.add('hidden');
+    return;
+  }
+
+  if (form) form.classList.remove('hidden');
+
+  let html = '';
+  for (const key of cartKeys) {
+    const item = cart[key];
+    const p = products.find(x => String(x.id) === String(item.id));
+    if (!p) continue;
+
+    totalQty += item.qty;
+    let extrasPrice = 0;
+    item.visualExtras.forEach(ve => { extrasPrice += Number(ve.price || 0); });
+    const itemPrice = p.price + extrasPrice;
+    subtotal += itemPrice * item.qty;
+
+    let allAcc = [...(item.accompaniments || [])];
+    item.visualExtras.forEach(ve => allAcc.push(ve.price > 0 ? `${ve.name} (+$${Number(ve.price).toLocaleString()})` : ve.name));
+
+    html += `
+      <div class="flex items-start justify-between border-b border-gray-100 pb-4">
+        <div class="flex-grow pr-4 text-left">
+          <p class="font-black text-gray-800 leading-snug">${p.name}</p>
+          ${allAcc.length ? `<p class="text-xs text-gray-400 mt-1 font-medium leading-relaxed">${allAcc.join(', ')}</p>` : ''}
+          <p class="font-black text-sm text-red-600 mt-1">$${(itemPrice * item.qty).toLocaleString()}</p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <button onclick="updateQty('${key}', -1)" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center active:scale-90 transition-all">-</button>
+          <span class="font-black text-sm text-gray-800">${item.qty}</span>
+          <button onclick="updateQty('${key}', 1)" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center active:scale-90 transition-all">+</button>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+  if (badge) badge.textContent = `${totalQty} ${totalQty === 1 ? 'item' : 'items'}`;
+
+  // Apply Coupon Discount if Valid
+  let discount = 0;
+  if (currentCoupon) {
+    if (subtotal >= (currentCoupon.min_order || 0)) {
+      if (currentCoupon.discount_type === 'percentage') {
+        discount = subtotal * (Number(currentCoupon.discount_value) / 100);
+      } else {
+        discount = Number(currentCoupon.discount_value);
+      }
+    } else {
+      const minVal = currentCoupon.min_order;
+      currentCoupon = null;
+      const res = document.getElementById('kCouponResult');
+      if (res) {
+        res.textContent = `⚠️ Compra mínima de $${Number(minVal).toLocaleString()} requerida`;
+        res.className = 'text-xs font-bold text-red-500 block px-2';
+      }
+    }
+  }
+
+  let total = subtotal - discount;
+  if (total < 0) total = 0;
+
+  document.getElementById('kCartSubtotal').textContent = `$${subtotal.toLocaleString()}`;
+  document.getElementById('kCartTotal').textContent = `$${total.toLocaleString()}`;
+
+  const discRow = document.getElementById('kDiscountRow');
+  if (discount > 0) {
+    discRow.classList.remove('hidden');
+    document.getElementById('kCartDiscount').textContent = `-$${discount.toLocaleString()}`;
+  } else {
+    discRow.classList.add('hidden');
+  }
+}
+
+// Delivery pill toggle
+function setDelivery(type, btn) {
+  document.getElementById('kDeliveryMethod').value = type;
+  document.querySelectorAll('.k-deliv-btn').forEach(b => {
+    b.classList.remove('active', 'border-orange-500', 'bg-orange-50', 'text-orange-600');
+    b.classList.add('border-gray-200', 'bg-white', 'text-gray-600');
+  });
+  btn.classList.add('active', 'border-orange-500', 'bg-orange-50', 'text-orange-600');
+  btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-600');
+
+  const container = document.getElementById('kTableContainer');
+  if (type === 'Para Consumir Aquí') {
+    container.classList.remove('hidden');
+  } else {
+    container.classList.add('hidden');
+  }
+}
+
+// Coupon validation
+async function kApplyCoupon() {
+  const input = document.getElementById('kCouponInput');
+  const result = document.getElementById('kCouponResult');
+  if (!input || !result) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    result.classList.add('hidden');
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('coupons')
+      .select('*')
+      .eq('business_id', currentBusinessId)
+      .eq('code', code)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      currentCoupon = null;
+      result.textContent = '❌ Cupón no válido o vencido';
+      result.className = 'text-xs font-bold text-red-500 block px-2';
+      result.classList.remove('hidden');
+      updateKioskCartUI();
+      return;
+    }
+
+    // Date validations
+    const now = new Date();
+    if (data.valid_from && new Date(data.valid_from) > now) {
+      currentCoupon = null;
+      result.textContent = '❌ Cupón inactivo';
+      result.className = 'text-xs font-bold text-red-500 block px-2';
+      result.classList.remove('hidden');
+      updateKioskCartUI();
+      return;
+    }
+    if (data.valid_until && new Date(data.valid_until) < now) {
+      currentCoupon = null;
+      result.textContent = '❌ Cupón vencido';
+      result.className = 'text-xs font-bold text-red-500 block px-2';
+      result.classList.remove('hidden');
+      updateKioskCartUI();
+      return;
+    }
+
+    // Limit validations
+    if (data.max_uses && data.used_count >= data.max_uses) {
+      currentCoupon = null;
+      result.textContent = '❌ Cupón agotado';
+      result.className = 'text-xs font-bold text-red-500 block px-2';
+      result.classList.remove('hidden');
+      updateKioskCartUI();
+      return;
+    }
+
+    // Calculate subtotal to validate min order
+    let subtotal = 0;
+    for (const key of Object.keys(cart)) {
+      const item = cart[key];
+      const p = products.find(x => String(x.id) === String(item.id));
+      if (p) {
+        let ext = 0;
+        item.visualExtras.forEach(e => { ext += Number(e.price || 0); });
+        subtotal += (p.price + ext) * item.qty;
+      }
+    }
+
+    if (subtotal < (data.min_order || 0)) {
+      currentCoupon = null;
+      result.textContent = `⚠️ Compra mínima: $${Number(data.min_order).toLocaleString()}`;
+      result.className = 'text-xs font-bold text-orange-500 block px-2';
+      result.classList.remove('hidden');
+      updateKioskCartUI();
+      return;
+    }
+
+    currentCoupon = data;
+    result.textContent = `✅ Cupón: -${data.discount_type === 'percentage' ? data.discount_value + '%' : '$' + Number(data.discount_value).toLocaleString()}`;
+    result.className = 'text-xs font-bold text-green-600 block px-2';
+    result.classList.remove('hidden');
+    updateKioskCartUI();
+    showToast('🎟&nbsp;Cupón aplicado');
+  } catch (err) {
+    console.error(err);
+    currentCoupon = null;
+    result.textContent = '❌ Error al aplicar cupón';
+    result.className = 'text-xs font-bold text-red-500 block px-2';
+    result.classList.remove('hidden');
+    updateKioskCartUI();
+  }
+}
+
+// Process checkout in Kiosk
+async function kProcessOrder() {
+  const keys = Object.keys(cart);
+  if (!keys.length) return showToast('Agrega productos al carrito', 'error');
+
+  const name = document.getElementById('kCustomerName').value.trim();
+  const delivery = document.getElementById('kDeliveryMethod').value;
+  let finalAddress = '';
+  let mesaSelectValue = '';
+
+  if (delivery === 'Para Consumir Aquí') {
+    mesaSelectValue = document.getElementById('kCustomerTable').value;
+    if (!mesaSelectValue) return showToast('⚠️ Selecciona tu mesa', 'error');
+    finalAddress = 'Mesa ' + mesaSelectValue;
+  } else {
+    finalAddress = 'Llevar / Kiosko';
+  }
+
+  if (!name) return showToast('⚠️ Ingresa tu nombre', 'error');
+
+  const btn = document.getElementById('btnKProcess');
+  const origText = btn.innerHTML;
+  btn.innerHTML = '⏳ ENVIANDO...';
+  btn.disabled = true;
+
+  try {
+    let subtotal = 0;
+    const orderItems = [];
+
+    for (const key of keys) {
+      const item = cart[key];
+      const p = products.find(x => String(x.id) === String(item.id));
+      if (!p) continue;
+
+      let extrasPrice = 0;
+      let allAcc = [...(item.accompaniments || [])];
+      item.visualExtras.forEach(ve => {
+        extrasPrice += Number(ve.price || 0);
+        allAcc.push(ve.price > 0 ? `${ve.name} (+$${Number(ve.price).toLocaleString()})` : ve.name);
+      });
+
+      const itemPrice = p.price + extrasPrice;
+      subtotal += itemPrice * item.qty;
+
+      const displayName = allAcc.length 
+        ? `${p.name} (Acompañamientos: ${allAcc.join(', ')})`
+        : p.name;
+      
+      orderItems.push({ id: p.id, name: displayName, qty: item.qty, price: itemPrice });
+    }
+
+    let discount = 0;
+    if (currentCoupon && subtotal >= (currentCoupon.min_order || 0)) {
+      if (currentCoupon.discount_type === 'percentage') {
+        discount = subtotal * (Number(currentCoupon.discount_value) / 100);
+      } else {
+        discount = Number(currentCoupon.discount_value);
+      }
+    }
+
+    let total = subtotal - discount;
+    if (total < 0) total = 0;
+
+    // Delivery method in DB translated to support existing filters: 'A la mesa' or 'Para Llevar'
+    const dbDeliveryMethod = (delivery === 'Para Consumir Aquí') ? 'A la mesa' : 'Para Llevar';
+
+    // Insert order in DB (payment defaults to 'Efectivo' since kiosk users pay at register)
+    const { data: order, error } = await supabaseClient
+      .from('orders')
+      .insert([{
+        customer_name: name,
+        customer_phone: '0000000000', // Dummy phone for kiosk
+        items: orderItems,
+        total,
+        delivery_method: dbDeliveryMethod,
+        payment_method: 'Efectivo', // Default cashier payment
+        address: finalAddress,
+        notes: 'Pedido realizado desde Kiosko Auto-Servicio',
+        business_id: currentBusinessId,
+        discount,
+        coupon_code: currentCoupon ? currentCoupon.code : ''
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Increment coupon uses
+    if (currentCoupon) {
+      try {
+        await supabaseClient
+          .from('coupons')
+          .update({ used_count: (currentCoupon.used_count || 0) + 1 })
+          .eq('id', currentCoupon.id);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    // Stop inactivity timer while showing success ticket
+    clearInterval(inactivityTimer);
+
+    // Render Ticket modal
+    document.getElementById('kTModalOrderId').textContent = `#${String(order.id).padStart(4, '0')}`;
+    document.getElementById('kTRecName').textContent = order.customer_name;
+    
+    const tableRow = document.getElementById('kTRecTableSelect');
+    if (delivery === 'Para Consumir Aquí') {
+      tableRow.classList.remove('hidden');
+      document.getElementById('kTRecTable').textContent = mesaSelectValue;
+    } else {
+      tableRow.classList.add('hidden');
+    }
+
+    document.getElementById('kTRecTotal').textContent = `$${Number(order.total).toLocaleString()}`;
+    
+    // Show ticket modal
+    document.getElementById('kTicketModal').classList.remove('hidden');
+    document.getElementById('kTicketModal').classList.add('flex');
+
+    // 15 seconds countdown before auto-restart
+    let countdown = 15;
+    const cdEl = document.getElementById('kTCountdown');
+    if (cdEl) cdEl.textContent = countdown;
+    
+    const cdTimer = setInterval(() => {
+      countdown--;
+      if (cdEl) cdEl.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(cdTimer);
+        resetKiosk();
+      }
+    }, 1000);
+
+    // Save timer reference on window so it can be cleared if clicked manually
+    window.kioskSuccessTimer = cdTimer;
+
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error al procesar tu pedido', 'error');
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  }
+}
+
+// Override resetKiosk to clear the success timer if clicked manually
+const originalResetKiosk = resetKiosk;
+resetKiosk = function() {
+  if (window.kioskSuccessTimer) {
+    clearInterval(window.kioskSuccessTimer);
+    window.kioskSuccessTimer = null;
+  }
+  originalResetKiosk();
+};
+
+// Initialize Kiosk
+(async function init() {
+  const ok = await initKioskBusiness();
+  if (!ok) return;
+
+  const loading = document.getElementById('loadingBizScreen');
+  if (loading) loading.style.display = 'none';
+
+  await loadKioskSettings();
+  await loadKioskProducts();
+})();

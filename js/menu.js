@@ -7,6 +7,8 @@ let whatsappNumber = '';
 let currency = 'COP';
 let currentBusinessId = null;
 let currentBusinessSlug = null;
+let currentTipPercentage = 0;
+let currentCoupon = null;
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -264,7 +266,7 @@ function removeFromCart(key) {
 }
 
 function updateCartUI() {
-  let total = 0;
+  let subtotal = 0;
   for (const [key, item] of Object.entries(cart)) {
     const p = products.find(x => String(x.id) === String(item.id));
     if (p) {
@@ -272,14 +274,180 @@ function updateCartUI() {
         if (item.visualExtras && item.visualExtras.length) {
             item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
         }
-        total += (p.price + extrasTotal) * item.qty;
+        subtotal += (p.price + extrasTotal) * item.qty;
     }
   }
+
+  let discount = 0;
+  if (currentCoupon) {
+    if (subtotal >= (currentCoupon.min_order || 0)) {
+      if (currentCoupon.discount_type === 'percentage') {
+        discount = subtotal * (Number(currentCoupon.discount_value) / 100);
+      } else {
+        discount = Number(currentCoupon.discount_value);
+      }
+    } else {
+      const minVal = currentCoupon.min_order;
+      currentCoupon = null;
+      const res = document.getElementById('couponResult');
+      if (res) {
+        res.textContent = `⚠️ Compra mínima de $${Number(minVal).toLocaleString()} requerida`;
+        res.className = 'text-xs font-bold text-red-500 block px-2';
+      }
+    }
+  }
+
+  let tip = subtotal * (currentTipPercentage / 100);
+  let total = subtotal - discount + tip;
+  if (total < 0) total = 0;
+
   const cartTotal = document.getElementById('cartTotal');
   const cartTotalBottom = document.getElementById('cartTotalBottom');
   if (cartTotal) cartTotal.textContent = total.toLocaleString();
   if (cartTotalBottom) cartTotalBottom.textContent = total.toLocaleString();
+
+  // Update Checkout Summary breakdown if visible
+  const breakdown = document.getElementById('checkoutSummaryBreakdown');
+  if (breakdown) {
+    if (discount > 0 || tip > 0) {
+      breakdown.classList.remove('hidden');
+      document.getElementById('summarySubtotal').textContent = `$${subtotal.toLocaleString()}`;
+      
+      const discRow = document.getElementById('summaryDiscountRow');
+      const discVal = document.getElementById('summaryDiscount');
+      if (discount > 0) {
+        discRow.classList.remove('hidden');
+        discVal.textContent = `-$${discount.toLocaleString()}`;
+      } else {
+        discRow.classList.add('hidden');
+      }
+
+      const tipRow = document.getElementById('summaryTipRow');
+      const tipVal = document.getElementById('summaryTip');
+      if (tip > 0) {
+        tipRow.classList.remove('hidden');
+        tipVal.textContent = `+$${tip.toLocaleString()}`;
+      } else {
+        tipRow.classList.add('hidden');
+      }
+
+      document.getElementById('summaryTotal').textContent = `$${total.toLocaleString()}`;
+    } else {
+      breakdown.classList.add('hidden');
+    }
+  }
 }
+
+async function applyCoupon() {
+  const codeInput = document.getElementById('couponCodeInput');
+  const resultDiv = document.getElementById('couponResult');
+  if (!codeInput || !resultDiv) return;
+
+  const code = codeInput.value.trim().toUpperCase();
+  if (!code) {
+    resultDiv.classList.add('hidden');
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('coupons')
+      .select('*')
+      .eq('business_id', currentBusinessId)
+      .eq('code', code)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      currentCoupon = null;
+      resultDiv.textContent = '❌ Cupón no válido o vencido';
+      resultDiv.className = 'text-xs font-bold text-red-500 block px-2';
+      resultDiv.classList.remove('hidden');
+      updateCartUI();
+      return;
+    }
+
+    // Validate dates
+    const now = new Date();
+    if (data.valid_from && new Date(data.valid_from) > now) {
+      currentCoupon = null;
+      resultDiv.textContent = '❌ Cupón aún no está activo';
+      resultDiv.className = 'text-xs font-bold text-red-500 block px-2';
+      resultDiv.classList.remove('hidden');
+      updateCartUI();
+      return;
+    }
+    if (data.valid_until && new Date(data.valid_until) < now) {
+      currentCoupon = null;
+      resultDiv.textContent = '❌ Cupón vencido';
+      resultDiv.className = 'text-xs font-bold text-red-500 block px-2';
+      resultDiv.classList.remove('hidden');
+      updateCartUI();
+      return;
+    }
+
+    // Validate uses
+    if (data.max_uses && data.used_count >= data.max_uses) {
+      currentCoupon = null;
+      resultDiv.textContent = '❌ Cupón agotado';
+      resultDiv.className = 'text-xs font-bold text-red-500 block px-2';
+      resultDiv.classList.remove('hidden');
+      updateCartUI();
+      return;
+    }
+
+    // Validate min order
+    let subtotal = 0;
+    for (const [key, item] of Object.entries(cart)) {
+      const p = products.find(x => String(x.id) === String(item.id));
+      if (p) {
+        let extrasTotal = 0;
+        if (item.visualExtras && item.visualExtras.length) {
+          item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
+        }
+        subtotal += (p.price + extrasTotal) * item.qty;
+      }
+    }
+
+    if (subtotal < (data.min_order || 0)) {
+      currentCoupon = null;
+      resultDiv.textContent = `⚠️ Compra mínima requerida: $${Number(data.min_order).toLocaleString()}`;
+      resultDiv.className = 'text-xs font-bold text-orange-500 block px-2';
+      resultDiv.classList.remove('hidden');
+      updateCartUI();
+      return;
+    }
+
+    currentCoupon = data;
+    resultDiv.textContent = `✅ Cupón aplicado: -${data.discount_type === 'percentage' ? data.discount_value + '%' : '$' + Number(data.discount_value).toLocaleString()}`;
+    resultDiv.className = 'text-xs font-bold text-green-600 block px-2';
+    resultDiv.classList.remove('hidden');
+    updateCartUI();
+    showToast('🎟️ Cupón aplicado exitosamente');
+  } catch (err) {
+    console.error(err);
+    currentCoupon = null;
+    resultDiv.textContent = '❌ Error al aplicar cupón';
+    resultDiv.className = 'text-xs font-bold text-red-500 block px-2';
+    resultDiv.classList.remove('hidden');
+    updateCartUI();
+  }
+}
+
+function setTip(percentage, el) {
+  currentTipPercentage = percentage;
+  document.querySelectorAll('.tip-btn').forEach(btn => {
+    btn.classList.remove('active', 'bg-black', 'text-white', 'border-black');
+    btn.classList.add('bg-white', 'text-gray-600', 'border-gray-100');
+  });
+  el.classList.add('active', 'bg-black', 'text-white', 'border-black');
+  el.classList.remove('bg-white', 'text-gray-600', 'border-gray-100');
+  
+  updateCartUI();
+}
+
+window.applyCoupon = applyCoupon;
+window.setTip = setTip;
 
 function toggleOrderDetails() {
   if (!Object.keys(cart).length) return showToast('Agrega productos al carrito primero', 'error');
@@ -332,12 +500,16 @@ async function processOrder() {
 
   let finalAddress = '';
   if (delivery === 'Domicilio') {
-    finalAddress = document.getElementById('customerAddress')?.value.trim();
-    if (!finalAddress) return showToast('⚠️ Por favor ingresa tu dirección', 'error');
-  } else {
+    const address = document.getElementById('customerAddress')?.value.trim();
+    const neighborhood = document.getElementById('customerNeighborhood')?.value.trim();
+    if (!address) return showToast('⚠️ Por favor ingresa tu dirección', 'error');
+    finalAddress = address + (neighborhood ? ` (Barrio: ${neighborhood})` : '');
+  } else if (delivery === 'A la mesa') {
     const table = document.getElementById('customerTable')?.value;
     if (!table) return showToast('⚠️ Por favor selecciona tu mesa', 'error');
     finalAddress = 'Mesa ' + table;
+  } else {
+    finalAddress = 'Recoge en local';
   }
 
   if (!name) return showToast('⚠️ Por favor ingresa tu nombre', 'error');
@@ -355,7 +527,7 @@ async function processOrder() {
       business_id: currentBusinessId
     }, { onConflict: 'phone' });
 
-    let total = 0;
+    let subtotal = 0;
     const orderItems = [];
     for (const [key, item] of Object.entries(cart)) {
       const p = products.find(x => String(x.id) === String(item.id));
@@ -371,13 +543,26 @@ async function processOrder() {
       }
       
       let itemPrice = p.price + extrasTotal;
-      total += itemPrice * item.qty;
+      subtotal += itemPrice * item.qty;
       
       const displayName = allAcc.length 
         ? `${p.name} (Acompañamientos: ${allAcc.join(', ')})`
         : p.name;
       orderItems.push({ id: p.id, name: displayName, qty: item.qty, price: itemPrice });
     }
+
+    let discount = 0;
+    if (currentCoupon && subtotal >= (currentCoupon.min_order || 0)) {
+      if (currentCoupon.discount_type === 'percentage') {
+        discount = subtotal * (Number(currentCoupon.discount_value) / 100);
+      } else {
+        discount = Number(currentCoupon.discount_value);
+      }
+    }
+    
+    let tip = subtotal * (currentTipPercentage / 100);
+    let total = subtotal - discount + tip;
+    if (total < 0) total = 0;
 
     const { data: order, error: orderErr } = await supabaseClient.from('orders').insert([{
       customer_phone: phone,
@@ -388,10 +573,25 @@ async function processOrder() {
       payment_method: payment,
       address: finalAddress,
       notes,
-      business_id: currentBusinessId
+      business_id: currentBusinessId,
+      tip,
+      coupon_code: currentCoupon ? currentCoupon.code : '',
+      discount
     }]).select().single();
 
     if (orderErr) throw orderErr;
+
+    // Attempt updating coupon count (ignore RLS error if any)
+    if (currentCoupon) {
+      try {
+        await supabaseClient
+          .from('coupons')
+          .update({ used_count: (currentCoupon.used_count || 0) + 1 })
+          .eq('id', currentCoupon.id);
+      } catch (couponErr) {
+        console.warn('Could not update coupon usage count:', couponErr);
+      }
+    }
 
     window.currentOrderData = { order, items: orderItems };
     showTicket(order, orderItems);
@@ -415,10 +615,12 @@ function showTicket(order, items) {
 
   const addressRow = document.getElementById('tAddressRow');
   const addressEl = document.getElementById('tAddress');
-  if (order.delivery_method === 'En el Local') {
+  if (order.delivery_method === 'A la mesa') {
     addressRow.style.display = 'flex';
     addressRow.querySelector('span').textContent = 'Ubicación:';
     addressEl.textContent = order.address;
+  } else if (order.delivery_method === 'Para Llevar') {
+    addressRow.style.display = 'none';
   } else {
     addressRow.style.display = 'flex';
     addressRow.querySelector('span').textContent = 'Dirección:';
@@ -433,7 +635,34 @@ function showTicket(order, items) {
       <span>$${(item.price * item.qty).toLocaleString()}</span>
     </div>
   `).join('');
-  document.getElementById('tTotal').textContent = `$${Number(order.total).toLocaleString()}`;
+
+  // Subtotal, Discount, Tip Breakdown in Ticket
+  const discount = Number(order.discount || 0);
+  const tip = Number(order.tip || 0);
+  const total = Number(order.total || 0);
+  const subtotal = total + discount - tip;
+
+  document.getElementById('tSubtotal').textContent = `$${subtotal.toLocaleString()}`;
+
+  const discRow = document.getElementById('tDiscountRow');
+  const discVal = document.getElementById('tDiscount');
+  if (discount > 0) {
+    discRow.classList.remove('hidden');
+    discVal.textContent = `-$${discount.toLocaleString()}`;
+  } else {
+    discRow.classList.add('hidden');
+  }
+
+  const tipRow = document.getElementById('tTipRow');
+  const tipVal = document.getElementById('tTip');
+  if (tip > 0) {
+    tipRow.classList.remove('hidden');
+    tipVal.textContent = `+$${tip.toLocaleString()}`;
+  } else {
+    tipRow.classList.add('hidden');
+  }
+
+  document.getElementById('tTotal').textContent = `$${total.toLocaleString()}`;
 
   // Tracking link uses slug-based path
   const basePath = window.location.origin;
@@ -452,10 +681,22 @@ function sendTicketWhatsApp() {
   for (const item of items) {
     msg += `▪️ ${item.name} x${item.qty} — $${(item.price * item.qty).toLocaleString()}\n`;
   }
-  msg += `\n💰 *TOTAL: $${Number(order.total).toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+
+  const discount = Number(order.discount || 0);
+  const tip = Number(order.tip || 0);
+  const total = Number(order.total || 0);
+  const subtotal = total + discount - tip;
+
+  msg += `\n━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
+  if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cupón'}): -$${discount.toLocaleString()}\n`;
+  if (tip > 0) msg += `Propina: +$${tip.toLocaleString()}\n`;
+  msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+
   msg += `👤 *CLIENTE:* ${order.customer_name}\n📞 *TELÉFONO:* ${order.customer_phone}\n📦 *TIPO:* ${order.delivery_method}\n💳 *PAGO:* ${order.payment_method}\n`;
   if (order.delivery_method === 'Domicilio') msg += `📍 *DIRECCIÓN:* ${order.address}\n`;
-  else msg += `🪑 *UBICACIÓN:* ${order.address}\n`;
+  else if (order.delivery_method === 'A la mesa') msg += `🪑 *UBICACIÓN:* ${order.address}\n`;
+  else msg += `🛍️ *UBICACIÓN:* Recoge en local\n`;
   if (order.notes) msg += `📝 *NOTAS:* ${order.notes}\n`;
 
   const trackingUrl = window.location.origin + '/order-status.html?id=' + order.id;

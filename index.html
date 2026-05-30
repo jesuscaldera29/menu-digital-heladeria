@@ -301,9 +301,13 @@
                 <span>🛵</span>
                 <label>DOMICILIO</label>
               </div>
-              <div class="option-pill" onclick="selectDelivery('En el Local', this)">
-                <span>🏠</span>
-                <label>EN EL LOCAL</label>
+              <div class="option-pill" onclick="selectDelivery('A la mesa', this)">
+                <span>🍽️</span>
+                <label>A LA MESA</label>
+              </div>
+              <div class="option-pill" onclick="selectDelivery('Para Llevar', this)">
+                <span>🛍️</span>
+                <label>PARA LLEVAR</label>
               </div>
             </div>
             <input type="hidden" id="deliveryMethod" value="Domicilio">
@@ -318,9 +322,10 @@
             <input type="text" id="customerName" placeholder="👤 Nombre completo" class="form-input" />
             <input type="tel" id="customerPhone" placeholder="📞 WhatsApp / Celular" class="form-input" />
 
-            <!-- Este campo se oculta si es en el local -->
-            <div id="addressContainer">
+            <!-- Este campo se oculta si no es domicilio -->
+            <div id="addressContainer" class="space-y-4">
               <input type="text" id="customerAddress" placeholder="📍 Dirección de entrega" class="form-input" />
+              <input type="text" id="customerNeighborhood" placeholder="🏘️ Barrio (Opcional)" class="form-input" />
             </div>
 
             <!-- Este campo se muestra solo si es en el local -->
@@ -356,6 +361,39 @@
               </div>
             </div>
             <input type="hidden" id="paymentMethod" value="Efectivo">
+          </div>
+
+          <!-- EXTRAS: CUPONES Y PROPINAS -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-1.5 h-4 bg-black rounded-full"></span>
+              <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase">Extras (Opcional)</h3>
+            </div>
+            <!-- Cupón -->
+            <div class="flex gap-2">
+              <input type="text" id="couponCodeInput" placeholder="🎟️ ¿Tienes un cupón?" class="form-input flex-1" oninput="this.value=this.value.toUpperCase()">
+              <button onclick="applyCoupon()" class="bg-black text-white px-4 rounded-xl font-bold active:scale-95 transition-all text-sm">Aplicar</button>
+            </div>
+            <div id="couponResult" class="text-xs font-bold hidden px-2"></div>
+
+            <!-- Propina -->
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-bold text-gray-600">💖 ¿Deseas agregar propina?</label>
+              <div class="flex gap-2">
+                <button onclick="setTip(0, this)" class="tip-btn active flex-1 py-2 rounded-xl border-2 border-black font-bold text-sm bg-black text-white transition-all">No</button>
+                <button onclick="setTip(5, this)" class="tip-btn flex-1 py-2 rounded-xl border-2 border-gray-100 font-bold text-sm bg-white text-gray-600 transition-all">5%</button>
+                <button onclick="setTip(10, this)" class="tip-btn flex-1 py-2 rounded-xl border-2 border-gray-100 font-bold text-sm bg-white text-gray-600 transition-all">10%</button>
+                <button onclick="setTip(15, this)" class="tip-btn flex-1 py-2 rounded-xl border-2 border-gray-100 font-bold text-sm bg-white text-gray-600 transition-all">15%</button>
+              </div>
+              <input type="hidden" id="tipPercentage" value="0">
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-sm hidden" id="checkoutSummaryBreakdown">
+               <div class="flex justify-between text-gray-500 mb-1"><span>Subtotal:</span> <span id="summarySubtotal">$0</span></div>
+               <div class="flex justify-between text-blue-600 mb-1 hidden" id="summaryDiscountRow"><span>Descuento:</span> <span id="summaryDiscount">-$0</span></div>
+               <div class="flex justify-between text-green-600 mb-1 hidden" id="summaryTipRow"><span>Propina:</span> <span id="summaryTip">+$0</span></div>
+               <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between font-black text-lg"><span>Total:</span> <span id="summaryTotal" class="text-red-600">$0</span></div>
+            </div>
           </div>
 
           <button id="btnProcessOrder" onclick="processOrder()"
@@ -394,9 +432,15 @@
           </div>
         </div>
 
-        <div class="border-t border-b border-dashed border-gray-300 py-4 mb-6">
+        <div class="border-t border-b border-dashed border-gray-300 py-4 mb-4">
           <h3 class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Tus Productos</h3>
           <div id="tItems" class="space-y-2 text-sm font-medium"></div>
+        </div>
+
+        <div class="space-y-1 mb-4 text-sm font-medium">
+          <div class="flex justify-between text-gray-500"><span>Subtotal</span> <span id="tSubtotal"></span></div>
+          <div id="tDiscountRow" class="flex justify-between text-blue-600 hidden"><span>Descuento</span> <span id="tDiscount"></span></div>
+          <div id="tTipRow" class="flex justify-between text-green-600 hidden"><span>Propina</span> <span id="tTip"></span></div>
         </div>
 
         <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
@@ -487,19 +531,22 @@
   <script>
     // SELECCIÓN DE ENTREGA
     function selectDelivery(method, el) {
-      document.querySelectorAll('#customerForm .option-pill').forEach(opt => {
-        if (opt.innerText.includes('DOMICILIO') || opt.innerText.includes('LOCAL')) opt.classList.remove('active');
-      });
+      const deliveryPills = el.parentElement.querySelectorAll('.option-pill');
+      deliveryPills.forEach(opt => opt.classList.remove('active'));
       el.classList.add('active');
       document.getElementById('deliveryMethod').value = method;
 
       const addressContainer = document.getElementById('addressContainer');
       const tableContainer = document.getElementById('tableContainer');
-      if (method === 'En el Local') {
+      
+      if (method === 'Domicilio') {
+        addressContainer.style.display = 'block';
+        tableContainer.style.display = 'none';
+      } else if (method === 'A la mesa') {
         addressContainer.style.display = 'none';
         tableContainer.style.display = 'block';
-      } else {
-        addressContainer.style.display = 'block';
+      } else { // Para Llevar
+        addressContainer.style.display = 'none';
         tableContainer.style.display = 'none';
       }
     }
@@ -538,13 +585,14 @@
         return;
       }
       categoriesInMenu.forEach(cat => {
-        const catProducts = filtered.filter(p => p.category === cat);
+        const catProducts = filtered.filter(p => p.category === cat).sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
         const emoji = { 'Desayunos': '🍳', 'Almuerzos': '🍲', 'Comidas Rápidas': '🍔', 'Bebidas': '🥤' }[cat] || '🍽️';
         container.innerHTML += `
                 <h2 class="category-title"><span>${emoji}</span> ${(cat || 'Sin Categoría').toUpperCase()}</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
                     ${catProducts.map(p => `
-                        <div class="menu-product-card">
+                        <div class="menu-product-card relative ${p.is_featured ? 'border-2 border-orange-500/20 shadow-[0_8px_30px_rgba(234,88,12,0.08)]' : ''}">
+                            ${p.is_featured ? `<span class="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md z-10">🔥 Recomendado</span>` : ''}
                             <div class="card-img-container">${p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-4xl">🍽️</div>'}</div>
                             <div class="m-info">
                                 <h4 class="text-lg md:text-xl font-black mb-2">${p.name}</h4>

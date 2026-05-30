@@ -181,7 +181,30 @@
         if (session.user.email.toLowerCase() === 'jesuscaldera2000@gmail.com') {
           window.location.href = 'superadmin.html';
         } else {
-          window.location.href = 'admin.html';
+          const { data: staffMember } = await supabaseClient
+            .from('staff')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (staffMember) {
+            localStorage.setItem('staff_role', staffMember.role);
+            localStorage.setItem('staff_id', staffMember.id);
+            localStorage.setItem('staff_name', staffMember.name);
+            localStorage.setItem('staff_business_id', staffMember.business_id);
+            
+            if (staffMember.role === 'Repartidor') {
+              window.location.href = 'driver.html';
+            } else {
+              window.location.href = 'admin.html';
+            }
+          } else {
+            localStorage.removeItem('staff_role');
+            localStorage.removeItem('staff_id');
+            localStorage.removeItem('staff_name');
+            localStorage.removeItem('staff_business_id');
+            window.location.href = 'admin.html';
+          }
         }
       }
     })();
@@ -199,24 +222,49 @@
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        // Check if user has a business
-        const { data: biz } = await supabaseClient
-          .from('businesses')
-          .select('id, slug')
-          .eq('owner_id', data.user.id)
-          .single();
-
-        if (!biz) {
-          showToast('⚠️ No se encontró un negocio asociado. Registra uno primero.');
-          await supabaseClient.auth.signOut();
-          btn.disabled = false;
-          btn.textContent = 'Iniciar Sesión';
+        if (data.user.email.toLowerCase() === 'jesuscaldera2000@gmail.com') {
+          window.location.href = 'superadmin.html';
           return;
         }
 
-        if (data.user.email.toLowerCase() === 'jesuscaldera2000@gmail.com') {
-          window.location.href = 'superadmin.html';
+        // Check if it's a staff member first
+        const { data: staffMember } = await supabaseClient
+          .from('staff')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (staffMember) {
+          localStorage.setItem('staff_role', staffMember.role);
+          localStorage.setItem('staff_id', staffMember.id);
+          localStorage.setItem('staff_name', staffMember.name);
+          localStorage.setItem('staff_business_id', staffMember.business_id);
+          
+          if (staffMember.role === 'Repartidor') {
+            window.location.href = 'driver.html';
+          } else {
+            window.location.href = 'admin.html';
+          }
         } else {
+          // Check if user has a business (Owner)
+          const { data: biz } = await supabaseClient
+            .from('businesses')
+            .select('id, slug')
+            .eq('owner_id', data.user.id)
+            .single();
+
+          if (!biz) {
+            showToast('⚠️ No se encontró un negocio o cuenta de personal asociada.');
+            await supabaseClient.auth.signOut();
+            btn.disabled = false;
+            btn.textContent = 'Iniciar Sesión';
+            return;
+          }
+
+          localStorage.removeItem('staff_role');
+          localStorage.removeItem('staff_id');
+          localStorage.removeItem('staff_name');
+          localStorage.removeItem('staff_business_id');
           window.location.href = 'admin.html';
         }
       } catch (err) {

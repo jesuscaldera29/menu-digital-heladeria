@@ -1,5 +1,5 @@
-const url = 'https://zsguuroeboycudxdzmtm.supabase.co/rest/v1/products';
-const key = 'sb_publishable_BQdnGotGMpJ5twOGgedUAw_1AAjmrlA';
+const url = 'https://vtckqdbfqcqjtznrsdwx.supabase.co/rest/v1/products';
+const key = 'sb_publishable_TkT53yhICY185uhB4Z8IrQ_6nbw4Qc3';
 
 const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
 

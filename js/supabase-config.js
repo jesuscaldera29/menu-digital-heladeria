@@ -2,8 +2,8 @@
 // CONFIGURACIÓN DE SUPABASE - MULTI-TENANT
 // ============================================================
 
-const SUPABASE_URL = 'https://imhdskhgipzikcpmhpgq.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_-Aqg2YUHJR2Tm6jRr5vBcg_nhbuEDh8';
+const SUPABASE_URL = 'https://vtckqdbfqcqjtznrsdwx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_TkT53yhICY185uhB4Z8IrQ_6nbw4Qc3';
 
 // ✅ Inicializar cliente Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -63,14 +63,32 @@ async function getCurrentBusiness() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return null;
 
-    const { data, error } = await supabaseClient
+    // 1. Try to find if user is owner of a business
+    const { data: biz, error } = await supabaseClient
       .from('businesses')
       .select('*')
       .eq('owner_id', session.user.id)
       .single();
 
-    if (error) return null;
-    return data;
+    if (biz && !error) return biz;
+
+    // 2. Try to find if user is a staff member of a business
+    const { data: staffMember } = await supabaseClient
+      .from('staff')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (staffMember) {
+      const { data: staffBiz } = await supabaseClient
+        .from('businesses')
+        .select('*')
+        .eq('id', staffMember.business_id)
+        .single();
+      return staffBiz;
+    }
+
+    return null;
   } catch (err) {
     console.error('Error fetching current business:', err);
     return null;

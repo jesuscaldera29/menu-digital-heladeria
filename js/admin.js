@@ -63,9 +63,33 @@ async function initAdmin() {
 
     businessId = biz.id;
     businessSlug = biz.slug;
+    
+    // Enforce Staff Role routing and views
+    const staffRole = localStorage.getItem('staff_role');
+    if (staffRole === 'Repartidor') {
+        window.location.href = 'driver.html';
+        return false;
+    } else if (staffRole === 'Cajero') {
+        // Hide tabs Cajero has no access to
+        const restrictedTabs = ['tab-products', 'tab-staff', 'tab-coupons', 'tab-recipes', 'tab-reports'];
+        restrictedTabs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+
+        // Set default view to Orders (since Products is restricted)
+        document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+        const secOrders = document.getElementById('section-orders');
+        if (secOrders) secOrders.classList.add('active');
+        const tabOrders = document.getElementById('tab-orders');
+        if (tabOrders) tabOrders.classList.add('active');
+    }
+
     // Update header with business info
     const h1 = document.querySelector('header h1');
-    if (h1) h1.textContent = '👨‍🍳 ' + biz.business_name;
+    if (h1) h1.textContent = '👨‍🍳 ' + biz.business_name + (staffRole ? ` (${staffRole})` : ' (Admin)');
     // Update menu link
     const menuLink = document.querySelector('a[href="index.html"]');
     if (menuLink) { menuLink.href = '/' + biz.slug; menuLink.innerHTML = '📱 Ver Menú'; }
@@ -440,6 +464,7 @@ async function addProduct(event) {
     }
 
     try {
+        const isFeatured = document.getElementById('prodFeatured')?.checked || false;
         const { error } = await supabaseClient.from('products').insert([{
             name,
             price,
@@ -448,7 +473,8 @@ async function addProduct(event) {
             accompaniments,
             accompaniments_limit: accompanimentsLimit,
             image_url,
-            business_id: businessId
+            business_id: businessId,
+            is_featured: isFeatured
         }]);
         if (error) throw error;
 
@@ -462,6 +488,7 @@ async function addProduct(event) {
         document.getElementById('prodAccompaniments').value = '';
         document.getElementById('prodAccompanimentsLimit').value = '';
         document.getElementById('prodImage').value = '';
+        document.getElementById('prodFeatured').checked = false;
         document.getElementById('prodPreview').src = '';
         document.getElementById('prodPreview').style.display = 'none';
 
@@ -526,7 +553,7 @@ function renderProducts() {
           ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">` : '<div class="product-img flex items-center justify-center bg-gray-100 text-4xl">🍽️</div>'}
           <div class="p-5">
             <div class="flex justify-between items-start">
-                <h3 class="text-xl font-black leading-tight">${p.name}</h3>
+                <h3 class="text-xl font-black leading-tight">${p.name} ${p.is_featured ? '<span class="text-orange-600 text-[10px] bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full font-black uppercase tracking-wider ml-1">⭐ Destacado</span>' : ''}</h3>
                 <span class="w-3 h-3 rounded-full ${p.available ? 'bg-green-500' : 'bg-red-500'} shadow-sm mt-1" title="${p.available ? 'Disponible' : 'No disponible'}"></span>
             </div>
             
@@ -596,6 +623,7 @@ function openEdit(id) {
     document.getElementById('editDescription').value = p.description || '';
     document.getElementById('editAccompaniments').value = p.accompaniments || '';
     document.getElementById('editAccompanimentsLimit').value = p.accompaniments_limit || '';
+    document.getElementById('editFeatured').checked = p.is_featured || false;
     document.getElementById('editImage').value = '';
 
     const preview = document.getElementById('editPreview');
@@ -626,7 +654,8 @@ async function saveEdit() {
 
     if (!name || isNaN(price) || !category) return showToast('⚠️ Completa todos los campos', 'error');
 
-    const updateData = { name, price, category, description, accompaniments, accompaniments_limit: accompanimentsLimit };
+    const isFeatured = document.getElementById('editFeatured')?.checked || false;
+    const updateData = { name, price, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured };
     if (file) {
         showToast('⏳ Subiendo imagen...');
         const url = await uploadImage(file);
@@ -647,16 +676,36 @@ async function saveEdit() {
 
 // Tab Management
 function showSection(sectionId, event) {
+    // Role validation
+    const staffRole = localStorage.getItem('staff_role');
+    if (staffRole === 'Cajero') {
+        const restricted = ['products', 'staff', 'coupons', 'recipes', 'reports'];
+        if (restricted.includes(sectionId)) {
+            showToast('⚠️ No tienes permisos para acceder a esta sección.', 'error');
+            return;
+        }
+    }
+
     event = event || window.event;
     document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
     document.getElementById(`section-${sectionId}`).classList.add('active');
-    if (event && event.target) event.target.classList.add('active');
+    
+    let tabBtn = event && event.target;
+    if (!tabBtn) {
+        tabBtn = document.getElementById(`tab-${sectionId}`);
+    }
+    if (tabBtn) tabBtn.classList.add('active');
 
     if (sectionId === 'orders') loadOrders();
     if (sectionId === 'customers') loadCustomers();
     if (sectionId === 'reports') initReports();
+    if (sectionId === 'expenses') { if (typeof loadExpenses === 'function') loadExpenses(); if (typeof loadCashClosings === 'function') loadCashClosings(); }
+    if (sectionId === 'staff') { if (typeof loadStaff === 'function') loadStaff(); }
+    if (sectionId === 'coupons') { if (typeof loadCoupons === 'function') loadCoupons(); }
+    if (sectionId === 'credits') { if (typeof loadCredits === 'function') loadCredits(); }
+    if (sectionId === 'recipes') { if (typeof loadRecipes === 'function') loadRecipes(); }
 }
 
 // Load orders
@@ -805,7 +854,25 @@ async function updateOrderStatus(orderId, newStatus) {
 
         // Update local list without re-fetching everything
         const order = allOrders.find(o => o.id === orderId);
-        if (order) order.status = newStatus;
+        if (order) {
+            order.status = newStatus;
+            
+            // Notification via WhatsApp (if phone exists and status is relevant)
+            if (order.customer_phone && ['Confirmado', 'Preparando', 'Entregado'].includes(newStatus)) {
+                if (confirm(`Estado cambiado a ${newStatus}. ¿Enviar notificación por WhatsApp al cliente?`)) {
+                    const cleanPhone = order.customer_phone.replace(/\D/g, '');
+                    let msg = `Hola *${order.customer_name}*, el estado de tu pedido *#${String(order.id).padStart(4, '0')}* ha sido actualizado a: *${newStatus}*.\n\n`;
+                    if (newStatus === 'Confirmado') msg += '¡Estamos preparando todo!';
+                    if (newStatus === 'Preparando') msg += '¡Ya casi está listo!';
+                    if (newStatus === 'Entregado') msg += '¡Gracias por tu compra, disfrútalo!';
+                    
+                    const trackingUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/order-status.html?id=' + order.id;
+                    msg += `\n\nSigue tu pedido aquí: ${trackingUrl}`;
+                    
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+            }
+        }
 
         showToast('✅ Estado del pedido actualizado');
         renderOrders();
@@ -1352,3 +1419,20 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', async () => {
+    const isAuthed = await initAdmin();
+    if (isAuthed) {
+        loadSettings();
+        loadProducts();
+        
+        // Initial load for all extra sections to have data ready when tabs are clicked
+        if (typeof loadStaff === 'function') loadStaff();
+        if (typeof loadCoupons === 'function') loadCoupons();
+        if (typeof loadCredits === 'function') loadCredits();
+        if (typeof loadRecipes === 'function') loadRecipes();
+        if (typeof loadExpenses === 'function') loadExpenses();
+        if (typeof loadCashClosings === 'function') loadCashClosings();
+    }
+});
