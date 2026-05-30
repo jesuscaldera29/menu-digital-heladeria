@@ -657,20 +657,62 @@
       } else {
         container.className = "space-y-2.5 max-h-[250px] overflow-y-auto pr-2 custom-scroll mb-6";
         container.innerHTML = list.map((acc, index) => `
-            <label class="flex items-center gap-3 p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
-              <input type="checkbox" name="accOption" value="${acc}" class="w-5 h-5 accent-orange-600 rounded" onchange="handleAccChange(this)">
+            <div class="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-100 transition-colors">
               <span class="text-sm font-bold text-gray-700">${acc}</span>
-            </label>
+              <div class="flex items-center gap-3">
+                <button type="button" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-lg hover:bg-gray-300 transition-colors" onclick="updateAccCount('${index}', -1)">−</button>
+                <span id="accCount_${index}" class="font-bold text-gray-800 w-4 text-center">0</span>
+                <button type="button" class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-200 transition-colors" onclick="updateAccCount('${index}', 1)">+</button>
+              </div>
+              <input type="hidden" name="accOptionVal" id="accInput_${index}" value="${acc}" data-count="0">
+            </div>
           `).join('');
       }
 
       document.getElementById('accompanimentsModal').style.display = 'flex';
     };
 
+    window.updateAccCount = function(idx, delta) {
+      const input = document.getElementById('accInput_' + idx);
+      const display = document.getElementById('accCount_' + idx);
+      if (!input || !display) return;
+      
+      let current = parseInt(input.getAttribute('data-count')) || 0;
+      
+      if (delta > 0 && currentAccLimit) {
+        let totalSelected = 0;
+        document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
+        const checkedVisual = document.querySelectorAll('input[name="visualAccOption"]:checked').length;
+        
+        if (totalSelected + checkedVisual >= currentAccLimit) {
+          const errDiv = document.getElementById('accLimitError');
+          const modalContent = document.getElementById('accModalContent');
+          document.getElementById('accLimitNumber').innerText = currentAccLimit;
+          errDiv.classList.remove('hidden');
+          modalContent.classList.add('animate-shake');
+          setTimeout(() => {
+            errDiv.classList.add('hidden');
+            modalContent.classList.remove('animate-shake');
+          }, 3000);
+          return;
+        }
+      }
+      
+      current += delta;
+      if (current < 0) current = 0;
+      
+      input.setAttribute('data-count', current);
+      display.innerText = current;
+    };
+
     window.handleAccChange = function (checkbox) {
       if (!currentAccLimit) return;
-      const checkedBoxes = document.querySelectorAll('input[name="accOption"]:checked, input[name="visualAccOption"]:checked');
-      if (checkedBoxes.length > currentAccLimit) {
+      
+      let totalSelected = 0;
+      document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => totalSelected += (parseInt(inp.getAttribute('data-count')) || 0));
+      const checkedVisual = document.querySelectorAll('input[name="visualAccOption"]:checked').length;
+
+      if (totalSelected + checkedVisual > currentAccLimit) {
         checkbox.checked = false;
         
         // Mostrar alerta visual elegante
@@ -699,8 +741,12 @@
       if (!currentAccProductId) return;
 
       const selectedText = [];
-      document.querySelectorAll('input[name="accOption"]:checked').forEach(cb => {
-        selectedText.push(cb.value);
+      document.querySelectorAll('input[name="accOptionVal"]').forEach(inp => {
+        const count = parseInt(inp.getAttribute('data-count')) || 0;
+        const val = inp.value;
+        for (let i = 0; i < count; i++) {
+          selectedText.push(val);
+        }
       });
 
       const selectedVisuals = [];

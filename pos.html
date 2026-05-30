@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Punto de Venta (POS) | Cajero</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: white; overflow: hidden; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .toast { position: fixed; top: 20px; right: 20px; background: #333; color: #fff; padding: 14px 24px; border-radius: 12px; z-index: 9999; transform: translateX(120%); transition: transform 0.3s; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left: 4px solid #4caf50; }
+    .toast.error { border-left: 4px solid #f44336; }
+    .category-tab { white-space: nowrap; transition: all 0.2s; }
+    .category-tab.active { background: #ff6b00; color: white; border-color: #ff6b00; }
+  </style>
+</head>
+<body class="h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-[#111] border-b border-[#222] p-4 flex justify-between items-center z-10 shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-orange-500/20">💰</div>
+      <div>
+        <h1 class="font-black text-lg leading-tight" id="headerBizName">PUNTO DE VENTA</h1>
+        <p class="text-xs text-orange-500 font-bold tracking-widest" id="cashierName">CAJERO ACTIVO</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="window.location.reload()" class="bg-[#222] hover:bg-[#333] text-gray-300 p-2.5 rounded-xl transition-all">🔄</button>
+      <button onclick="logout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+        <span>🚪</span> <span class="hidden sm:inline">Cerrar Turno</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN POS AREA -->
+  <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+    
+    <!-- LEFT: PRODUCTS & CATEGORIES -->
+    <div class="flex-1 flex flex-col bg-[#0a0a0a] border-b md:border-b-0 md:border-r border-[#222] overflow-hidden h-1/2 md:h-auto">
+      <!-- Search & Categories -->
+      <div class="p-4 shrink-0 bg-[#111]">
+        <div class="relative mb-4">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input type="text" id="searchInput" onkeyup="renderProducts()" class="w-full bg-[#222] border border-[#333] rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-orange-500 transition-colors" placeholder="Buscar producto...">
+        </div>
+        <div class="flex gap-2 overflow-x-auto custom-scroll pb-2" id="categoriesList">
+          <!-- Categories injected here -->
+        </div>
+      </div>
+      
+      <!-- Products Grid -->
+      <div class="flex-1 p-4 overflow-y-auto custom-scroll">
+        <div id="productsGrid" class="pos-grid">
+          <!-- Products injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: CART (TICKET) -->
+    <div class="w-full md:w-96 bg-[#111] flex shrink-0 flex-col h-1/2 md:h-auto overflow-hidden">
+      <div class="p-4 border-b border-[#222] shrink-0 flex justify-between items-center">
+        <h2 class="font-black text-lg">📝 TICKET ACTUAL</h2>
+        <button onclick="clearCart()" class="text-red-400 hover:text-red-300 text-sm font-bold bg-red-400/10 px-3 py-1 rounded-lg">Vaciar</button>
+      </div>
+      
+      <!-- Cart Items -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3" id="cartList">
+        <div class="text-center text-gray-500 mt-10 text-sm font-bold">Carrito vacío<br>Selecciona productos a la izquierda</div>
+      </div>
+      
+      <!-- Cart Footer & Checkout -->
+      <div class="p-4 bg-[#1a1a1a] border-t border-[#333] shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-gray-400 font-bold">Subtotal</span>
+          <span class="text-white font-bold" id="cartSubtotal">$0</span>
+        </div>
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-gray-400 font-bold">Descuento</span>
+          <span class="text-green-400 font-bold" id="cartDiscount">-$0</span>
+        </div>
+        <div class="flex justify-between items-center mb-6 pt-4 border-t border-[#333]">
+          <span class="text-xl font-black text-white">TOTAL</span>
+          <span class="text-3xl font-black text-orange-500" id="cartTotal">$0</span>
+        </div>
+        
+        <button id="btnCheckout" onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-4 rounded-xl shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-95 transition-all text-lg opacity-50 cursor-not-allowed" disabled>
+          💰 COBRAR TICKET
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- CHECKOUT MODAL -->
+  <div id="checkoutModal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeCheckoutModal()"></div>
+    <div class="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-md p-6 relative z-10 shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-black text-white">💳 Procesar Pago</h3>
+        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
+      </div>
+      
+      <div class="text-center mb-6">
+        <p class="text-gray-400 text-sm font-bold mb-1">Monto a Cobrar</p>
+        <p class="text-4xl font-black text-orange-500" id="modalTotal">$0</p>
+      </div>
+
+      <div class="space-y-4 mb-6">
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de Pago</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="payment-btn active bg-orange-500 text-white font-bold py-3 rounded-xl border-2 border-orange-500 transition-all text-sm" onclick="selectPayment('Efectivo', this)">💵 Efectivo</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-3 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-sm" onclick="selectPayment('Tarjeta', this)">💳 Tarjeta</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-3 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-sm" onclick="selectPayment('Transferencia', this)">📱 Transf.</button>
+          </div>
+          <input type="hidden" id="paymentMethod" value="Efectivo">
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cliente (Opcional)</label>
+          <input type="text" id="customerName" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Cliente Mostrador" value="Mostrador">
+        </div>
+      </div>
+
+      <button id="btnConfirmSale" onclick="confirmSale()" class="w-full bg-white text-black font-black py-4 rounded-xl shadow-lg hover:bg-gray-200 active:scale-95 transition-all text-lg flex items-center justify-center gap-2">
+        <span>✅ Confirmar Venta</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/pos.js"></script>
+</body>
+</html>

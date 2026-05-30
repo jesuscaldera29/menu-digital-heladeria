@@ -189,6 +189,13 @@ async function loadSettings() {
             const tableCountInput = document.getElementById('tableCountInput');
             if (tableCountInput) tableCountInput.value = data.table_count || 1;
 
+            const brandColorInput = document.getElementById('brandColorInput');
+            const brandColorHex = document.getElementById('brandColorHex');
+            if (brandColorInput && data.brand_color) {
+                brandColorInput.value = data.brand_color;
+                if (brandColorHex) brandColorHex.textContent = data.brand_color;
+            }
+
             const logoPreview = document.getElementById('logoPreview');
             const logoPlaceholder = document.getElementById('logoPlaceholder');
             if (logoPreview && data.logo_url) {
@@ -267,6 +274,7 @@ async function saveWhatsApp(event) {
 async function saveMenuConfig(event) {
     const menuUrl = document.getElementById('menuUrlInput').value.trim();
     const tableCount = parseInt(document.getElementById('tableCountInput').value) || 1;
+    const brandColor = document.getElementById('brandColorInput')?.value || '#f97316';
 
     const btn = event.target;
     const originalText = btn.innerText;
@@ -276,7 +284,8 @@ async function saveMenuConfig(event) {
     try {
         const { error } = await supabaseClient.from('settings').update({
             menu_url: menuUrl,
-            table_count: tableCount
+            table_count: tableCount,
+            brand_color: brandColor
         }).eq('business_id', businessId);
 
         if (error) throw error;

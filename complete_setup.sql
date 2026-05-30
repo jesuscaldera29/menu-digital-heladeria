@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS settings (
   currency TEXT DEFAULT 'COP',
   menu_url TEXT DEFAULT '',
   table_count INTEGER DEFAULT 1,
+  brand_color TEXT DEFAULT '#f97316',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

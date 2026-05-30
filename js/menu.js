@@ -78,6 +78,36 @@ async function loadSettings() {
         if (subtitle) subtitle.textContent = data.business_name;
       }
 
+      // Inject dynamic brand color
+      if (data.brand_color) {
+        const style = document.createElement('style');
+        style.innerHTML = `
+          .bg-orange-500 { background-color: ${data.brand_color} !important; }
+          .bg-orange-600 { background-color: ${data.brand_color} !important; filter: brightness(0.9); }
+          .text-orange-500 { color: ${data.brand_color} !important; }
+          .text-orange-600 { color: ${data.brand_color} !important; filter: brightness(0.9); }
+          .border-orange-500 { border-color: ${data.brand_color} !important; }
+          .from-orange-500 { --tw-gradient-from: ${data.brand_color} !important; }
+          .to-red-500 { --tw-gradient-to: ${data.brand_color} !important; filter: brightness(0.8); }
+          .from-red-500 { --tw-gradient-from: ${data.brand_color} !important; filter: brightness(0.8); }
+          .to-orange-500 { --tw-gradient-to: ${data.brand_color} !important; }
+          .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to)) !important; }
+          .accent-orange-600 { accent-color: ${data.brand_color} !important; }
+          .peer-checked\\:bg-orange-500:checked ~ * { background-color: ${data.brand_color} !important; }
+          .peer-checked\\:border-orange-500:checked ~ * { border-color: ${data.brand_color} !important; }
+          .peer-checked\\:text-orange-700:checked ~ * { color: ${data.brand_color} !important; filter: brightness(0.7); }
+          .group-hover\\:border-orange-200:hover { border-color: ${data.brand_color} !important; opacity: 0.5; }
+          .shadow-\\[0_8px_30px_rgba\\(234\\,88\\,12\\,0\\.08\\)\\] { box-shadow: 0 8px 30px ${data.brand_color}33 !important; }
+          .btn-add { background: ${data.brand_color} !important; }
+          .btn-add:hover { filter: brightness(0.9); }
+          .m-price { color: ${data.brand_color} !important; }
+          .category-tab.active { background: ${data.brand_color} !important; border-color: ${data.brand_color} !important; color: white !important; }
+          .category-tab { border-color: ${data.brand_color} !important; color: ${data.brand_color} !important; }
+          .cart-total .amount { color: ${data.brand_color} !important; }
+        `;
+        document.head.appendChild(style);
+      }
+
       const logoImg = document.getElementById('logoImg');
       const logoPlaceholder = document.getElementById('logoPlaceholder');
       if (logoImg && data.logo_url) {
