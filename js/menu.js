@@ -794,6 +794,38 @@ async function downloadTicket() {
   }
 }
 
+async function printTicket() {
+  const element = document.getElementById('ticketReceipt');
+  try {
+    const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+    const image = canvas.toDataURL("image/png");
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Imprimir Ticket</title>
+          <style>
+            body { margin: 0; display: flex; justify-content: center; align-items: flex-start; background: #fff; }
+            img { max-width: 100%; height: auto; }
+            @media print {
+               @page { margin: 0; }
+               body { margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${image}" onload="window.print(); window.close();" />
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error al imprimir ticket', 'error');
+  }
+}
+
 function closeTicket() {
   const modal = document.getElementById('ticketModal');
   if (modal) modal.style.display = 'none';
