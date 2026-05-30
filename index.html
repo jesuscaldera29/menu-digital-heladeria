@@ -363,14 +363,18 @@
               <span class="w-1.5 h-4 bg-black rounded-full"></span>
               <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase">Método de Pago</h3>
             </div>
-            <div class="flex gap-2 md:gap-4">
+            <div class="flex gap-2 md:gap-4 flex-wrap">
               <div class="option-pill active" onclick="selectPayment('Efectivo', this)">
                 <span>💵</span>
                 <label>EFECTIVO</label>
               </div>
               <div class="option-pill" onclick="selectPayment('Transferencia', this)">
                 <span>🏦</span>
-                <label>TRANSF/NEQUI</label>
+                <label>TRANSF.</label>
+              </div>
+              <div class="option-pill" onclick="selectPayment('Nequi', this)">
+                <span>📱</span>
+                <label>NEQUI</label>
               </div>
               <div class="option-pill" onclick="selectPayment('Tarjeta', this)">
                 <span>💳</span>
@@ -903,7 +907,7 @@
       if (method === 'Efectivo') {
         if (cashCont) cashCont.classList.remove('hidden');
         if (transfCont) transfCont.classList.add('hidden');
-      } else if (method === 'Transferencia') {
+      } else if (method === 'Transferencia' || method === 'Nequi') {
         if (cashCont) cashCont.classList.add('hidden');
         if (transfCont) transfCont.classList.remove('hidden');
       } else {
