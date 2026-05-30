@@ -308,6 +308,16 @@
                   <span class="text-xs text-gray-400 font-mono" id="brandColorHex">#f97316</span>
                 </div>
               </div>
+              <div class="pt-4 border-t border-gray-100">
+                <label class="font-bold text-xs text-gray-500 uppercase tracking-widest">Datos para Pago Nequi</label>
+                <textarea id="nequiInfoInput" class="input !mt-1" placeholder="Ej: 3001234567 - Juan Pérez" rows="2"></textarea>
+                <p class="text-[10px] text-gray-400 mt-1">Dejar vacío para ocultar opción en el menú.</p>
+              </div>
+              <div>
+                <label class="font-bold text-xs text-gray-500 uppercase tracking-widest">Datos Cuenta Bancaria</label>
+                <textarea id="bankInfoInput" class="input !mt-1" placeholder="Ej: Bancolombia Ahorros 123456789 - Juan Pérez" rows="2"></textarea>
+                <p class="text-[10px] text-gray-400 mt-1">Dejar vacío para ocultar opción en el menú.</p>
+              </div>
               <button class="btn btn-primary w-full" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
             </div>
 
@@ -852,8 +862,9 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Formulario -->
         <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-          <h3 class="font-bold text-lg mb-4">Agregar Nuevo Extra</h3>
+          <h3 class="font-bold text-lg mb-4" id="veFormTitle">Agregar Nuevo Extra</h3>
           <input type="hidden" id="veProductId">
+          <input type="hidden" id="editVeId">
           <div class="space-y-4">
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre del Extra / Sabor</label>
@@ -871,6 +882,21 @@
             <button id="btnSaveVisualExtra" onclick="saveVisualExtra()"
               class="w-full bg-black text-white font-bold py-3 rounded-xl active:scale-95 transition-all shadow-md mt-4 flex justify-center items-center gap-2">
               ➕ Agregar Extra
+            </button>
+            <button id="btnCancelEditVe" onclick="cancelEditVisualExtra()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-xl active:scale-95 transition-all shadow-md mt-2 flex justify-center items-center gap-2 hidden">
+              ❌ Cancelar Edición
+            </button>
+          </div>
+
+          <!-- Clonar Extras -->
+          <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="font-bold text-lg mb-2">🔄 Clonar a otros productos</h3>
+            <p class="text-xs text-gray-500 mb-3">Copia todos los extras de este producto a otro.</p>
+            <select id="cloneTargetProduct" class="input !mt-0">
+              <option value="">Selecciona un producto destino...</option>
+            </select>
+            <button onclick="cloneVisualExtras()" class="w-full bg-orange-100 text-orange-600 border border-orange-200 font-bold py-2 rounded-xl active:scale-95 transition-all shadow-sm mt-3">
+              Copiar Extras
             </button>
           </div>
         </div>

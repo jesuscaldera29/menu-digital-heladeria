@@ -196,6 +196,12 @@ async function loadSettings() {
                 if (brandColorHex) brandColorHex.textContent = data.brand_color;
             }
 
+            const nequiInfoInput = document.getElementById('nequiInfoInput');
+            if (nequiInfoInput) nequiInfoInput.value = data.nequi_info || '';
+
+            const bankInfoInput = document.getElementById('bankInfoInput');
+            if (bankInfoInput) bankInfoInput.value = data.bank_info || '';
+
             const logoPreview = document.getElementById('logoPreview');
             const logoPlaceholder = document.getElementById('logoPlaceholder');
             if (logoPreview && data.logo_url) {
@@ -275,6 +281,8 @@ async function saveMenuConfig(event) {
     const menuUrl = document.getElementById('menuUrlInput').value.trim();
     const tableCount = parseInt(document.getElementById('tableCountInput').value) || 1;
     const brandColor = document.getElementById('brandColorInput')?.value || '#f97316';
+    const nequiInfo = document.getElementById('nequiInfoInput')?.value || '';
+    const bankInfo = document.getElementById('bankInfoInput')?.value || '';
 
     const btn = event.target;
     const originalText = btn.innerText;
@@ -285,7 +293,9 @@ async function saveMenuConfig(event) {
         const { error } = await supabaseClient.from('settings').update({
             menu_url: menuUrl,
             table_count: tableCount,
-            brand_color: brandColor
+            brand_color: brandColor,
+            nequi_info: nequiInfo,
+            bank_info: bankInfo
         }).eq('business_id', businessId);
 
         if (error) throw error;
@@ -1277,6 +1287,14 @@ window.openVisualExtrasModal = function(productId) {
             document.getElementById('veLimit').value = p && p.accompaniments_limit ? p.accompaniments_limit : '';
         }
 
+        if (typeof cancelEditVisualExtra === 'function') cancelEditVisualExtra();
+
+        const cloneSelect = document.getElementById('cloneTargetProduct');
+        if (cloneSelect) {
+            cloneSelect.innerHTML = '<option value="">Selecciona un producto destino...</option>' + 
+                allProducts.filter(x => String(x.id) !== String(productId)).map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+        }
+
         modal.style.display = 'flex';
         loadVisualExtras(productId);
     } catch(err) {
@@ -1317,7 +1335,10 @@ async function loadVisualExtras(productId) {
                         <p class="text-xs text-orange-600 font-bold mt-1">${extra.price > 0 ? '+$' + Number(extra.price).toLocaleString() : 'GRATIS'}</p>
                     </div>
                 </div>
-                <button onclick="deleteVisualExtra('${extra.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">🗑️</button>
+                <div class="flex items-center gap-1">
+                    <button onclick="editVisualExtra('${extra.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors" title="Editar">✏️</button>
+                    <button onclick="deleteVisualExtra('${extra.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Eliminar">🗑️</button>
+                </div>
             </div>
         `).join('');
     } catch (err) {
@@ -1331,6 +1352,7 @@ async function saveVisualExtra() {
     const name = document.getElementById('veName').value.trim();
     const price = parseFloat(document.getElementById('vePrice').value) || 0;
     const file = document.getElementById('veImage').files[0];
+    const editId = document.getElementById('editVeId').value;
 
     if (!name) return showToast('⚠️ Ingresa el nombre del extra', 'error');
 
@@ -1345,20 +1367,26 @@ async function saveVisualExtra() {
     }
 
     try {
-        const { error } = await supabaseClient.from('product_extras').insert([{
-            business_id: businessId,
-            product_id: productId,
-            name: name,
-            price: price,
-            image_url: image_url
-        }]);
+        if (editId) {
+            const updateData = { name: name, price: price };
+            if (image_url) updateData.image_url = image_url;
+            
+            const { error } = await supabaseClient.from('product_extras').update(updateData).eq('id', editId);
+            if (error) throw error;
+            showToast('✅ Extra actualizado correctamente');
+        } else {
+            const { error } = await supabaseClient.from('product_extras').insert([{
+                business_id: businessId,
+                product_id: productId,
+                name: name,
+                price: price,
+                image_url: image_url
+            }]);
+            if (error) throw error;
+            showToast('✅ Extra guardado correctamente');
+        }
 
-        if (error) throw error;
-
-        showToast('✅ Extra guardado correctamente');
-        document.getElementById('veName').value = '';
-        document.getElementById('vePrice').value = '0';
-        document.getElementById('veImage').value = '';
+        cancelEditVisualExtra();
         loadVisualExtras(productId);
     } catch (err) {
         console.error(err);
@@ -1404,6 +1432,66 @@ async function saveVisualExtrasLimit() {
         showToast('❌ Error al actualizar el límite', 'error');
     }
 }
+
+// Edit and Clone functions
+window.editVisualExtra = async function(extraId) {
+    try {
+        const { data, error } = await supabaseClient.from('product_extras').select('*').eq('id', extraId).single();
+        if (error) throw error;
+        if (data) {
+            document.getElementById('editVeId').value = data.id;
+            document.getElementById('veName').value = data.name;
+            document.getElementById('vePrice').value = data.price;
+            document.getElementById('veFormTitle').innerText = '✏️ Editar Extra';
+            document.getElementById('btnSaveVisualExtra').innerHTML = '💾 Guardar Cambios';
+            document.getElementById('btnCancelEditVe').classList.remove('hidden');
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('❌ Error al cargar extra', 'error');
+    }
+};
+
+window.cancelEditVisualExtra = function() {
+    if(document.getElementById('editVeId')) document.getElementById('editVeId').value = '';
+    if(document.getElementById('veName')) document.getElementById('veName').value = '';
+    if(document.getElementById('vePrice')) document.getElementById('vePrice').value = '0';
+    if(document.getElementById('veImage')) document.getElementById('veImage').value = '';
+    if(document.getElementById('veFormTitle')) document.getElementById('veFormTitle').innerText = 'Agregar Nuevo Extra';
+    if(document.getElementById('btnSaveVisualExtra')) document.getElementById('btnSaveVisualExtra').innerHTML = '➕ Agregar Extra';
+    if(document.getElementById('btnCancelEditVe')) document.getElementById('btnCancelEditVe').classList.add('hidden');
+};
+
+window.cloneVisualExtras = async function() {
+    const targetId = document.getElementById('cloneTargetProduct').value;
+    if (!targetId || !currentVeProductId) return showToast('⚠️ Selecciona un producto destino', 'error');
+
+    if (!confirm('¿Copiar todos los extras actuales al producto seleccionado?')) return;
+
+    try {
+        const { data: sourceExtras, error: errLoad } = await supabaseClient.from('product_extras').select('*').eq('product_id', currentVeProductId);
+        if (errLoad) throw errLoad;
+        
+        if (!sourceExtras || sourceExtras.length === 0) return showToast('⚠️ No hay extras para copiar', 'error');
+
+        const newExtras = sourceExtras.map(e => ({
+            business_id: e.business_id,
+            product_id: targetId,
+            name: e.name,
+            price: e.price,
+            image_url: e.image_url
+        }));
+
+        const { error: errInsert } = await supabaseClient.from('product_extras').insert(newExtras);
+        if (errInsert) throw errInsert;
+
+        showToast('✅ Extras copiados exitosamente');
+        document.getElementById('cloneTargetProduct').value = '';
+    } catch(e) {
+        console.error(e);
+        showToast('❌ Error al copiar extras', 'error');
+    }
+};
 
 // ==========================================
 // PWA INSTALL LOGIC

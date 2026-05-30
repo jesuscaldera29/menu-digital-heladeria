@@ -79,6 +79,7 @@ async function loadSettings() {
       }
 
       // Inject dynamic brand color
+      window.businessSettings = data;
       if (data.brand_color) {
         const style = document.createElement('style');
         style.innerHTML = `
@@ -114,6 +115,15 @@ async function loadSettings() {
         logoImg.src = data.logo_url;
         logoImg.style.display = 'block';
         if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+      }
+
+      const bankInfoDisplay = document.getElementById('bankInfoDisplay');
+      if (bankInfoDisplay) {
+        let text = '';
+        if (data.bank_info) text += '🏦 ' + data.bank_info + '\n';
+        if (data.nequi_info) text += '📱 Nequi: ' + data.nequi_info;
+        
+        bankInfoDisplay.innerText = text.trim() || 'No hay datos bancarios configurados.';
       }
 
       // Populate tables for en-el-local
@@ -625,6 +635,10 @@ async function processOrder() {
 
     window.currentOrderData = { order, items: orderItems };
     showTicket(order, orderItems);
+    
+    // Auto-trigger WhatsApp
+    sendTicketWhatsApp();
+    
     showToast('✅ Pedido registrado con éxito');
   } catch (err) {
     console.error(err);

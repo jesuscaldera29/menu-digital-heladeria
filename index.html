@@ -361,6 +361,28 @@
               </div>
             </div>
             <input type="hidden" id="paymentMethod" value="Efectivo">
+
+            <!-- Contenedor Efectivo -->
+            <div id="cashDetailsContainer" class="bg-gray-50 border border-gray-100 p-4 rounded-2xl transition-all">
+              <div class="flex items-center gap-2 mb-2">
+                <span>💵</span>
+                <label class="text-sm font-bold text-gray-700">¿Con cuánto vas a pagar? <span class="text-gray-400 font-normal">(opcional)</span></label>
+              </div>
+              <input type="number" id="cashChangeAmount" placeholder="Ej: 50000" class="form-input !mt-0 bg-white" />
+              <p class="text-xs text-gray-400 mt-2">Así preparamos tu cambio listo a la hora de entregar.</p>
+            </div>
+
+            <!-- Contenedor Transferencia -->
+            <div id="transferDetailsContainer" class="bg-pink-50 border-2 border-pink-500 p-4 rounded-2xl hidden transition-all">
+              <div class="flex justify-between items-start mb-2">
+                <label class="text-sm font-black text-pink-600">Paga a esta cuenta</label>
+                <button type="button" onclick="copyBankInfo()" class="bg-white border border-pink-200 text-pink-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-pink-100 transition-colors flex items-center gap-1">
+                  <span>📋</span> Copiar
+                </button>
+              </div>
+              <p id="bankInfoDisplay" class="text-base md:text-lg font-black text-gray-900 mb-2 whitespace-pre-wrap">Cargando datos...</p>
+              <p class="text-xs text-gray-500">Transfiere el total y confirmamos tu pedido por WhatsApp.</p>
+            </div>
           </div>
 
           <!-- EXTRAS: CUPONES Y PROPINAS -->
@@ -448,12 +470,13 @@
           <span class="text-2xl font-black text-red-600" id="tTotal"></span>
         </div>
 
-        <div id="tLinkContainer" class="mt-4 p-3 bg-orange-50 border border-orange-100 rounded-xl text-center"
-          style="display:none">
-          <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">🔗 Sigue tu pedido en vivo
-            (Válido 1 hora)</p>
+        <div id="tLinkContainer" class="mt-6" style="display:none">
           <a id="tStatusLink" href="#" target="_blank"
-            class="text-xs font-bold text-orange-700 underline break-all"></a>
+             class="block w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-2xl text-center font-black shadow-[0_0_20px_rgba(234,88,12,0.4)] animate-pulse active:scale-95 transition-all">
+            <span class="text-2xl block mb-1">🔍</span>
+            RASTREAR MI PEDIDO EN VIVO
+            <p class="text-[10px] font-medium text-orange-100 uppercase tracking-widest mt-1">Sigue el estado en tiempo real</p>
+          </a>
         </div>
       </div>
 
@@ -765,6 +788,7 @@
       const delivery = document.getElementById('deliveryMethod').value;
       const address = document.getElementById('customerAddress').value.trim();
       const payment = document.getElementById('paymentMethod').value;
+      const cashChange = document.getElementById('cashChangeAmount')?.value;
 
       if (!name) return alert('⚠️ Ingresa tu nombre');
       if (delivery === 'Domicilio' && !address) return alert('⚠️ Ingresa la dirección para el domicilio');
@@ -776,19 +800,53 @@
         if (!p) continue;
         total += p.price * item.qty;
         const displayName = item.accompaniments.length
-          ? `${p.name} (Acompañamientos: ${item.accompaniments.join(', ')})`
+          ? `${p.name} (Sabores: ${item.accompaniments.join(', ')})`
           : p.name;
         msg += `▪️ ${displayName} x${item.qty} — $${(p.price * item.qty).toLocaleString()}\n`;
       }
       msg += `\n💰 *TOTAL: $${total.toLocaleString()}*\n`;
       msg += '━━━━━━━━━━━━━━━━━━━\n\n';
       msg += `👤 *CLIENTE:* ${name}\n📦 *TIPO:* ${delivery}\n💳 *PAGO:* ${payment}\n`;
+      
+      if (payment === 'Efectivo' && cashChange) {
+        msg += `💵 *PAGA CON:* $${Number(cashChange).toLocaleString()}\n`;
+      }
+
       if (delivery === 'Domicilio') msg += `📍 *DIRECCIÓN:* ${address}\n`;
       if (document.getElementById('customerNotes').value) msg += `📝 *NOTAS:* ${document.getElementById('customerNotes').value}\n`;
 
       const numero = (typeof whatsappNumber !== 'undefined' && whatsappNumber) ? whatsappNumber.replace(/\D/g, '') : '573001234567';
       window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
     }
+
+    // Funciones Helper para Copy y Payment Toggle
+    window.copyBankInfo = function() {
+      const text = document.getElementById('bankInfoDisplay').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ ¡Número de cuenta copiado!');
+      }).catch(err => {
+        console.error('No se pudo copiar: ', err);
+      });
+    };
+
+    const originalSelectPayment = window.selectPayment;
+    window.selectPayment = function(method, el) {
+      if (originalSelectPayment) originalSelectPayment(method, el);
+      
+      const cashCont = document.getElementById('cashDetailsContainer');
+      const transfCont = document.getElementById('transferDetailsContainer');
+      
+      if (method === 'Efectivo') {
+        if(cashCont) cashCont.classList.remove('hidden');
+        if(transfCont) transfCont.classList.add('hidden');
+      } else if (method === 'Transferencia') {
+        if(cashCont) cashCont.classList.add('hidden');
+        if(transfCont) transfCont.classList.remove('hidden');
+      } else {
+        if(cashCont) cashCont.classList.add('hidden');
+        if(transfCont) transfCont.classList.add('hidden');
+      }
+    };
 
     const oldToggle = window.toggleOrderDetails;
     window.toggleOrderDetails = function () {
