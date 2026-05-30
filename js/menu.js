@@ -636,8 +636,8 @@ async function processOrder() {
     window.currentOrderData = { order, items: orderItems };
     showTicket(order, orderItems);
     
-    // Auto-trigger WhatsApp
-    sendTicketWhatsApp();
+    // Auto-trigger WhatsApp (Disabled per user request)
+    // sendTicketWhatsApp();
     
     showToast('✅ Pedido registrado con éxito');
   } catch (err) {
