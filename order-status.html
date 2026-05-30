@@ -160,11 +160,13 @@
           <span class="text-lg font-black text-red-600" id="orderTotalText"></span>
         </div>
         <button id="btnNotify" onclick="enableNotifications()" class="mt-6 bg-orange-100 text-orange-600 px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-orange-200 flex items-center justify-center gap-2">🔔 Activar Notificaciones y Sonido</button>
+        <button id="btnDownload" onclick="downloadTicket()" class="mt-2 bg-gray-800 text-white px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-gray-700 flex items-center justify-center gap-2">📥 Descargar Resumen del Pedido</button>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/supabase-config.js?v=3"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -285,6 +287,29 @@
 
     loadOrderStatus();
     setInterval(loadOrderStatus, 10000);
+
+    async function downloadTicket() {
+      const element = document.querySelector('.max-w-lg');
+      const btnGroup = document.getElementById('btnNotify');
+      const btnDown = document.getElementById('btnDownload');
+      try {
+        if(btnGroup) btnGroup.style.display = 'none';
+        if(btnDown) btnDown.style.display = 'none';
+        
+        const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = `Pedido_${orderId}.png`;
+        link.href = image;
+        link.click();
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error al descargar ticket');
+      } finally {
+        if(btnGroup && !notificationsEnabled) btnGroup.style.display = '';
+        if(btnDown) btnDown.style.display = '';
+      }
+    }
   </script>
   
   <audio id="notificationSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
