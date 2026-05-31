@@ -529,6 +529,40 @@ async function uploadImage(file) {
 }
 
 // Add product
+window.copyAccompaniments = function() {
+    const select = document.getElementById('copyAccompanimentsFrom');
+    if (!select || !select.value) return showToast('⚠️ Selecciona un producto origen', 'error');
+    
+    const p = allProducts.find(x => String(x.id) === String(select.value));
+    if (!p) return;
+    
+    document.getElementById('prodAccompaniments').value = p.accompaniments || '';
+    if (p.accompaniments_limit) {
+        document.getElementById('prodAccompanimentsLimit').value = p.accompaniments_limit;
+    } else {
+        document.getElementById('prodAccompanimentsLimit').value = '';
+    }
+    
+    showToast('✅ Acompañamientos copiados');
+};
+
+window.editCopyAccompaniments = function() {
+    const select = document.getElementById('editCopyAccompanimentsFrom');
+    if (!select || !select.value) return showToast('⚠️ Selecciona un producto origen', 'error');
+    
+    const p = allProducts.find(x => String(x.id) === String(select.value));
+    if (!p) return;
+    
+    document.getElementById('editAccompaniments').value = p.accompaniments || '';
+    if (p.accompaniments_limit) {
+        document.getElementById('editAccompanimentsLimit').value = p.accompaniments_limit;
+    } else {
+        document.getElementById('editAccompanimentsLimit').value = '';
+    }
+    
+    showToast('✅ Acompañamientos copiados');
+};
+
 async function addProduct(event) {
     const name = document.getElementById('prodName').value.trim();
     const price = parseFloat(document.getElementById('prodPrice').value);
@@ -557,6 +591,7 @@ async function addProduct(event) {
 
     try {
         const isFeatured = document.getElementById('prodFeatured')?.checked || false;
+        const isPosOnly = document.getElementById('prodPosOnly')?.checked || false;
         const { error } = await supabaseClient.from('products').insert([{
             name,
             price,
@@ -566,7 +601,8 @@ async function addProduct(event) {
             accompaniments_limit: accompanimentsLimit,
             image_url,
             business_id: businessId,
-            is_featured: isFeatured
+            is_featured: isFeatured,
+            pos_only: isPosOnly
         }]);
         if (error) throw error;
 
@@ -581,6 +617,7 @@ async function addProduct(event) {
         document.getElementById('prodAccompanimentsLimit').value = '';
         document.getElementById('prodImage').value = '';
         document.getElementById('prodFeatured').checked = false;
+        if(document.getElementById('prodPosOnly')) document.getElementById('prodPosOnly').checked = false;
         document.getElementById('prodPreview').src = '';
         document.getElementById('prodPreview').style.display = 'none';
 
@@ -615,6 +652,18 @@ function renderProducts() {
 
     if (totalEl) {
         totalEl.innerText = `${allProducts.length} productos en total`;
+    }
+
+    // Populate accompaniments copy dropdowns
+    const copySelect = document.getElementById('copyAccompanimentsFrom');
+    if (copySelect) {
+        copySelect.innerHTML = '<option value="">📋 Copiar acompañamientos de otro producto...</option>' + 
+            allProducts.filter(p => p.accompaniments).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    }
+    const editCopySelect = document.getElementById('editCopyAccompanimentsFrom');
+    if (editCopySelect) {
+        editCopySelect.innerHTML = '<option value="">📋 Copiar acompañamientos de otro producto...</option>' + 
+            allProducts.filter(p => p.accompaniments).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
     }
 
     if (!allProducts.length) {
@@ -716,6 +765,7 @@ function openEdit(id) {
     document.getElementById('editAccompaniments').value = p.accompaniments || '';
     document.getElementById('editAccompanimentsLimit').value = p.accompaniments_limit || '';
     document.getElementById('editFeatured').checked = p.is_featured || false;
+    if(document.getElementById('editPosOnly')) document.getElementById('editPosOnly').checked = p.pos_only || false;
     document.getElementById('editImage').value = '';
 
     const preview = document.getElementById('editPreview');
@@ -747,7 +797,8 @@ async function saveEdit() {
     if (!name || isNaN(price) || !category) return showToast('⚠️ Completa todos los campos', 'error');
 
     const isFeatured = document.getElementById('editFeatured')?.checked || false;
-    const updateData = { name, price, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured };
+    const isPosOnly = document.getElementById('editPosOnly')?.checked || false;
+    const updateData = { name, price, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured, pos_only: isPosOnly };
     if (file) {
         showToast('⏳ Subiendo imagen...');
         const url = await uploadImage(file);
@@ -1005,7 +1056,15 @@ function viewOrderDetail(id) {
     document.getElementById('detailCustomerPhone').textContent = o.customer_phone;
     document.getElementById('detailDeliveryMethod').textContent = o.delivery_method || 'Domicilio';
     document.getElementById('detailAddress').textContent = o.address || 'Sin dirección';
-    document.getElementById('detailPaymentMethod').textContent = o.payment_method || 'Efectivo';
+    let paymentText = o.payment_method || 'Efectivo';
+    if (o.payment_method === 'Dividido' && o.split_payments) {
+      const parts = [];
+      if (o.split_payments.cash) parts.push(`Efe: $${Number(o.split_payments.cash).toLocaleString()}`);
+      if (o.split_payments.card) parts.push(`Tarj: $${Number(o.split_payments.card).toLocaleString()}`);
+      if (o.split_payments.transfer) parts.push(`Transf: $${Number(o.split_payments.transfer).toLocaleString()}`);
+      paymentText = `Dividido (${parts.join(' | ')})`;
+    }
+    document.getElementById('detailPaymentMethod').textContent = paymentText;
     document.getElementById('detailNotes').textContent = o.notes || 'Ninguna';
 
     const items = o.items || [];
@@ -1061,6 +1120,9 @@ window.printOrderTicket = function() {
         </style>
       </head>
       <body>
+        <div class="text-center mb-2">
+          ${document.getElementById('logoPreview')?.src && document.getElementById('logoPreview').src !== window.location.href ? `<img src="${document.getElementById('logoPreview').src}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : ''}
+        </div>
         <div class="text-center border-b font-bold text-lg">
           TICKET DE PEDIDO
           <br>#${String(o.id).padStart(4, '0')}

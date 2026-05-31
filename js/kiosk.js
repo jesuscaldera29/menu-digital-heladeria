@@ -8,6 +8,8 @@ let currentBusinessId = null;
 let currentBusinessSlug = null;
 let currentCoupon = null;
 let businessName = '';
+let kioskDeliveryFeeAmount = 0;
+let kioskDeliveryMethodSelected = 'A la mesa';
 
 // Inactivity timer variables
 let inactivityTimer = null;
@@ -133,6 +135,7 @@ async function loadKioskSettings() {
 
     if (data) {
       currency = data.currency || 'COP';
+      kioskDeliveryFeeAmount = Number(data.delivery_fee) || 0;
       
       // Update names and logos on interface
       const welcomeName = document.getElementById('kioskWelcomeName');
@@ -173,7 +176,8 @@ async function loadKioskProducts() {
       .eq('available', true)
       .order('category');
 
-    products = data || [];
+    // Filter out products marked as POS-only (not for kiosk)
+    products = (data || []).filter(p => !p.pos_only);
 
     // Load visual extras
     try {
@@ -252,12 +256,51 @@ function renderKioskProducts() {
   `).join('');
 }
 
+// Select Order Type
+function selectKioskOrderType(type) {
+  kioskDeliveryMethodSelected = type;
+  document.getElementById('kDeliveryMethod').value = type;
+  document.getElementById('kDeliveryLabel').textContent = type;
+  
+  const addrContainer = document.getElementById('kAddressContainer');
+  const tableContainer = document.getElementById('kTableContainer');
+  const phoneInput = document.getElementById('kCustomerPhone');
+  
+  if (type === 'A la mesa') {
+    tableContainer.classList.remove('hidden');
+    addrContainer.classList.add('hidden');
+    phoneInput.classList.add('hidden');
+  } else if (type === 'Domicilio') {
+    tableContainer.classList.add('hidden');
+    addrContainer.classList.remove('hidden');
+    phoneInput.classList.remove('hidden');
+  } else {
+    tableContainer.classList.add('hidden');
+    addrContainer.classList.add('hidden');
+    phoneInput.classList.add('hidden');
+  }
+  
+  document.getElementById('kioskOrderType').style.display = 'none';
+  document.getElementById('kioskOrderType').classList.add('hidden');
+  document.getElementById('kioskMain').style.display = 'flex';
+  document.getElementById('kioskMain').classList.remove('hidden');
+  
+  updateKioskCartUI();
+  resetInactivityTimer();
+}
+
 // Start Order Flow
 function startOrder() {
   const welcome = document.getElementById('kioskWelcome');
+  const orderType = document.getElementById('kioskOrderType');
   const main = document.getElementById('kioskMain');
+  
   if (welcome) welcome.style.display = 'none';
-  if (main) main.classList.remove('hidden');
+  if (orderType) {
+    orderType.style.display = 'flex';
+    orderType.classList.remove('hidden');
+  }
+  if (main) main.classList.add('hidden');
   
   cart = {};
   currentCoupon = null;
@@ -277,11 +320,13 @@ function startOrder() {
 function resetKiosk() {
   clearInterval(inactivityTimer);
   const welcome = document.getElementById('kioskWelcome');
+  const orderType = document.getElementById('kioskOrderType');
   const main = document.getElementById('kioskMain');
   const indicator = document.getElementById('inactivityIndicator');
   
   if (welcome) welcome.style.display = 'flex';
-  if (main) main.classList.add('hidden');
+  if (orderType) { orderType.style.display = 'none'; orderType.classList.add('hidden'); }
+  if (main) { main.style.display = 'none'; main.classList.add('hidden'); }
   if (indicator) indicator.classList.add('hidden');
   
   // Hide all modals
@@ -535,7 +580,8 @@ function updateKioskCartUI() {
     }
   }
 
-  let total = subtotal - discount;
+  let appliedDeliveryFee = (kioskDeliveryMethodSelected === 'Domicilio') ? kioskDeliveryFeeAmount : 0;
+  let total = subtotal - discount + appliedDeliveryFee;
   if (total < 0) total = 0;
 
   document.getElementById('kCartSubtotal').textContent = `$${subtotal.toLocaleString()}`;
@@ -548,25 +594,27 @@ function updateKioskCartUI() {
   } else {
     discRow.classList.add('hidden');
   }
-}
 
-// Delivery pill toggle
-function setDelivery(type, btn) {
-  document.getElementById('kDeliveryMethod').value = type;
-  document.querySelectorAll('.k-deliv-btn').forEach(b => {
-    b.classList.remove('active', 'border-orange-500', 'bg-orange-50', 'text-orange-600');
-    b.classList.add('border-gray-200', 'bg-white', 'text-gray-600');
-  });
-  btn.classList.add('active', 'border-orange-500', 'bg-orange-50', 'text-orange-600');
-  btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-600');
-
-  const container = document.getElementById('kTableContainer');
-  if (type === 'Para Consumir Aquí') {
-    container.classList.remove('hidden');
-  } else {
-    container.classList.add('hidden');
+  // Handle visual delivery fee
+  let feeRow = document.getElementById('kDeliveryFeeRow');
+  if (!feeRow && appliedDeliveryFee > 0) {
+    const parent = discRow.parentNode;
+    feeRow = document.createElement('div');
+    feeRow.id = 'kDeliveryFeeRow';
+    feeRow.className = 'border-t border-gray-200 pt-2 flex justify-between text-sm font-bold text-gray-500';
+    feeRow.innerHTML = `<span>Domicilio:</span> <span id="kCartDeliveryFee" class="text-orange-600">+$0</span>`;
+    parent.insertBefore(feeRow, parent.lastElementChild);
+  } else if (feeRow) {
+    if (appliedDeliveryFee > 0) {
+      feeRow.classList.remove('hidden');
+      document.getElementById('kCartDeliveryFee').textContent = `+$${appliedDeliveryFee.toLocaleString()}`;
+    } else {
+      feeRow.classList.add('hidden');
+    }
   }
 }
+
+// Removed setDelivery since it's replaced by selectKioskOrderType
 
 // Coupon validation
 async function kApplyCoupon() {
@@ -670,14 +718,18 @@ async function kProcessOrder() {
   if (!keys.length) return showToast('Agrega productos al carrito', 'error');
 
   const name = document.getElementById('kCustomerName').value.trim();
-  const delivery = document.getElementById('kDeliveryMethod').value;
+  const phone = document.getElementById('kCustomerPhone').value.trim() || 'N/A';
+  const delivery = kioskDeliveryMethodSelected;
   let finalAddress = '';
   let mesaSelectValue = '';
 
-  if (delivery === 'Para Consumir Aquí') {
+  if (delivery === 'A la mesa') {
     mesaSelectValue = document.getElementById('kCustomerTable').value;
     if (!mesaSelectValue) return showToast('⚠️ Selecciona tu mesa', 'error');
     finalAddress = 'Mesa ' + mesaSelectValue;
+  } else if (delivery === 'Domicilio') {
+    finalAddress = document.getElementById('kCustomerAddress').value.trim();
+    if (!finalAddress) return showToast('⚠️ Ingresa la dirección de entrega', 'error');
   } else {
     finalAddress = 'Llevar / Kiosko';
   }
@@ -724,21 +776,20 @@ async function kProcessOrder() {
       }
     }
 
-    let total = subtotal - discount;
+    let appliedDeliveryFee = (delivery === 'Domicilio') ? kioskDeliveryFeeAmount : 0;
+    let total = subtotal - discount + appliedDeliveryFee;
     if (total < 0) total = 0;
-
-    // Delivery method in DB translated to support existing filters: 'A la mesa' or 'Para Llevar'
-    const dbDeliveryMethod = (delivery === 'Para Consumir Aquí') ? 'A la mesa' : 'Para Llevar';
 
     // Insert order in DB (payment defaults to 'Efectivo' since kiosk users pay at register)
     const { data: order, error } = await supabaseClient
       .from('orders')
       .insert([{
         customer_name: name,
-        customer_phone: '0000000000', // Dummy phone for kiosk
+        customer_phone: phone,
         items: orderItems,
         total,
-        delivery_method: dbDeliveryMethod,
+        delivery_fee: appliedDeliveryFee,
+        delivery_method: delivery,
         payment_method: 'Efectivo', // Default cashier payment
         address: finalAddress,
         notes: 'Pedido realizado desde Kiosko Auto-Servicio',

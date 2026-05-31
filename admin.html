@@ -242,6 +242,8 @@
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💳 Créditos</button>
         <button id="tab-recipes" onclick="showSection('recipes', event)"
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📖 Recetas</button>
+        <button id="tab-branches" onclick="showSection('branches', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all hidden">🏪 Sucursales</button>
       </nav>
 
       <div class="flex items-center gap-2">
@@ -251,6 +253,9 @@
         <button id="btnInstallApp"
           class="hidden bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all">📱
           Instalar App</button>
+        <a href="kds.html" target="_blank"
+          class="bg-white/10 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-white/20 transition-all border border-white/20">🔪
+          Cocina</a>
         <a href="index.html"
           class="bg-white text-black px-6 py-2 rounded-xl font-black text-sm shadow-lg active:scale-95 transition-all">📱
           Menú</a>
@@ -330,8 +335,24 @@
 
             <div class="mt-6 pt-6 border-t border-gray-100">
               <h3 class="font-bold text-sm mb-3">🖨️ Generar Códigos QR</h3>
-              <button class="btn bg-black text-white hover:bg-gray-800" onclick="generateQRs()">Generar QRs para
-                Mesas</button>
+              <button class="btn bg-black text-white hover:bg-gray-800" onclick="generateQRs()">Generar QRs para Mesas</button>
+            </div>
+          </div>
+
+          <!-- IMPRESIÓN AUTOMÁTICA -->
+          <div class="card">
+            <h2 class="text-xl font-bold mb-4">🖨️ Impresión Automática</h2>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+              <p class="font-bold mb-2">¿Cómo activar la impresión automática en tu Cajero/POS?</p>
+              <ol class="list-decimal pl-4 space-y-2">
+                <li>Ve a tu sistema de Cajero (POS) usando Google Chrome.</li>
+                <li>Activa el botón <strong>"🖨️ Auto-Print"</strong> en la barra superior del POS.</li>
+                <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200">--kiosk-printing</code>.</li>
+              </ol>
+              <div class="mt-3 text-xs bg-white p-3 rounded-lg border border-blue-100">
+                <strong>En Windows:</strong> Haz clic derecho en el acceso directo de Chrome > Propiedades > Destino. Al final del texto, agrega un espacio y pega: <br> <code class="text-gray-800 font-mono font-bold">--kiosk-printing</code> <br>
+                (Ejemplo: <code class="text-gray-600">"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing</code>)
+              </div>
             </div>
           </div>
 
@@ -341,8 +362,15 @@
             <input type="text" id="prodName" class="input" placeholder="Nombre producto">
             <input type="number" id="prodPrice" class="input" placeholder="Precio">
             <textarea id="prodDescription" class="input" placeholder="Descripción..." rows="3"></textarea>
-            <input type="text" id="prodAccompaniments" class="input"
-              placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
+            <div class="flex flex-col gap-2">
+              <input type="text" id="prodAccompaniments" class="input" placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
+              <div class="flex items-center gap-2">
+                <select id="copyAccompanimentsFrom" class="input !py-2 text-xs text-gray-400">
+                  <option value="">📋 Copiar acompañamientos de otro producto...</option>
+                </select>
+                <button type="button" onclick="copyAccompaniments()" class="bg-[#333] hover:bg-[#444] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all border border-[#555] shrink-0">Copiar</button>
+              </div>
+            </div>
             <input type="number" id="prodAccompanimentsLimit" class="input"
               placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
             <div class="mt-4">
@@ -360,9 +388,15 @@
                 <button onclick="addNewCategory()" class="bg-black text-white px-4 rounded-xl font-bold">+</button>
               </div>
             </div>
-            <div class="mt-4 flex items-center gap-2">
-              <input type="checkbox" id="prodFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
-              <label for="prodFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+            <div class="mt-4 flex flex-col gap-3">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="prodFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
+                <label for="prodFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="prodPosOnly" class="w-5 h-5 accent-red-600 rounded cursor-pointer">
+                <label for="prodPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">🏪 Solo para el local (ocultar del menú online)</label>
+              </div>
             </div>
             <input type="file" id="prodImage" accept="image/*" class="input" onchange="previewImage(event)">
             <img id="prodPreview" class="preview">
@@ -551,15 +585,18 @@
           </div>
         </div>
       </div>
-      <!-- Cierre de Caja -->
+      <!-- Gestión de Caja -->
       <div class="card mt-8">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-black">📊 Cierre de Caja</h2>
-          <button onclick="startCashClosing()" class="btn btn-primary !w-auto !px-8">🔒 Iniciar Cierre de Caja</button>
+        <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+          <h2 class="text-2xl font-black">📊 Gestión de Caja</h2>
+          <div class="flex gap-2">
+            <button onclick="openCashOpeningModal()" id="btnOpenCash" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-6">🔓 Abrir Caja</button>
+            <button onclick="startCashClosing()" id="btnCloseCash" class="btn btn-primary !w-auto !px-6 hidden">🔒 Iniciar Cierre</button>
+          </div>
         </div>
         <div id="cashClosingResult" class="hidden"></div>
         <div class="overflow-x-auto mt-4">
-          <table class="admin-table"><thead><tr><th>Fecha</th><th>Esperado</th><th>Declarado</th><th>Diferencia</th><th>Pedidos</th></tr></thead>
+          <table class="admin-table"><thead><tr><th>Fecha Apertura</th><th>Base (Apertura)</th><th>Fecha Cierre</th><th>Esperado</th><th>Declarado</th><th>Diferencia</th><th>Estado</th></tr></thead>
             <tbody id="cashClosingsList"></tbody>
           </table>
         </div>
@@ -577,6 +614,7 @@
               <option value="Administrador">Administrador</option>
               <option value="Cajero">Cajero</option>
               <option value="Repartidor">Repartidor</option>
+              <option value="Cocina">Cocina (KDS)</option>
             </select>
             <input type="tel" id="staffPhone" class="input" placeholder="Teléfono">
             <input type="email" id="staffEmail" class="input" placeholder="Email (Usuario para Login)">
@@ -682,6 +720,29 @@
       </div>
     </div>
 
+    <!-- SECTION: SUCURSALES -->
+    <div id="section-branches" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">🏪 Nueva Sucursal</h2>
+            <p class="text-xs text-gray-500 mb-4">Crea un nuevo local. Tendrá su propio enlace, inventario y ventas.</p>
+            <input type="text" id="branchName" class="input" placeholder="Nombre (Ej: Goloso Sur)">
+            <input type="text" id="branchSlug" class="input" placeholder="Enlace corto (Ej: goloso-sur)">
+            <input type="email" id="branchEmail" class="input" placeholder="Correo de administrador">
+            <input type="password" id="branchPassword" class="input" placeholder="Contraseña">
+            <button class="btn btn-primary mt-4" onclick="createBranch(event)">🏪 Crear Sucursal</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Mis Sucursales</h2>
+            <div id="branchesList" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- MODAL: CIERRE DE CAJA -->
@@ -762,14 +823,27 @@
         <input type="text" id="editName" class="input" placeholder="Nombre">
         <input type="number" id="editPrice" class="input" placeholder="Precio">
         <textarea id="editDescription" class="input" placeholder="Descripción" rows="3"></textarea>
-        <input type="text" id="editAccompaniments" class="input"
-          placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
+        <div class="flex flex-col gap-2">
+          <input type="text" id="editAccompaniments" class="input" placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
+          <div class="flex items-center gap-2">
+            <select id="editCopyAccompanimentsFrom" class="input !py-2 text-xs text-gray-400">
+              <option value="">📋 Copiar acompañamientos de otro producto...</option>
+            </select>
+            <button type="button" onclick="editCopyAccompaniments()" class="bg-[#333] hover:bg-[#444] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all border border-[#555] shrink-0">Copiar</button>
+          </div>
+        </div>
         <input type="number" id="editAccompanimentsLimit" class="input"
           placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
         <input type="text" id="editCategory" class="input" placeholder="Categoría">
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="editFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
-          <label for="editFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="editFeatured" class="w-5 h-5 accent-orange-600 rounded cursor-pointer">
+            <label for="editFeatured" class="font-bold text-sm text-gray-700 cursor-pointer">⭐ Destacar producto en el menú</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="editPosOnly" class="w-5 h-5 accent-red-600 rounded cursor-pointer">
+            <label for="editPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">🏪 Solo para el local (ocultar del menú online)</label>
+          </div>
         </div>
         <input type="file" id="editImage" class="input">
         <img id="editPreview" class="preview">
@@ -1069,6 +1143,19 @@
     </style>
   </div>
 
+  <!-- MODAL: APERTURA DE CAJA -->
+  <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-4">🔓 Apertura de Caja</h2>
+      <p class="text-sm text-gray-500 mb-4">Ingresa el monto base (efectivo) con el que iniciarás el turno.</p>
+      <input type="number" id="openingAmount" class="input" placeholder="Monto base ($)" min="0" value="0">
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button class="btn btn-primary !bg-green-500 hover:!bg-green-600 border-none" onclick="confirmCashOpening()">✅ Abrir Caja</button>
+        <button class="btn btn-danger" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1076,6 +1163,7 @@
   <script src="js/admin.js?v=4"></script>
   <script src="js/admin-expenses.js?v=1"></script>
   <script src="js/admin-staff.js?v=1"></script>
+  <script src="js/admin-branches.js?v=1"></script>
   <script src="js/admin-features.js?v=1"></script>
   <script>
     // Registrar Service Worker para PWA

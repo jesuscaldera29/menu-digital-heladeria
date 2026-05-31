@@ -65,37 +65,114 @@ async function deleteExpense(id) {
   } catch (err) { showToast('❌ ' + err.message, 'error'); }
 }
 
+let activeCashSession = null;
+
 async function startCashClosing() {
   document.getElementById('cashClosingModal').style.display = 'flex';
   document.getElementById('declaredCashAmount').value = '';
   document.getElementById('cashClosingNotes').value = '';
 }
 
+function openCashOpeningModal() {
+  document.getElementById('cashOpeningModal').style.display = 'flex';
+  document.getElementById('openingAmount').value = '0';
+}
+
+async function confirmCashOpening() {
+  const openingAmount = parseFloat(document.getElementById('openingAmount').value) || 0;
+  
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabaseClient.from('cash_closings').insert([{
+      business_id: businessId,
+      date: today, // Can be updated on close
+      opened_at: new Date().toISOString(),
+      opening_amount: openingAmount,
+      is_open: true,
+      expected_total: 0,
+      declared_total: 0,
+      difference: 0,
+      cash_sales: 0,
+      transfer_sales: 0,
+      card_sales: 0,
+      total_expenses: 0,
+      total_orders: 0
+    }]).select().single();
+
+    if (error) throw error;
+    
+    showToast('✅ Caja abierta correctamente con base de $' + openingAmount.toLocaleString());
+    document.getElementById('cashOpeningModal').style.display = 'none';
+    loadCashClosings();
+  } catch (err) {
+    showToast('❌ Error al abrir caja: ' + err.message, 'error');
+  }
+}
+
 async function submitCashClosing() {
+  if (!activeCashSession) return showToast('⚠️ No hay caja abierta', 'error');
+
   const declared = parseFloat(document.getElementById('declaredCashAmount').value);
   if (!declared && declared !== 0) return showToast('⚠️ Ingresa el monto', 'error');
   const notes = document.getElementById('cashClosingNotes').value.trim();
+  
   try {
     const today = new Date().toISOString().split('T')[0];
-    const { data: todayOrders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).gte('created_at', today).neq('status', 'Cancelado');
-    const orders = todayOrders || [];
+    
+    // Fetch orders since opening
+    const openedAt = activeCashSession.opened_at || new Date(new Date().setHours(0,0,0,0)).toISOString();
+    
+    const { data: sessionOrders } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .eq('business_id', businessId)
+      .gte('created_at', openedAt)
+      .neq('status', 'Cancelado');
+      
+    const orders = sessionOrders || [];
     let cash = 0, transfer = 0, card = 0;
     orders.forEach(o => {
       const t = Number(o.total);
-      if (o.payment_method === 'Efectivo') cash += t;
-      else if (o.payment_method === 'Transferencia') transfer += t;
+      if (o.payment_method === 'Dividido' && o.split_payments) {
+        cash += Number(o.split_payments.cash || 0);
+        transfer += Number(o.split_payments.transfer || 0);
+        card += Number(o.split_payments.card || 0);
+      } else if (o.payment_method === 'Efectivo') cash += t;
+      else if (o.payment_method === 'Transferencia' || o.payment_method === 'Nequi') transfer += t;
       else card += t;
     });
-    const { data: todayExpenses } = await supabaseClient.from('expenses').select('amount').eq('business_id', businessId).eq('date', today);
-    const totalExp = (todayExpenses || []).reduce((s, e) => s + Number(e.amount), 0);
-    const expected = cash + transfer + card;
-    const diff = declared - expected;
-    const { error } = await supabaseClient.from('cash_closings').insert([{
-      business_id: businessId, date: today, expected_total: expected, declared_total: declared,
-      difference: diff, cash_sales: cash, transfer_sales: transfer, card_sales: card,
-      total_expenses: totalExp, total_orders: orders.length, notes
-    }]);
+    
+    // Fetch expenses since opening
+    const { data: sessionExpenses } = await supabaseClient
+      .from('expenses')
+      .select('amount')
+      .eq('business_id', businessId)
+      .gte('created_at', openedAt);
+      
+    const totalExp = (sessionExpenses || []).reduce((s, e) => s + Number(e.amount), 0);
+    
+    // Calculate expected (opening + cash sales - expenses)
+    const expectedCash = Number(activeCashSession.opening_amount || 0) + cash - totalExp;
+    const diff = declared - expectedCash;
+    
+    const { error } = await supabaseClient.from('cash_closings')
+      .update({
+        date: today,
+        expected_total: expectedCash,
+        declared_total: declared,
+        difference: diff,
+        cash_sales: cash,
+        transfer_sales: transfer,
+        card_sales: card,
+        total_expenses: totalExp,
+        total_orders: orders.length,
+        notes: notes,
+        is_open: false
+      })
+      .eq('id', activeCashSession.id);
+      
     if (error) throw error;
+    
     document.getElementById('cashClosingModal').style.display = 'none';
     const color = diff >= 0 ? 'green' : 'red';
     const resultDiv = document.getElementById('cashClosingResult');
@@ -103,33 +180,63 @@ async function submitCashClosing() {
     resultDiv.innerHTML = `<div class="bg-${color}-50 border border-${color}-200 p-6 rounded-2xl">
       <h3 class="text-xl font-black mb-4">📊 Resultado del Cierre</h3>
       <div class="grid grid-cols-2 gap-4 text-sm">
+        <div><span class="text-gray-500">Base Apertura:</span> <strong>$${Number(activeCashSession.opening_amount || 0).toLocaleString()}</strong></div>
+        <div><span class="text-gray-500">Gastos:</span> <strong class="text-red-500">-$${totalExp.toLocaleString()}</strong></div>
         <div><span class="text-gray-500">Ventas Efectivo:</span> <strong>$${cash.toLocaleString()}</strong></div>
-        <div><span class="text-gray-500">Transferencias:</span> <strong>$${transfer.toLocaleString()}</strong></div>
-        <div><span class="text-gray-500">Tarjeta:</span> <strong>$${card.toLocaleString()}</strong></div>
-        <div><span class="text-gray-500">Total Pedidos:</span> <strong>${orders.length}</strong></div>
-        <div><span class="text-gray-500">Esperado:</span> <strong class="text-blue-600">$${expected.toLocaleString()}</strong></div>
+        <div><span class="text-gray-500">Otras Ventas (Trans/Tarj):</span> <strong>$${(transfer + card).toLocaleString()}</strong></div>
+        <div><span class="text-gray-500">Esperado en Efectivo:</span> <strong class="text-blue-600">$${expectedCash.toLocaleString()}</strong></div>
         <div><span class="text-gray-500">Declarado:</span> <strong>$${declared.toLocaleString()}</strong></div>
         <div class="col-span-2 text-center mt-2"><span class="text-lg font-black ${diff >= 0 ? 'text-green-600' : 'text-red-600'}">Diferencia: ${diff >= 0 ? '+' : ''}$${diff.toLocaleString()}</span></div>
       </div></div>`;
+      
     showToast('✅ Cierre de caja completado');
+    activeCashSession = null;
     loadCashClosings();
   } catch (err) { showToast('❌ ' + err.message, 'error'); }
 }
 
 async function loadCashClosings() {
   try {
-    const { data } = await supabaseClient.from('cash_closings').select('*').eq('business_id', businessId).order('date', { ascending: false }).limit(20);
+    const { data } = await supabaseClient
+      .from('cash_closings')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('id', { ascending: false })
+      .limit(20);
+      
     const tbody = document.getElementById('cashClosingsList');
     if (!tbody) return;
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-400">Sin cierres</td></tr>'; return; }
+    
+    // Determine active session
+    activeCashSession = data?.find(c => c.is_open === true) || null;
+    
+    const btnOpenCash = document.getElementById('btnOpenCash');
+    const btnCloseCash = document.getElementById('btnCloseCash');
+    
+    if (activeCashSession) {
+      if(btnOpenCash) btnOpenCash.classList.add('hidden');
+      if(btnCloseCash) btnCloseCash.classList.remove('hidden');
+    } else {
+      if(btnOpenCash) btnOpenCash.classList.remove('hidden');
+      if(btnCloseCash) btnCloseCash.classList.add('hidden');
+    }
+    
+    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">Sin sesiones de caja registradas</td></tr>'; return; }
+    
     tbody.innerHTML = data.map(c => {
       const diffColor = c.difference >= 0 ? 'text-green-600' : 'text-red-600';
+      const statusBadge = c.is_open 
+        ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded-full font-bold">ABIERTA</span>'
+        : '<span class="bg-gray-100 text-gray-800 text-[10px] px-2 py-1 rounded-full font-bold">CERRADA</span>';
+        
       return `<tr>
-        <td class="text-sm">${new Date(c.date).toLocaleDateString()}</td>
-        <td class="font-bold">$${Number(c.expected_total).toLocaleString()}</td>
-        <td class="font-bold">$${Number(c.declared_total).toLocaleString()}</td>
-        <td class="font-black ${diffColor}">${c.difference >= 0 ? '+' : ''}$${Number(c.difference).toLocaleString()}</td>
-        <td class="text-sm">${c.total_orders} pedidos</td>
+        <td class="text-sm">${c.opened_at ? new Date(c.opened_at).toLocaleString() : '-'}</td>
+        <td class="font-bold">$${Number(c.opening_amount || 0).toLocaleString()}</td>
+        <td class="text-sm">${c.is_open ? '-' : new Date(c.date).toLocaleDateString()}</td>
+        <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.expected_total).toLocaleString()}</td>
+        <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.declared_total).toLocaleString()}</td>
+        <td class="font-black ${diffColor}">${c.is_open ? '-' : (c.difference >= 0 ? '+' : '') + '$' + Number(c.difference).toLocaleString()}</td>
+        <td class="text-center">${statusBadge}</td>
       </tr>`;
     }).join('');
   } catch (err) { console.error(err); }

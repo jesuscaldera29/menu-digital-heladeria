@@ -230,7 +230,8 @@ async function loadProducts() {
     .eq('available', true)
     .order('category');
 
-  products = data || [];
+  // Filter out products marked as POS-only (not for online menu)
+  products = (data || []).filter(p => !p.pos_only);
   
   try {
       const { data: extrasData } = await supabaseClient
@@ -625,11 +626,15 @@ async function processOrder() {
   btn.disabled = true;
 
   try {
+    // Auto-save customer data (name, phone, address)
+    const customerAddress = delivery === 'Domicilio' ? (document.getElementById('customerAddress')?.value.trim() || '') : '';
+    const customerNeighborhood = delivery === 'Domicilio' ? (document.getElementById('customerNeighborhood')?.value.trim() || '') : '';
     await supabaseClient.from('customers').upsert({
       phone, name,
-      address: delivery === 'Domicilio' ? finalAddress : '',
+      address: customerAddress,
+      neighborhood: customerNeighborhood,
       business_id: currentBusinessId
-    }, { onConflict: 'phone' });
+    }, { onConflict: 'business_id,phone' });
 
     let subtotal = 0;
     const orderItems = [];

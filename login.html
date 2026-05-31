@@ -197,6 +197,8 @@
               window.location.href = 'driver.html';
             } else if (staffMember.role === 'Cajero') {
               window.location.href = 'pos.html';
+            } else if (staffMember.role === 'Cocina') {
+              window.location.href = 'kds.html';
             } else {
               window.location.href = 'admin.html';
             }
@@ -246,18 +248,20 @@
             window.location.href = 'driver.html';
           } else if (staffMember.role === 'Cajero') {
             window.location.href = 'pos.html';
+          } else if (staffMember.role === 'Cocina') {
+            window.location.href = 'kds.html';
           } else {
             window.location.href = 'admin.html';
           }
         } else {
           // Check if user has a business (Owner)
-          const { data: biz } = await supabaseClient
+          const { data: bizList } = await supabaseClient
             .from('businesses')
             .select('id, slug')
             .eq('owner_id', data.user.id)
-            .single();
+            .limit(1);
 
-          if (!biz) {
+          if (!bizList || bizList.length === 0) {
             showToast('⚠️ No se encontró un negocio o cuenta de personal asociada.');
             await supabaseClient.auth.signOut();
             btn.disabled = false;

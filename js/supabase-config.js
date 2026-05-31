@@ -63,14 +63,21 @@ async function getCurrentBusiness() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return null;
 
-    // 1. Try to find if user is owner of a business
-    const { data: biz, error } = await supabaseClient
+    // 1. Try to find if user is owner of businesses
+    const { data: ownerBizList, error } = await supabaseClient
       .from('businesses')
       .select('*')
       .eq('owner_id', session.user.id)
-      .single();
+      .order('created_at', { ascending: true });
 
-    if (biz && !error) return biz;
+    if (ownerBizList && ownerBizList.length > 0) {
+      const overrideId = localStorage.getItem('override_business_id');
+      if (overrideId) {
+        const found = ownerBizList.find(b => b.id === overrideId);
+        if (found) return found;
+      }
+      return ownerBizList[0];
+    }
 
     // 2. Try to find if user is a staff member of a business
     const { data: staffMember } = await supabaseClient
