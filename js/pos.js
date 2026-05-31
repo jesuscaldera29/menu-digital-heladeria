@@ -660,3 +660,76 @@ function printPOSTicket(o) {
   printWindow.document.close();
 }
 
+// TABLES MODAL LOGIC
+window.openTablesModal = async function() {
+  document.getElementById('tablesModal').classList.remove('hidden');
+  
+  const container = document.getElementById('tablesGrid');
+  container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">Cargando estado de mesas...</div>';
+  
+  if (!posSettings || !posSettings.table_count) {
+    container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">No hay mesas configuradas en el administrador.</div>';
+    return;
+  }
+  
+  try {
+    const { data: activeOrders, error } = await supabaseClient
+      .from('orders')
+      .select('id, address, status, total, created_at')
+      .eq('business_id', businessId)
+      .eq('delivery_method', 'A la mesa')
+      .in('status', ['Pendiente', 'En preparación']);
+      
+    if (error) throw error;
+    
+    let html = '';
+    for (let i = 1; i <= posSettings.table_count; i++) {
+      // Look for an order matching "Mesa X"
+      const order = activeOrders?.find(o => String(o.address) === `Mesa ${i}`);
+      
+      if (order) {
+        // Ocupada
+        const timeDiff = Math.floor((new Date() - new Date(order.created_at)) / 60000);
+        html += `
+          <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center">
+            <span class="text-3xl mb-2">🔴</span>
+            <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
+            <span class="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-widest">Ocupada</span>
+            <span class="text-[10px] text-gray-400 mt-1">Pedido #${order.id}</span>
+            <span class="text-[10px] text-gray-400">${timeDiff} min</span>
+          </div>
+        `;
+      } else {
+        // Libre
+        html += `
+          <div onclick="startTableOrder(${i})" class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-green-500/20 transition-all text-center">
+            <span class="text-3xl mb-2">🟢</span>
+            <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
+            <span class="text-[10px] font-bold text-green-400 mt-1 uppercase tracking-widest">Libre</span>
+            <span class="text-[10px] text-gray-400 mt-1 opacity-0">-</span>
+            <span class="text-[10px] text-gray-400 opacity-0">-</span>
+          </div>
+        `;
+      }
+    }
+    
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div class="col-span-full py-10 text-center text-red-500">Error cargando mesas.</div>';
+    console.error(err);
+  }
+};
+
+window.closeTablesModal = function() {
+  document.getElementById('tablesModal').classList.add('hidden');
+};
+
+window.startTableOrder = function(tableNum) {
+  closeTablesModal();
+  document.getElementById('orderType').value = 'A la mesa';
+  toggleDeliveryFields();
+  const sel = document.getElementById('tableNumber');
+  if (sel) sel.value = tableNum;
+  showToast(`✅ Iniciando pedido para Mesa ${tableNum}`);
+};
+

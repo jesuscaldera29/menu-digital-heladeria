@@ -163,7 +163,7 @@ function renderOrders() {
     });
 
     html += `
-      <div class="min-w-[350px] w-[350px] flex flex-col shrink-0 rounded-2xl shadow-xl overflow-hidden ${cardClass}">
+      <div class="w-full flex flex-col rounded-2xl shadow-xl overflow-hidden ${cardClass} h-fit max-h-[70vh]">
         <!-- Header -->
         <div class="px-5 py-4 ${headerClass} flex justify-between items-center border-b border-[#2d333f]">
           <div>

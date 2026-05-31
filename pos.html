@@ -71,6 +71,9 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <button onclick="openTablesModal()" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+        <span>🗺️</span> <span class="hidden sm:inline">Mesas</span>
+      </button>
       <button id="btnAutoPrint" onclick="toggleAutoPrint()" class="bg-[#222] border border-[#333] text-gray-400 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" title="Imprimir pedidos online automáticamente">
         <span>🖨️</span> <span class="hidden sm:inline" id="autoPrintText">Auto-Print: OFF</span>
       </button>
@@ -146,6 +149,23 @@
       </div>
     </div>
   </main>
+
+  <!-- TABLES MODAL -->
+  <div id="tablesModal" class="hidden fixed inset-0 z-[900] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeTablesModal()"></div>
+    <div class="bg-[#111] border border-[#333] w-full max-w-4xl h-[90vh] md:h-auto md:max-h-[85vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4">
+      <div class="p-4 md:p-6 border-b border-[#222] flex justify-between items-center shrink-0">
+        <h2 class="text-xl md:text-2xl font-black text-white">🗺️ Estado de Mesas</h2>
+        <button onclick="closeTablesModal()" class="text-gray-400 hover:text-white bg-[#222] hover:bg-[#333] w-8 h-8 rounded-full transition-all">✕</button>
+      </div>
+      <div class="p-4 md:p-6 overflow-y-auto custom-scroll flex-1">
+        <div id="tablesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <!-- Tables injected here via JS -->
+          <div class="col-span-full py-10 text-center text-gray-500">Cargando mesas...</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- EXTRAS/ACCOMPANIMENTS MODAL -->
   <div id="extrasModal" class="hidden fixed inset-0 z-[900] flex items-end md:items-center justify-center">
