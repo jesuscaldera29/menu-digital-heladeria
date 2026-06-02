@@ -156,6 +156,46 @@ function previewImage(event) {
 }
 
 // ADD NEW CATEGORY
+function updateCategoryDropdown() {
+    try {
+        const select = document.getElementById('prodCategory');
+        if (!select) return;
+
+        const existingCats = (typeof allProducts !== 'undefined' && Array.isArray(allProducts)) 
+            ? [...new Set(allProducts.map(p => p.category).filter(c => c && typeof c === 'string'))] 
+            : [];
+        
+        // Always include default categories so they don't disappear if no products use them
+        const defaultCats = ['Desayunos', 'Almuerzos', 'Comidas Rápidas', 'Acompañantes', 'Bebidas', 'Postres'];
+        
+        // Merge without duplicates, filtering out anything named "Seleccionar" explicitly
+        const allCats = [...new Set([...defaultCats, ...existingCats])].filter(c => c.toLowerCase() !== 'seleccionar');
+        
+        const currentVal = select.value;
+        let html = '<option value="">Seleccionar</option>';
+        allCats.forEach(cat => {
+            const emoji = { 'Desayunos': '🍳', 'Almuerzos': '🍛', 'Comidas Rápidas': '🍔', 'Acompañantes': '🍟', 'Bebidas': '🥤', 'Postres': '🍰' }[cat] || '📂';
+            html += `<option value="${cat}">${emoji} ${cat}</option>`;
+        });
+        
+        select.innerHTML = html;
+        if (currentVal && allCats.includes(currentVal)) {
+            select.value = currentVal;
+        }
+        
+        // Also update edit modal dropdown if exists
+        const editSelect = document.getElementById('editProdCategory') || document.getElementById('editCategory');
+        if (editSelect && editSelect.tagName === 'SELECT') {
+            const editVal = editSelect.value;
+            editSelect.innerHTML = html;
+            if (editVal && allCats.includes(editVal)) {
+                editSelect.value = editVal;
+            }
+        }
+    } catch (err) {
+        console.error('Error updating category dropdown:', err);
+    }
+}
 function addNewCategory() {
     const input = document.getElementById("newCategory");
     const value = input.value.trim();
@@ -654,6 +694,9 @@ function renderProducts() {
     if (totalEl) {
         totalEl.innerText = `${allProducts.length} productos en total`;
     }
+
+    // Update categories dropdown
+    updateCategoryDropdown();
 
     // Populate accompaniments copy dropdowns
     const copySelect = document.getElementById('copyAccompanimentsFrom');
@@ -1264,6 +1307,8 @@ function openNewCustomerModal() {
     document.getElementById('newCustomerName').value = '';
     document.getElementById('newCustomerPhone').value = '';
     document.getElementById('newCustomerAddress').value = '';
+    const nh = document.getElementById('newCustomerNeighborhood');
+    if (nh) nh.value = '';
     document.getElementById('newCustomerModal').style.display = 'flex';
 }
 
@@ -1271,8 +1316,10 @@ async function createCustomerManual() {
     const name = document.getElementById('newCustomerName').value.trim();
     const phone = document.getElementById('newCustomerPhone').value.trim();
     const address = document.getElementById('newCustomerAddress').value.trim();
+    const nhEl = document.getElementById('newCustomerNeighborhood');
+    const neighborhood = nhEl ? nhEl.value.trim() : '';
 
-    if (!name || !phone) return showToast('⚠️ Nombre y WhatsApp son obligatorios', 'error');
+    if (!name || !phone || !address) return showToast('⚠️ Nombre, WhatsApp y Dirección son obligatorios', 'error');
 
     const btn = document.querySelector('#newCustomerModal .btn-primary');
     const ogText = btn.innerHTML;
@@ -1284,7 +1331,8 @@ async function createCustomerManual() {
             business_id: businessId,
             name: name,
             phone: phone,
-            address: address
+            address: address,
+            neighborhood: neighborhood
         }]);
 
         if (error) throw error;
@@ -1589,7 +1637,7 @@ async function loadVisualExtras(productId) {
                     ${extra.image_url ? `<img src="${extra.image_url}" class="w-10 h-10 rounded-full object-cover shadow-sm">` : `<div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">✨</div>`}
                     <div>
                         <p class="font-bold text-sm leading-none">${extra.name}</p>
-                        <p class="text-xs text-orange-600 font-bold mt-1">${extra.price > 0 ? '+$' + Number(extra.price).toLocaleString() : 'GRATIS'}</p>
+                        <p class="text-xs text-orange-600 font-bold mt-1">${extra.price > 0 ? '+$' + Number(extra.price).toLocaleString() : '&nbsp;'}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
