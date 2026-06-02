@@ -12,6 +12,7 @@ let currentExtrasProductId = null;
 let selectedVisualExtras = [];
 let selectedAccompaniments = [];
 let posSettings = {};
+let currentOpenOrderId = null;
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -242,16 +243,18 @@ function openExtrasModal(productId, extras, accList) {
     html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
     accList.forEach((a, i) => {
       html += `
-      <label class="pos-extra-label flex items-center gap-3 bg-[#222] rounded-xl p-3 cursor-pointer border-2 border-transparent transition-all duration-200 select-none" onchange="updateExtrasTotal(this)">
-        <div class="relative flex items-center justify-center w-5 h-5 bg-transparent border-2 border-gray-400 rounded shrink-0 transition-all ve-checkbox-visual">
-          <svg class="w-3.5 h-3.5 text-orange-500 opacity-0 transition-opacity ve-checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        <input type="checkbox" class="acc-check hidden" value="${a}">
-        <div class="min-w-0 flex-1">
+      <div id="posAccCard_${i}" class="pos-extra-label flex items-center justify-between gap-3 bg-[#222] rounded-xl p-3 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('acc_${i}', 1)">
+        <div class="min-w-0 flex-1 pointer-events-none">
           <span class="text-sm text-white font-bold block truncate">${a}</span>
-          <span class="text-[10px] text-orange-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
+          <span class="text-[10px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
         </div>
-      </label>`;
+        <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
+          <button type="button" class="w-8 h-8 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', -1)">−</button>
+          <span id="posCount_acc_${i}" class="font-bold text-white w-4 text-center">0</span>
+          <button type="button" class="w-8 h-8 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', 1)">+</button>
+        </div>
+        <input type="hidden" class="acc-input" id="posInput_acc_${i}" value="${a}" data-count="0">
+      </div>`;
     });
     html += '</div>';
   }
@@ -262,17 +265,19 @@ function openExtrasModal(productId, extras, accList) {
     html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
     extras.forEach(e => {
       html += `
-      <label class="pos-extra-label flex items-center gap-3 bg-[#222] rounded-xl p-3 cursor-pointer border-2 border-transparent transition-all duration-200 select-none" onchange="updateExtrasTotal(this)">
-        <div class="relative flex items-center justify-center w-5 h-5 bg-transparent border-2 border-gray-400 rounded shrink-0 transition-all ve-checkbox-visual">
-          <svg class="w-3.5 h-3.5 text-orange-500 opacity-0 transition-opacity ve-checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        <input type="checkbox" class="ve-check hidden" data-id="${e.id}" data-name="${e.name}" data-price="${e.price}">
-        ${e.image_url ? `<img src="${e.image_url}" class="w-8 h-8 rounded-full object-cover shrink-0">` : ''}
-        <div class="min-w-0 flex-1">
+      <div id="posVECard_${i}" class="pos-extra-label flex items-center justify-between gap-3 bg-[#222] rounded-xl p-3 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('ve_${i}', 1)">
+        ${e.image_url ? `<img src="${e.image_url}" class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none">` : ''}
+        <div class="min-w-0 flex-1 pointer-events-none">
           <span class="text-sm text-white font-bold block truncate">${e.name}</span>
-          <span class="text-[10px] text-orange-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
+          <span class="text-[10px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
         </div>
-      </label>`;
+        <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
+          <button type="button" class="w-8 h-8 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', -1)">−</button>
+          <span id="posCount_ve_${i}" class="font-bold text-white w-4 text-center">0</span>
+          <button type="button" class="w-8 h-8 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', 1)">+</button>
+        </div>
+        <input type="hidden" class="ve-input" id="posInput_ve_${i}" value='${JSON.stringify(e).replace(/'/g, "&#39;")}' data-count="0">
+      </div>`;
     });
     html += '</div>';
   }
@@ -282,54 +287,73 @@ function openExtrasModal(productId, extras, accList) {
   document.getElementById('extrasModal').classList.remove('hidden');
 }
 
-function updateExtrasTotal(changedLabel = null) {
+window.updatePosAccCount = function(idSuffix, delta) {
   const p = products.find(x => String(x.id) === String(currentExtrasProductId));
   if (!p) return;
   const limit = p.accompaniments_limit;
-  
-  const checkedAccs = document.querySelectorAll('.acc-check:checked');
-  const checkedVEs = document.querySelectorAll('.ve-check:checked');
-  const totalChecked = checkedAccs.length + checkedVEs.length;
 
-  if (limit && totalChecked > limit) {
-    if (changedLabel) {
-      const input = changedLabel.querySelector('input[type="checkbox"]');
-      if (input) input.checked = false;
-      changedLabel.classList.add('animate-shake', 'border-red-500');
-      setTimeout(() => changedLabel.classList.remove('animate-shake', 'border-red-500'), 400);
+  const input = document.getElementById('posInput_' + idSuffix);
+  const display = document.getElementById('posCount_' + idSuffix);
+  if (!input || !display) return;
+
+  let current = parseInt(input.getAttribute('data-count')) || 0;
+
+  if (delta > 0 && limit) {
+    let totalSelected = 0;
+    document.querySelectorAll('.acc-input, .ve-input').forEach(inp => {
+      totalSelected += parseInt(inp.getAttribute('data-count')) || 0;
+    });
+
+    if (totalSelected >= limit) {
       showToast(`⚠️ Máximo ${limit} opciones permitidas`, 'error');
+      
+      const isAcc = idSuffix.startsWith('acc_');
+      const cardId = isAcc ? 'posAccCard_' + idSuffix.replace('acc_', '') : 'posVECard_' + idSuffix.replace('ve_', '');
+      const card = document.getElementById(cardId);
+      if (card) {
+        card.classList.add('animate-shake', 'border-red-500');
+        setTimeout(() => card.classList.remove('animate-shake', 'border-red-500'), 400);
+      }
+      return;
     }
   }
 
-  // Update visual states for custom checkboxes
-  document.querySelectorAll('.pos-extra-label').forEach(label => {
-    const input = label.querySelector('input[type="checkbox"]');
-    if (!input) return;
-    const visualBox = label.querySelector('.ve-checkbox-visual');
-    const checkmark = label.querySelector('.ve-checkmark');
-    
-    if (input.checked) {
-      label.classList.add('border-orange-500', 'bg-[#1f1f1f]');
-      label.classList.remove('border-transparent', 'bg-[#222]');
-      if (visualBox) {
-        visualBox.classList.add('bg-white', 'border-white');
-        visualBox.classList.remove('bg-transparent', 'border-gray-400');
-      }
-      if (checkmark) checkmark.classList.remove('opacity-0');
+  current += delta;
+  if (current < 0) current = 0;
+
+  input.setAttribute('data-count', current);
+  display.innerText = current;
+
+  // Visual state
+  const isAcc = idSuffix.startsWith('acc_');
+  const cardId = isAcc ? 'posAccCard_' + idSuffix.replace('acc_', '') : 'posVECard_' + idSuffix.replace('ve_', '');
+  const card = document.getElementById(cardId);
+  
+  if (card) {
+    if (current > 0) {
+      card.classList.add('border-green-500', 'bg-[#1f1f1f]');
+      card.classList.remove('border-transparent', 'bg-[#222]');
     } else {
-      label.classList.remove('border-orange-500', 'bg-[#1f1f1f]');
-      if (!label.classList.contains('border-red-500')) label.classList.add('border-transparent');
-      label.classList.add('bg-[#222]');
-      if (visualBox) {
-        visualBox.classList.remove('bg-white', 'border-white');
-        visualBox.classList.add('bg-transparent', 'border-gray-400');
-      }
-      if (checkmark) checkmark.classList.add('opacity-0');
+      card.classList.remove('border-green-500', 'bg-[#1f1f1f]');
+      card.classList.add('border-transparent', 'bg-[#222]');
     }
-  });
+  }
+
+  updateExtrasTotal();
+};
+
+function updateExtrasTotal() {
+  const p = products.find(x => String(x.id) === String(currentExtrasProductId));
+  if (!p) return;
 
   let total = Number(p.price);
-  document.querySelectorAll('.ve-check:checked').forEach(el => { total += Number(el.dataset.price || 0); });
+  document.querySelectorAll('.ve-input').forEach(el => { 
+    const count = parseInt(el.getAttribute('data-count')) || 0;
+    if (count > 0) {
+      const data = JSON.parse(el.value);
+      total += (Number(data.price || 0) * count);
+    }
+  });
   document.getElementById('extrasModalTotal').textContent = '$' + total.toLocaleString();
 }
 
@@ -350,15 +374,27 @@ function confirmExtrasAndAdd() {
   if (!p) return;
 
   const accChecked = [];
-  document.querySelectorAll('.acc-check:checked').forEach(el => accChecked.push(el.value));
-
-  const veChecked = [];
-  document.querySelectorAll('.ve-check:checked').forEach(el => {
-    veChecked.push({ id: el.dataset.id, name: el.dataset.name, price: Number(el.dataset.price || 0) });
+  document.querySelectorAll('.acc-input').forEach(el => {
+    const count = parseInt(el.getAttribute('data-count')) || 0;
+    for(let i=0; i<count; i++) accChecked.push(el.value);
   });
 
-  // Validate limit
+  const veChecked = [];
+  document.querySelectorAll('.ve-input').forEach(el => {
+    const count = parseInt(el.getAttribute('data-count')) || 0;
+    if (count > 0) {
+      const data = JSON.parse(el.value);
+      for(let i=0; i<count; i++) veChecked.push({ id: data.id, name: data.name, price: Number(data.price || 0) });
+    }
+  });
+
   const totalSelected = accChecked.length + veChecked.length;
+  if (totalSelected === 0 && (document.querySelectorAll('.acc-input').length > 0 || document.querySelectorAll('.ve-input').length > 0)) {
+     showToast("⚠️ Por favor, selecciona al menos 1 extra.", "error");
+     return;
+  }
+
+  // Validate limit
   if (p.accompaniments_limit && totalSelected > p.accompaniments_limit) {
     showToast(`⚠️ Máximo ${p.accompaniments_limit} selecciones`, 'error');
     return;
@@ -407,7 +443,7 @@ function addOneMore(key) {
   if (posCart[key]) { posCart[key].qty++; updateCartUI(); }
 }
 
-function clearCart() { posCart = {}; updateCartUI(); }
+function clearCart() { posCart = {}; currentOpenOrderId = null; updateCartUI(); }
 
 function getCartTotal() {
   let total = 0;
@@ -504,6 +540,8 @@ function selectOrderType(type, el) {
   document.getElementById('tableSelector').classList.toggle('hidden', type !== 'A la mesa');
   document.getElementById('addressField').classList.toggle('hidden', type !== 'Domicilio');
   document.getElementById('phoneField').classList.toggle('hidden', type !== 'Domicilio');
+  const btnSave = document.getElementById('btnSaveTable');
+  if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
 }
 
 function selectPayment(method, el) {
@@ -623,27 +661,101 @@ async function confirmSale() {
       items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
     });
 
-    const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
-      business_id: businessId,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      address: address,
-      delivery_method: orderType,
-      payment_method: paymentMethod,
-      split_payments: Object.keys(splitPaymentsJSON).length ? splitPaymentsJSON : null,
-      items: items,
-      total: total,
-      status: 'Entregado'
-    }]).select();
-
-    if (error) throw error;
-
-    showToast('✅ Venta registrada');
-
-    if (insertedOrder && insertedOrder.length > 0) {
-      printPOSTicket(insertedOrder[0]);
+    if (currentOpenOrderId) {
+      const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        payment_method: paymentMethod,
+        split_payments: Object.keys(splitPaymentsJSON).length ? splitPaymentsJSON : null,
+        items: items,
+        total: total,
+        status: 'Entregado'
+      }).eq('id', currentOpenOrderId).select();
+      if (error) throw error;
+      showToast('✅ Venta cobrada (Mesa cerrada)');
+      if (updatedOrder && updatedOrder.length > 0) printPOSTicket(updatedOrder[0]);
+    } else {
+      const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
+        business_id: businessId,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        address: address,
+        delivery_method: orderType,
+        payment_method: paymentMethod,
+        split_payments: Object.keys(splitPaymentsJSON).length ? splitPaymentsJSON : null,
+        items: items,
+        total: total,
+        status: 'Entregado'
+      }]).select();
+      if (error) throw error;
+      showToast('✅ Venta registrada');
+      if (insertedOrder && insertedOrder.length > 0) printPOSTicket(insertedOrder[0]);
     }
 
+    closeCheckoutModal();
+    clearCart();
+  } catch (error) {
+    console.error(error);
+    showToast('❌ Error: ' + error.message, 'error');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function saveTableOrder() {
+  const keys = Object.keys(posCart);
+  if (!keys.length) return;
+
+  const orderType = document.getElementById('orderType').value;
+  if (orderType !== 'A la mesa') return;
+
+  const mesa = document.getElementById('tableNumber').value;
+  if (!mesa) {
+    showToast('⚠️ Seleccione una mesa', 'error');
+    return;
+  }
+  
+  const address = 'Mesa ' + mesa;
+  const customerName = document.getElementById('customerName').value.trim() || 'Mostrador';
+
+  const btn = document.getElementById('btnSaveTable');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ Guardando...';
+  btn.disabled = true;
+
+  try {
+    let total = 0;
+    const items = [];
+    keys.forEach(k => {
+      const item = posCart[k];
+      total += item.price * item.qty;
+      items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
+    });
+
+    if (currentOpenOrderId) {
+      const { error } = await supabaseClient.from('orders').update({
+        items: items,
+        total: total,
+        status: 'En preparación'
+      }).eq('id', currentOpenOrderId);
+      if (error) throw error;
+      showToast('✅ Cuenta de mesa actualizada');
+    } else {
+      const { error } = await supabaseClient.from('orders').insert([{
+        business_id: businessId,
+        customer_name: customerName,
+        address: address,
+        delivery_method: orderType,
+        payment_method: 'Pendiente',
+        items: items,
+        total: total,
+        status: 'En preparación'
+      }]);
+      if (error) throw error;
+      showToast('✅ Cuenta enviada a cocina');
+    }
+    
     closeCheckoutModal();
     clearCart();
   } catch (error) {
@@ -667,17 +779,19 @@ document.addEventListener('DOMContentLoaded', initPOS);
 function printPOSTicket(o) {
   const itemsHtml = o.items.map(item => `
       <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
-          <span>${item.quantity}x ${item.name}</span>
+          <span>${item.qty || item.quantity}x ${item.name}</span>
           <span>$${item.price}</span>
       </div>`
   ).join('');
 
   const logoUrl = posSettings.logo_url ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
 
+  const ticketId = String(o.id).split('-')[0];
+
   const html = `
   <html>
     <head>
-      <title>Ticket #${o.id.split('-')[0]}</title>
+      <title>Ticket #${ticketId}</title>
       <style>
         body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
@@ -692,12 +806,12 @@ function printPOSTicket(o) {
     <body>
       <div class="text-center mb-2">${logoUrl}</div>
       <div class="text-center border-b font-bold text-lg">
-        TICKET DE VENTA<br>#${o.id.split('-')[0]}
+        TICKET DE VENTA<br>#${ticketId}
       </div>
       <div class="mb-2" style="margin-top:10px;">
         <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
-        <strong>Tipo:</strong> ${o.delivery_type}<br>
+        <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type}<br>
         <strong>Pago:</strong> ${o.payment_method}
       </div>
       <div class="border-t border-b mb-2" style="margin-top:10px;">
@@ -736,12 +850,14 @@ window.openTablesModal = async function () {
   try {
     const { data: activeOrders, error } = await supabaseClient
       .from('orders')
-      .select('id, address, status, total, created_at')
+      .select('id, address, status, total, created_at, items')
       .eq('business_id', businessId)
       .eq('delivery_method', 'A la mesa')
       .in('status', ['Pendiente', 'En preparación']);
 
     if (error) throw error;
+    
+    window.currentActiveOrders = activeOrders;
 
     let html = '';
     for (let i = 1; i <= posSettings.table_count; i++) {
@@ -752,7 +868,7 @@ window.openTablesModal = async function () {
         // Ocupada
         const timeDiff = Math.floor((new Date() - new Date(order.created_at)) / 60000);
         html += `
-          <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center">
+          <div onclick="openTableOrder('${order.id}')" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center">
             <span class="text-3xl mb-2">🔴</span>
             <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
             <span class="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-widest">Ocupada</span>
@@ -785,10 +901,43 @@ window.closeTablesModal = function () {
   document.getElementById('tablesModal').classList.add('hidden');
 };
 
+window.openTableOrder = function(orderId) {
+  const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
+  if (!order) return;
+  
+  closeTablesModal();
+  clearCart();
+  
+  currentOpenOrderId = order.id;
+  
+  order.items.forEach((item, index) => {
+    const key = `existing_${index}`;
+    posCart[key] = {
+      id: item.id || `custom_${index}`,
+      qty: item.qty || item.quantity || 1,
+      price: item.price,
+      name: item.name,
+      extrasLabel: '' 
+    };
+  });
+  
+  updateCartUI();
+  
+  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
+  if (btnMesa) selectOrderType('A la mesa', btnMesa);
+  
+  const tableNumStr = order.address.replace('Mesa ', '');
+  const sel = document.getElementById('tableNumber');
+  if (sel) sel.value = tableNumStr;
+  
+  showToast(`✅ Mesa ${tableNumStr} reabierta`);
+};
+
 window.startTableOrder = function (tableNum) {
   closeTablesModal();
-  document.getElementById('orderType').value = 'A la mesa';
-  toggleDeliveryFields();
+  clearCart();
+  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
+  if (btnMesa) selectOrderType('A la mesa', btnMesa);
   const sel = document.getElementById('tableNumber');
   if (sel) sel.value = tableNum;
   showToast(`✅ Iniciando pedido para Mesa ${tableNum}`);
