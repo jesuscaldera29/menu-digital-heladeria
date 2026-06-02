@@ -627,6 +627,23 @@
             <input type="tel" id="staffPhone" class="input" placeholder="Teléfono">
             <input type="email" id="staffEmail" class="input" placeholder="Email (Usuario para Login)">
             <input type="password" id="staffPassword" class="input" placeholder="Contraseña">
+            <div class="mt-4 p-4 bg-blue-50 rounded-2xl space-y-3">
+              <h3 class="text-sm font-black text-blue-700">⏰ Horario de Trabajo</h3>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Entrada</label>
+                  <input type="time" id="staffScheduleIn" class="input !text-sm" value="08:00">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-gray-500 uppercase">Salida</label>
+                  <input type="time" id="staffScheduleOut" class="input !text-sm" value="17:00">
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase">Días Laborales</label>
+                <input type="text" id="staffWorkDays" class="input !text-sm" placeholder="Ej: Lun-Sáb" value="Lun-Sáb">
+              </div>
+            </div>
             <button class="btn btn-primary mt-4" onclick="addStaff(event)">➕ Agregar Empleado</button>
           </div>
         </div>
@@ -636,9 +653,18 @@
             <div id="staffList" class="space-y-4"></div>
           </div>
           <div class="card mt-8">
-            <h2 class="text-2xl font-black mb-6">⏰ Registro de Turnos</h2>
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <h2 class="text-2xl font-black">⏰ Control de Asistencia</h2>
+              <div class="flex gap-2 items-center flex-wrap">
+                <select id="shiftStaffSelect" class="input !w-auto !text-sm !py-2">
+                  <option value="">-- Seleccionar Empleado --</option>
+                </select>
+                <button onclick="registerEntry()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">🟢 Marcar Entrada</button>
+                <button onclick="registerExit()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">🔴 Marcar Salida</button>
+              </div>
+            </div>
             <div class="overflow-x-auto">
-              <table class="admin-table"><thead><tr><th>Empleado</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Acciones</th></tr></thead>
+              <table class="admin-table"><thead><tr><th>Empleado</th><th>Rol</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th></tr></thead>
                 <tbody id="shiftsList"></tbody>
               </table>
             </div>

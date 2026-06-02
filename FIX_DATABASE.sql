@@ -17,15 +17,25 @@ ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE cash_closings
 ADD COLUMN IF NOT EXISTS opening_amount NUMERIC DEFAULT 0;
 
--- 4. Crear tabla para registro de turnos del personal
-CREATE TABLE IF NOT EXISTS staff_sessions (
+-- 4. Agregar horarios de trabajo a la tabla de personal
+ALTER TABLE staff
+ADD COLUMN IF NOT EXISTS schedule_in TEXT DEFAULT '';
+
+ALTER TABLE staff
+ADD COLUMN IF NOT EXISTS schedule_out TEXT DEFAULT '';
+
+ALTER TABLE staff
+ADD COLUMN IF NOT EXISTS work_days TEXT DEFAULT 'Lun-Sáb';
+
+-- 5. Crear tabla de turnos/asistencia (si no existe)
+CREATE TABLE IF NOT EXISTS shifts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   business_id UUID REFERENCES businesses(id),
-  staff_id UUID,
-  staff_name TEXT,
-  staff_role TEXT,
-  login_at TIMESTAMPTZ DEFAULT now(),
-  logout_at TIMESTAMPTZ,
+  staff_id UUID REFERENCES staff(id) ON DELETE CASCADE,
+  date DATE DEFAULT CURRENT_DATE,
+  clock_in TIMESTAMPTZ DEFAULT now(),
+  clock_out TIMESTAMPTZ,
+  total_hours NUMERIC DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

@@ -252,18 +252,6 @@
           localStorage.setItem('staff_id', staffMember.id);
           localStorage.setItem('staff_name', staffMember.name);
           localStorage.setItem('staff_business_id', staffMember.business_id);
-
-          // Record staff session (shift start)
-          try {
-            const { data: sessionData } = await supabaseClient.from('staff_sessions').insert([{
-              business_id: staffMember.business_id,
-              staff_id: staffMember.id,
-              staff_name: staffMember.name,
-              staff_role: staffMember.role,
-              login_at: new Date().toISOString()
-            }]).select().single();
-            if (sessionData) localStorage.setItem('staff_session_id', sessionData.id);
-          } catch(e) { console.warn('Staff session tracking not available'); }
           
           if (staffMember.role === 'Repartidor') {
             window.location.href = 'driver.html';

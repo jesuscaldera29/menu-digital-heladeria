@@ -94,8 +94,8 @@ function subscribeToOnlineOrders() {
         try {
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
           audio.play().catch(e => console.log('Audio blocked', e));
-        } catch(e) {}
-        
+        } catch (e) { }
+
         // Auto print if enabled
         if (autoPrintEnabled) {
           showToast('🖨️ Imprimiendo nuevo pedido online...');
@@ -456,7 +456,7 @@ function selectPayment(method, el) {
   el.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
 
   document.getElementById('cashAmountSection').classList.toggle('hidden', method !== 'Efectivo');
-  
+
   const splitSection = document.getElementById('splitPaymentSection');
   if (splitSection) {
     splitSection.classList.toggle('hidden', method !== 'Dividido');
@@ -470,7 +470,7 @@ function calculateSplitTotal() {
   const t = parseFloat(document.getElementById('splitCard').value) || 0;
   const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
   const sum = c + t + f;
-  
+
   const remainingEl = document.getElementById('splitRemaining');
   if (sum === total) {
     remainingEl.textContent = '¡Completo!';
@@ -528,7 +528,7 @@ async function confirmSale() {
     const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
     const sum = c + t + f;
     const total = getCartTotal();
-    
+
     if (sum !== total) {
       showToast('⚠️ La suma dividida debe ser exactamente igual al total ($' + total.toLocaleString() + ')', 'error');
       return;
@@ -579,7 +579,7 @@ async function confirmSale() {
     if (error) throw error;
 
     showToast('✅ Venta registrada');
-    
+
     if (insertedOrder && insertedOrder.length > 0) {
       printPOSTicket(insertedOrder[0]);
     }
@@ -596,18 +596,7 @@ async function confirmSale() {
 }
 
 async function logout() {
-  if (!confirm('¿Seguro que deseas cerrar tu turno?')) return;
-
-  // Record shift end time
-  const sessionId = localStorage.getItem('staff_session_id');
-  if (sessionId) {
-    try {
-      await supabaseClient.from('staff_sessions').update({
-        logout_at: new Date().toISOString()
-      }).eq('id', sessionId);
-    } catch(e) { console.warn('Could not update staff session'); }
-  }
-
+  if (!confirm('¿Seguro que deseas cerrar sesión?')) return;
   await supabaseClient.auth.signOut();
   localStorage.clear();
   window.location.href = 'login.html';
@@ -616,19 +605,19 @@ async function logout() {
 document.addEventListener('DOMContentLoaded', initPOS);
 
 function printPOSTicket(o) {
-  const itemsHtml = o.items.map(item => \
-      <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">\ +
-          \<span>\x \</span>\ +
-          \<span>$\</span>\ +
-      \</div>\
+  const itemsHtml = o.items.map(item => `
+      <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
+          <span>${item.quantity}x ${item.name}</span>
+          <span>$${item.price}</span>
+      </div>`
   ).join('');
 
-  const logoUrl = posSettings.logo_url ? \<img src="\" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">\ : '';
+  const logoUrl = posSettings.logo_url ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
 
-  const html = \
+  const html = `
   <html>
     <head>
-      <title>Ticket #\</title>
+      <title>Ticket #${o.id.split('-')[0]}</title>
       <style>
         body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
@@ -641,31 +630,31 @@ function printPOSTicket(o) {
       </style>
     </head>
     <body>
-      <div class="text-center mb-2">\</div>
+      <div class="text-center mb-2">${logoUrl}</div>
       <div class="text-center border-b font-bold text-lg">
-        TICKET DE VENTA<br>#\
+        TICKET DE VENTA<br>#${o.id.split('-')[0]}
       </div>
       <div class="mb-2" style="margin-top:10px;">
-        <strong>Fecha:</strong> \<br>
-        <strong>Cliente:</strong> \<br>
-        <strong>Tipo:</strong> \<br>
-        <strong>Pago:</strong> \
+        <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
+        <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
+        <strong>Tipo:</strong> ${o.delivery_type}<br>
+        <strong>Pago:</strong> ${o.payment_method}
       </div>
       <div class="border-t border-b mb-2" style="margin-top:10px;">
-        \
+        ${itemsHtml}
       </div>
       <div class="flex border-t font-bold text-lg" style="margin-top:10px; padding-top:10px;">
         <span>TOTAL:</span>
-        <span>$\</span>
+        <span>$${o.total}</span>
       </div>
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
-        �Gracias por su compra!
+        ¡Gracias por su compra!
       </div>
       <script>
         setTimeout(() => { window.print(); window.close(); }, 500);
       </script>
     </body>
-  </html>\;
+  </html>`;
 
   const printWindow = window.open('', '_blank');
   printWindow.document.write(html);
@@ -673,17 +662,17 @@ function printPOSTicket(o) {
 }
 
 // TABLES MODAL LOGIC
-window.openTablesModal = async function() {
+window.openTablesModal = async function () {
   document.getElementById('tablesModal').classList.remove('hidden');
-  
+
   const container = document.getElementById('tablesGrid');
   container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">Cargando estado de mesas...</div>';
-  
+
   if (!posSettings || !posSettings.table_count) {
     container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">No hay mesas configuradas en el administrador.</div>';
     return;
   }
-  
+
   try {
     const { data: activeOrders, error } = await supabaseClient
       .from('orders')
@@ -691,14 +680,14 @@ window.openTablesModal = async function() {
       .eq('business_id', businessId)
       .eq('delivery_method', 'A la mesa')
       .in('status', ['Pendiente', 'En preparación']);
-      
+
     if (error) throw error;
-    
+
     let html = '';
     for (let i = 1; i <= posSettings.table_count; i++) {
       // Look for an order matching "Mesa X"
       const order = activeOrders?.find(o => String(o.address) === `Mesa ${i}`);
-      
+
       if (order) {
         // Ocupada
         const timeDiff = Math.floor((new Date() - new Date(order.created_at)) / 60000);
@@ -724,7 +713,7 @@ window.openTablesModal = async function() {
         `;
       }
     }
-    
+
     container.innerHTML = html;
   } catch (err) {
     container.innerHTML = '<div class="col-span-full py-10 text-center text-red-500">Error cargando mesas.</div>';
@@ -732,11 +721,11 @@ window.openTablesModal = async function() {
   }
 };
 
-window.closeTablesModal = function() {
+window.closeTablesModal = function () {
   document.getElementById('tablesModal').classList.add('hidden');
 };
 
-window.startTableOrder = function(tableNum) {
+window.startTableOrder = function (tableNum) {
   closeTablesModal();
   document.getElementById('orderType').value = 'A la mesa';
   toggleDeliveryFields();
