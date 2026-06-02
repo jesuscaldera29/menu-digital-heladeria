@@ -246,7 +246,6 @@ function openExtrasModal(productId, extras, accList) {
       <div id="posAccCard_${i}" class="pos-extra-label flex items-center justify-between gap-2.5 bg-[#222] rounded-xl p-2.5 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('acc_${i}', 1)">
         <div class="min-w-0 flex-1 pointer-events-none">
           <span class="text-[13px] leading-tight text-white font-bold block line-clamp-2">${a}</span>
-          <span class="text-[9px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
         </div>
         <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
           <button type="button" class="w-7 h-7 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', -1)">−</button>
@@ -269,7 +268,7 @@ function openExtrasModal(productId, extras, accList) {
         ${e.image_url ? `<img src="${e.image_url}" class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none">` : ''}
         <div class="min-w-0 flex-1 pointer-events-none">
           <span class="text-[13px] leading-tight text-white font-bold block line-clamp-2">${e.name}</span>
-          <span class="text-[9px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
+          ${Number(e.price) > 0 ? `<span class="text-[9px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">+$${Number(e.price).toLocaleString()}</span>` : ''}
         </div>
         <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
           <button type="button" class="w-7 h-7 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', -1)">−</button>
