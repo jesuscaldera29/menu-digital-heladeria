@@ -133,6 +133,34 @@ async function loadSettings() {
       }
     }
 
+    const bankInfoDisplay = document.getElementById('posBankInfoDisplay');
+    if (bankInfoDisplay && (data.bank_info || data.nequi_info)) {
+      try {
+        let accounts = [];
+        if (data.bank_info && data.bank_info.trim().startsWith('[')) {
+            accounts = JSON.parse(data.bank_info);
+        } else if (data.bank_info) {
+            accounts = [{ bank_name: 'Banco', account_type: 'Transferencia', account_number: data.bank_info }];
+        }
+        if (data.nequi_info) {
+            accounts.push({ bank_name: 'Nequi', account_type: 'Billetera Digital', account_number: data.nequi_info });
+        }
+        if (accounts.length > 0) {
+            bankInfoDisplay.innerHTML = '<label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cuentas Disponibles</label><div class="space-y-2">' + accounts.map(acc => `
+              <div class="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex justify-between items-center">
+                <div>
+                  <p class="font-bold text-sm text-white">🏦 ${acc.bank_name} <span class="text-xs text-gray-400 font-normal">(${acc.account_type})</span></p>
+                  <p class="text-lg font-black text-orange-500 mt-1 select-all">${acc.account_number}</p>
+                </div>
+                <button type="button" onclick="copyToClipboardPOS('${acc.account_number}', this)" class="bg-[#333] text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-[#444] transition-colors flex items-center gap-1 active:scale-95">
+                  📋
+                </button>
+              </div>
+            `).join('') + '</div>';
+        }
+      } catch(e) {}
+    }
+
     if (data.brand_color) {
       const style = document.createElement('style');
       style.innerHTML = `
@@ -538,6 +566,8 @@ function selectOrderType(type, el) {
 
   document.getElementById('tableSelector').classList.toggle('hidden', type !== 'A la mesa');
   document.getElementById('addressField').classList.toggle('hidden', type !== 'Domicilio');
+  const neighborhoodField = document.getElementById('neighborhoodField');
+  if (neighborhoodField) neighborhoodField.classList.toggle('hidden', type !== 'Domicilio');
   document.getElementById('phoneField').classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
   if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
@@ -553,6 +583,9 @@ function selectPayment(method, el) {
   el.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
 
   document.getElementById('cashAmountSection').classList.toggle('hidden', method !== 'Efectivo');
+  
+  const bankInfoDisplay = document.getElementById('posBankInfoDisplay');
+  if (bankInfoDisplay) bankInfoDisplay.classList.toggle('hidden', method !== 'Transferencia');
 
   const splitSection = document.getElementById('splitPaymentSection');
   if (splitSection) {
@@ -639,7 +672,9 @@ async function confirmSale() {
     const mesa = document.getElementById('tableNumber').value;
     address = mesa ? 'Mesa ' + mesa : 'Mesa (sin especificar)';
   } else if (orderType === 'Domicilio') {
-    address = document.getElementById('deliveryAddress').value.trim() || 'Sin dirección';
+    const addrVal = document.getElementById('deliveryAddress').value.trim() || 'Sin dirección';
+    const nbVal = document.getElementById('deliveryNeighborhood')?.value.trim();
+    address = addrVal + (nbVal ? ` (Barrio: ${nbVal})` : '');
   } else if (orderType === 'Para Llevar') {
     address = 'Para llevar';
   }
@@ -1231,5 +1266,27 @@ window.printPOSReport = function() {
   const printWindow = window.open('', '_blank', 'width=400,height=600');
   printWindow.document.write(html);
   printWindow.document.close();
+};
+
+window.copyToClipboardPOS = function(text, btn) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '✅';
+            setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+        });
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '✅';
+            setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+        } catch (err) {}
+        document.body.removeChild(textArea);
+    }
 };
 

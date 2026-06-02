@@ -712,7 +712,7 @@
                         ${ve.image_url ? `<img src="${ve.image_url}" class="w-full h-full object-cover pointer-events-none">` : `<span class="text-2xl pointer-events-none">✨</span>`}
                     </div>
                     <span class="text-sm font-black text-gray-800 leading-tight">${ve.name}</span>
-                    <span class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1 bg-orange-50 px-2 py-0.5 rounded-full mb-3">${ve.price > 0 ? '+$' + Number(ve.price).toLocaleString() : 'GRATIS'}</span>
+                    <span class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1 bg-orange-50 px-2 py-0.5 rounded-full mb-3">${ve.price > 0 ? '+$' + Number(ve.price).toLocaleString() : '&nbsp;'}</span>
                   </div>
                   
                   <div class="flex items-center gap-3 w-full justify-center mt-auto border-t pt-2">
@@ -847,6 +847,16 @@
           }
         }
       });
+
+      const totalSelected = selectedText.length + selectedVisuals.length;
+      if (totalSelected === 0) {
+        if (typeof showToast === 'function') {
+          showToast("⚠️ Por favor, selecciona al menos 1 extra.", "error");
+        } else {
+          alert("⚠️ Por favor, selecciona al menos 1 extra.");
+        }
+        return;
+      }
 
       addToCart(currentAccProductId, selectedText, selectedVisuals);
       closeAccompanimentsModal();

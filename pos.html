@@ -315,10 +315,28 @@
           </select>
         </div>
 
+        <!-- CLIENTE -->
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Nombre</label>
+          <input type="text" id="customerName" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Cliente Mostrador" value="Mostrador">
+        </div>
+
         <!-- DIRECCIÓN -->
         <div id="addressField" class="hidden">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Dirección de Entrega</label>
           <input type="text" id="deliveryAddress" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Calle 9 # 14-58">
+        </div>
+
+        <!-- BARRIO -->
+        <div id="neighborhoodField" class="hidden">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Barrio</label>
+          <input type="text" id="deliveryNeighborhood" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: El Centro">
+        </div>
+
+        <!-- TELÉFONO -->
+        <div id="phoneField" class="hidden">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Teléfono del Cliente</label>
+          <input type="tel" id="customerPhone" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: 3001234567">
         </div>
 
         <!-- MÉTODO DE PAGO -->
@@ -346,6 +364,11 @@
           </div>
         </div>
 
+        <!-- DATOS BANCARIOS (solo Transferencia) -->
+        <div id="posBankInfoDisplay" class="hidden bg-[#222] p-4 rounded-xl border border-[#333]">
+           <!-- Renderizado desde JS -->
+        </div>
+
         <!-- DIVIDIR CUENTA (Múltiples Montos) -->
         <div id="splitPaymentSection" class="hidden bg-[#222] p-4 rounded-xl border border-[#333]">
           <label class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-3 text-center border-b border-[#444] pb-2">Distribución de Pagos</label>
@@ -369,18 +392,6 @@
             <span class="text-xs font-bold text-gray-400 uppercase">Faltante:</span>
             <span id="splitRemaining" class="text-lg font-black text-red-500">$0</span>
           </div>
-        </div>
-
-        <!-- CLIENTE -->
-        <div>
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cliente (Opcional)</label>
-          <input type="text" id="customerName" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Cliente Mostrador" value="Mostrador">
-        </div>
-
-        <!-- TELÉFONO -->
-        <div id="phoneField" class="hidden">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Teléfono del Cliente</label>
-          <input type="tel" id="customerPhone" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: 3001234567">
         </div>
       </div>
 
