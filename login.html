@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar Sesión | MenuPro</title>
   <meta name="description" content="Inicia sesión en tu panel de administración MenuPro para gestionar tu menú digital.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ef4444">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -155,7 +159,10 @@
       </button>
     </form>
 
-
+    <!-- Install App Button -->
+    <button id="btnInstallPWA" onclick="installPWA()" style="display:none" class="mt-6 w-full py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+      📲 Instalar App en este dispositivo
+    </button>
 
     <div class="text-center mt-4">
       <a href="/" class="text-gray-600 text-xs font-medium hover:text-gray-400 transition-colors">← Volver al inicio</a>
@@ -199,6 +206,8 @@
               window.location.href = 'pos.html';
             } else if (staffMember.role === 'Cocina') {
               window.location.href = 'kds.html';
+            } else if (staffMember.role === 'Kiosko') {
+              window.location.href = 'kiosk.html';
             } else {
               window.location.href = 'admin.html';
             }
@@ -243,6 +252,18 @@
           localStorage.setItem('staff_id', staffMember.id);
           localStorage.setItem('staff_name', staffMember.name);
           localStorage.setItem('staff_business_id', staffMember.business_id);
+
+          // Record staff session (shift start)
+          try {
+            const { data: sessionData } = await supabaseClient.from('staff_sessions').insert([{
+              business_id: staffMember.business_id,
+              staff_id: staffMember.id,
+              staff_name: staffMember.name,
+              staff_role: staffMember.role,
+              login_at: new Date().toISOString()
+            }]).select().single();
+            if (sessionData) localStorage.setItem('staff_session_id', sessionData.id);
+          } catch(e) { console.warn('Staff session tracking not available'); }
           
           if (staffMember.role === 'Repartidor') {
             window.location.href = 'driver.html';
@@ -250,6 +271,8 @@
             window.location.href = 'pos.html';
           } else if (staffMember.role === 'Cocina') {
             window.location.href = 'kds.html';
+          } else if (staffMember.role === 'Kiosko') {
+            window.location.href = 'kiosk.html';
           } else {
             window.location.href = 'admin.html';
           }
@@ -280,6 +303,32 @@
         btn.disabled = false;
         btn.textContent = 'Iniciar Sesión';
       }
+    }
+    // === PWA Install Logic ===
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('btnInstallPWA');
+      if (btn) btn.style.display = 'flex';
+    });
+
+    function installPWA() {
+      if (!deferredPrompt) {
+        showToast('Abre esta página en Chrome y usa "Agregar a pantalla de inicio"');
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(choice => {
+        if (choice.outcome === 'accepted') showToast('✅ App instalada correctamente');
+        deferredPrompt = null;
+        document.getElementById('btnInstallPWA').style.display = 'none';
+      });
+    }
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
 </body>

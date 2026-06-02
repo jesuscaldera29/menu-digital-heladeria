@@ -596,6 +596,18 @@ async function confirmSale() {
 }
 
 async function logout() {
+  if (!confirm('¿Seguro que deseas cerrar tu turno?')) return;
+
+  // Record shift end time
+  const sessionId = localStorage.getItem('staff_session_id');
+  if (sessionId) {
+    try {
+      await supabaseClient.from('staff_sessions').update({
+        logout_at: new Date().toISOString()
+      }).eq('id', sessionId);
+    } catch(e) { console.warn('Could not update staff session'); }
+  }
+
   await supabaseClient.auth.signOut();
   localStorage.clear();
   window.location.href = 'login.html';

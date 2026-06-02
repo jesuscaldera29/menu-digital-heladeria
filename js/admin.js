@@ -43,6 +43,16 @@ function showToast(msg, type = 'success') {
 }
 
 async function logout() {
+    // Record shift end time
+    const sessionId = localStorage.getItem('staff_session_id');
+    if (sessionId) {
+        try {
+            await supabaseClient.from('staff_sessions').update({
+                logout_at: new Date().toISOString()
+            }).eq('id', sessionId);
+        } catch(e) {}
+    }
+    localStorage.clear();
     await supabaseClient.auth.signOut();
     window.location.href = 'login.html';
 }
@@ -1516,7 +1526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadProducts();
 });
 
-async function logout() { await supabaseClient.auth.signOut(); window.location.href = 'login.html'; }
+// logout() is defined at the top of the file
 
 // ==========================================
 // GESTOR DE EXTRAS VISUALES
