@@ -1045,7 +1045,7 @@ window.printPOSReport = function() {
   const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:50px;height:50px;border-radius:25px;margin-bottom:10px;">` : '';
   const businessName = posSettings?.name || 'Mi Negocio';
 
-  const html = \`
+  const html = `
   <html>
     <head>
       <title>Corte de Caja</title>
@@ -1061,30 +1061,30 @@ window.printPOSReport = function() {
       </style>
     </head>
     <body>
-      <div class="text-center mb-2">\${logoUrl}</div>
+      <div class="text-center mb-2">${logoUrl}</div>
       <div class="text-center font-bold text-lg mb-2">
-        \${businessName}<br>
+        ${businessName}<br>
         CORTE DE CAJA Z
       </div>
       <div class="text-center border-b mb-2" style="font-size:12px;">
-        <strong>Fecha:</strong> \${new Date().toLocaleString()}
+        <strong>Fecha:</strong> ${new Date().toLocaleString()}
       </div>
       
       <div class="flex" style="margin-top:15px;">
         <span>Pedidos Totales:</span>
-        <span class="font-bold">\${r.orderCount}</span>
+        <span class="font-bold">${r.orderCount}</span>
       </div>
       
       <div class="border-t mb-2 mt-2" style="padding-top:10px;">
         <div class="font-bold text-center mb-2">DESGLOSE DE PAGOS</div>
-        <div class="flex"><span>Efectivo:</span> <span>$\${r.cash.toLocaleString()}</span></div>
-        <div class="flex"><span>Tarjeta:</span> <span>$\${r.card.toLocaleString()}</span></div>
-        <div class="flex"><span>Transferencia:</span> <span>$\${r.transfer.toLocaleString()}</span></div>
+        <div class="flex"><span>Efectivo:</span> <span>$${r.cash.toLocaleString()}</span></div>
+        <div class="flex"><span>Tarjeta:</span> <span>$${r.card.toLocaleString()}</span></div>
+        <div class="flex"><span>Transferencia:</span> <span>$${r.transfer.toLocaleString()}</span></div>
       </div>
       
       <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
         <span>TOTAL VENTAS:</span>
-        <span>$\${r.total.toLocaleString()}</span>
+        <span>$${r.total.toLocaleString()}</span>
       </div>
       
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
@@ -1095,7 +1095,7 @@ window.printPOSReport = function() {
       </script>
     </body>
   </html>
-  \`;
+  `;
 
   const printWindow = window.open('', '_blank', 'width=400,height=600');
   printWindow.document.write(html);
