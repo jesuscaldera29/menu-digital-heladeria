@@ -479,6 +479,7 @@
         <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
           <h2 class="text-2xl font-black">👤 Directorio de Clientes</h2>
           <div class="flex gap-2 flex-wrap">
+            <button onclick="openNewCustomerModal()" class="btn bg-green-600 hover:bg-green-700 text-white !w-auto !py-2 !px-4 !text-sm">➕ Nuevo Cliente</button>
             <button onclick="openImportModal('customers')" class="btn bg-blue-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar CSV</button>
             <button onclick="openImportModal('products')" class="btn bg-purple-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar Productos CSV</button>
             <button onclick="deleteSelectedCustomers()"
@@ -773,6 +774,31 @@
       <div class="grid grid-cols-2 gap-4 mt-6">
         <button class="btn btn-primary" onclick="submitCreditPayment()">💵 Registrar Abono</button>
         <button class="btn btn-danger" onclick="document.getElementById('creditPaymentModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO CLIENTE -->
+  <div id="newCustomerModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-4">➕ Nuevo Cliente</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase tracking-widest">Nombre del Cliente</label>
+          <input type="text" id="newCustomerName" class="input !mt-1" placeholder="Ej: Juan Pérez">
+        </div>
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase tracking-widest block mb-1">WhatsApp</label>
+          <input type="tel" id="newCustomerPhone" class="input" placeholder="Ej: 3001234567">
+        </div>
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase tracking-widest block mb-1">Dirección (Opcional)</label>
+          <input type="text" id="newCustomerAddress" class="input" placeholder="Ej: Calle 123">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-6">
+        <button class="btn btn-primary flex-1" onclick="createCustomerManual()">Guardar</button>
+        <button class="btn btn-danger" onclick="document.getElementById('newCustomerModal').style.display='none'">Cancelar</button>
       </div>
     </div>
   </div>

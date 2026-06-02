@@ -1003,7 +1003,8 @@ async function updateOrderStatus(orderId, newStatus) {
             // Notification via WhatsApp (if phone exists and status is relevant)
             if (order.customer_phone && ['Confirmado', 'Preparando', 'Entregado'].includes(newStatus)) {
                 if (confirm(`Estado cambiado a ${newStatus}. ¿Enviar notificación por WhatsApp al cliente?`)) {
-                    const cleanPhone = order.customer_phone.replace(/\D/g, '');
+                    let cleanPhone = order.customer_phone.replace(/\D/g, '');
+                    if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) cleanPhone = '57' + cleanPhone;
                     let msg = `Hola *${order.customer_name}*, el estado de tu pedido *#${String(order.id).padStart(4, '0')}* ha sido actualizado a: *${newStatus}*.\n\n`;
                     if (newStatus === 'Confirmado') msg += '¡Estamos preparando todo!';
                     if (newStatus === 'Preparando') msg += '¡Ya casi está listo!';
@@ -1173,7 +1174,8 @@ function sendTrackingLinkWhatsApp() {
     if (!o) return;
 
     const trackingUrl = document.getElementById('detailTrackingUrl').value;
-    const cleanPhone = o.customer_phone.replace(/\D/g, '');
+    let cleanPhone = o.customer_phone.replace(/\D/g, '');
+    if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) cleanPhone = '57' + cleanPhone;
 
     let msg = `Hola *${o.customer_name}*, el estado de tu pedido *#${String(o.id).padStart(4, '0')}* en *Tronco E' Filo* ha sido actualizado.\n\n`;
     msg += `Puedes ver su progreso en tiempo real aquí (enlace temporal válido por 1 hora):\n${trackingUrl}`;
@@ -1193,20 +1195,24 @@ async function loadCustomers() {
             return;
         }
 
-        container.innerHTML = data.map(c => `
+        container.innerHTML = data.map(c => {
+            let cleanP = c.phone.replace(/\D/g, '');
+            if (cleanP.length === 10 && cleanP.startsWith('3')) cleanP = '57' + cleanP;
+            return `
             <tr>
                 <td class="text-center">
                   <input type="checkbox" class="customer-checkbox w-5 h-5 accent-red-500 rounded cursor-pointer" value="${c.id}">
                 </td>
                 <td class="font-bold">${c.name}</td>
-                <td><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" class="text-green-600 font-bold">📱 ${c.phone}</a></td>
+                <td><a href="https://wa.me/${cleanP}" target="_blank" class="text-green-600 font-bold">📱 ${c.phone}</a></td>
                 <td class="text-xs text-gray-500">${c.address || 'Sin dirección'}</td>
                 <td class="text-xs">${new Date(c.created_at).toLocaleDateString()}</td>
                 <td class="text-center">
                   <button onclick="deleteCustomer('${c.id}')" class="text-red-500 hover:text-red-700 font-bold p-2 bg-red-50 hover:bg-red-100 rounded-xl transition-all">🗑️ Eliminar</button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     } catch (err) {
         showToast('Error cargando clientes', 'error');
     }
@@ -1250,6 +1256,46 @@ async function deleteSelectedCustomers() {
         loadCustomers();
     } catch (err) {
         showToast('❌ Error: ' + err.message, 'error');
+    }
+}
+
+function openNewCustomerModal() {
+    document.getElementById('newCustomerName').value = '';
+    document.getElementById('newCustomerPhone').value = '';
+    document.getElementById('newCustomerAddress').value = '';
+    document.getElementById('newCustomerModal').style.display = 'flex';
+}
+
+async function createCustomerManual() {
+    const name = document.getElementById('newCustomerName').value.trim();
+    const phone = document.getElementById('newCustomerPhone').value.trim();
+    const address = document.getElementById('newCustomerAddress').value.trim();
+
+    if (!name || !phone) return showToast('⚠️ Nombre y WhatsApp son obligatorios', 'error');
+
+    const btn = document.querySelector('#newCustomerModal .btn-primary');
+    const ogText = btn.innerHTML;
+    btn.innerHTML = 'Guardando...';
+    btn.disabled = true;
+
+    try {
+        const { error } = await supabaseClient.from('customers').insert([{
+            business_id: businessId,
+            name: name,
+            phone: phone,
+            address: address
+        }]);
+
+        if (error) throw error;
+
+        showToast('✅ Cliente creado correctamente');
+        document.getElementById('newCustomerModal').style.display = 'none';
+        loadCustomers();
+    } catch (err) {
+        showToast('❌ Error: ' + err.message, 'error');
+    } finally {
+        btn.innerHTML = ogText;
+        btn.disabled = false;
     }
 }
 
