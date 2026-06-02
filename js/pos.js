@@ -240,18 +240,18 @@ function openExtrasModal(productId, extras, accList) {
   // Text-based accompaniments
   if (accList.length > 0) {
     html += '<p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Acompañamientos</p>';
-    html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+    html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">';
     accList.forEach((a, i) => {
       html += `
-      <div id="posAccCard_${i}" class="pos-extra-label flex items-center justify-between gap-3 bg-[#222] rounded-xl p-3 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('acc_${i}', 1)">
+      <div id="posAccCard_${i}" class="pos-extra-label flex items-center justify-between gap-2.5 bg-[#222] rounded-xl p-2.5 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('acc_${i}', 1)">
         <div class="min-w-0 flex-1 pointer-events-none">
-          <span class="text-sm text-white font-bold block truncate">${a}</span>
-          <span class="text-[10px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
+          <span class="text-[13px] leading-tight text-white font-bold block line-clamp-2">${a}</span>
+          <span class="text-[9px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
         </div>
-        <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
-          <button type="button" class="w-8 h-8 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', -1)">−</button>
-          <span id="posCount_acc_${i}" class="font-bold text-white w-4 text-center">0</span>
-          <button type="button" class="w-8 h-8 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', 1)">+</button>
+        <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
+          <button type="button" class="w-7 h-7 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', -1)">−</button>
+          <span id="posCount_acc_${i}" class="font-bold text-white w-4 text-center text-sm">0</span>
+          <button type="button" class="w-7 h-7 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('acc_${i}', 1)">+</button>
         </div>
         <input type="hidden" class="acc-input" id="posInput_acc_${i}" value="${a}" data-count="0">
       </div>`;
@@ -262,19 +262,19 @@ function openExtrasModal(productId, extras, accList) {
   // Visual extras
   if (extras.length > 0) {
     html += '<p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3 mt-5">Extras</p>';
-    html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+    html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">';
     extras.forEach((e, i) => {
       html += `
-      <div id="posVECard_${i}" class="pos-extra-label flex items-center justify-between gap-3 bg-[#222] rounded-xl p-3 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('ve_${i}', 1)">
+      <div id="posVECard_${i}" class="pos-extra-label flex items-center justify-between gap-2.5 bg-[#222] rounded-xl p-2.5 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('ve_${i}', 1)">
         ${e.image_url ? `<img src="${e.image_url}" class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none">` : ''}
         <div class="min-w-0 flex-1 pointer-events-none">
-          <span class="text-sm text-white font-bold block truncate">${e.name}</span>
-          <span class="text-[10px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
+          <span class="text-[13px] leading-tight text-white font-bold block line-clamp-2">${e.name}</span>
+          <span class="text-[9px] text-green-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
         </div>
-        <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
-          <button type="button" class="w-8 h-8 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', -1)">−</button>
-          <span id="posCount_ve_${i}" class="font-bold text-white w-4 text-center">0</span>
-          <button type="button" class="w-8 h-8 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', 1)">+</button>
+        <div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()">
+          <button type="button" class="w-7 h-7 rounded-full bg-[#333] text-white flex items-center justify-center font-bold text-lg hover:bg-[#444] active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', -1)">−</button>
+          <span id="posCount_ve_${i}" class="font-bold text-white w-4 text-center text-sm">0</span>
+          <button type="button" class="w-7 h-7 rounded-full bg-[#333] hover:bg-green-500/20 text-white hover:text-green-500 flex items-center justify-center font-bold text-lg active:scale-95 transition-all" onclick="updatePosAccCount('ve_${i}', 1)">+</button>
         </div>
         <input type="hidden" class="ve-input" id="posInput_ve_${i}" value='${JSON.stringify(e).replace(/'/g, "&#39;")}' data-count="0">
       </div>`;
