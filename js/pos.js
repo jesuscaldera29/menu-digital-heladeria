@@ -943,3 +943,162 @@ window.startTableOrder = function (tableNum) {
   showToast(`✅ Iniciando pedido para Mesa ${tableNum}`);
 };
 
+// ==========================================
+// POS REPORTS (CORTE DE CAJA)
+// ==========================================
+window.currentPOSReport = null;
+
+window.openPOSReport = async function() {
+  document.getElementById('posReportModal').classList.remove('hidden');
+  document.getElementById('posReportContent').innerHTML = '<div class="text-center text-gray-500 animate-pulse font-bold text-sm">Calculando ventas del día...</div>';
+  document.getElementById('btnPrintPOSReport').disabled = true;
+
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfDay = today.toISOString();
+    
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    const endOfDayStr = endOfDay.toISOString();
+
+    const { data: orders, error } = await supabaseClient
+      .from('orders')
+      .select('total, payment_method, split_payments, created_at, status')
+      .eq('business_id', businessId)
+      .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado'])
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDayStr);
+
+    if (error) throw error;
+
+    let totalEfectivo = 0;
+    let totalTarjeta = 0;
+    let totalTransferencia = 0;
+    let totalVendido = 0;
+
+    orders.forEach(o => {
+      const total = Number(o.total) || 0;
+      totalVendido += total;
+
+      if (o.payment_method === 'Dividido' && o.split_payments) {
+        totalEfectivo += Number(o.split_payments.cash || 0);
+        totalTarjeta += Number(o.split_payments.card || 0);
+        totalTransferencia += Number(o.split_payments.transfer || 0);
+      } else if (o.payment_method === 'Efectivo') {
+        totalEfectivo += total;
+      } else if (o.payment_method === 'Tarjeta') {
+        totalTarjeta += total;
+      } else if (o.payment_method === 'Transferencia' || o.payment_method === 'Nequi') {
+        totalTransferencia += total;
+      }
+    });
+
+    window.currentPOSReport = {
+      date: new Date().toLocaleDateString(),
+      orderCount: orders.length,
+      total: totalVendido,
+      cash: totalEfectivo,
+      card: totalTarjeta,
+      transfer: totalTransferencia
+    };
+
+    document.getElementById('posReportContent').innerHTML = `
+      <div class="bg-[#1a1a1a] p-4 rounded-xl border border-[#333]">
+        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Total Ingresos</div>
+        <div class="text-4xl font-black text-green-500">$${totalVendido.toLocaleString()}</div>
+        <div class="text-xs text-gray-400 font-bold mt-2">${orders.length} pedidos hoy</div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="bg-[#222] p-4 rounded-xl border border-[#333]">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><span>💵</span> Efectivo</div>
+          <div class="text-xl font-black text-white">$${totalEfectivo.toLocaleString()}</div>
+        </div>
+        <div class="bg-[#222] p-4 rounded-xl border border-[#333]">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><span>💳</span> Tarjeta</div>
+          <div class="text-xl font-black text-white">$${totalTarjeta.toLocaleString()}</div>
+        </div>
+        <div class="bg-[#222] p-4 rounded-xl border border-[#333] col-span-2">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><span>📱</span> Transferencias / Nequi</div>
+          <div class="text-xl font-black text-white">$${totalTransferencia.toLocaleString()}</div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('btnPrintPOSReport').disabled = false;
+
+  } catch (err) {
+    console.error('Error loading report:', err);
+    document.getElementById('posReportContent').innerHTML = '<div class="text-center text-red-500 font-bold text-sm py-4">Error cargando el reporte.</div>';
+  }
+};
+
+window.closePOSReport = function() {
+  document.getElementById('posReportModal').classList.add('hidden');
+};
+
+window.printPOSReport = function() {
+  if (!window.currentPOSReport) return;
+  
+  const r = window.currentPOSReport;
+  const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:50px;height:50px;border-radius:25px;margin-bottom:10px;">` : '';
+  const businessName = posSettings?.name || 'Mi Negocio';
+
+  const html = \`
+  <html>
+    <head>
+      <title>Corte de Caja</title>
+      <style>
+        body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .mb-2 { margin-bottom: 8px; }
+        .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+        .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
+        .flex { display: flex; justify-content: space-between; }
+        @media print { body { width: 100%; margin:0; padding:0; } }
+      </style>
+    </head>
+    <body>
+      <div class="text-center mb-2">\${logoUrl}</div>
+      <div class="text-center font-bold text-lg mb-2">
+        \${businessName}<br>
+        CORTE DE CAJA Z
+      </div>
+      <div class="text-center border-b mb-2" style="font-size:12px;">
+        <strong>Fecha:</strong> \${new Date().toLocaleString()}
+      </div>
+      
+      <div class="flex" style="margin-top:15px;">
+        <span>Pedidos Totales:</span>
+        <span class="font-bold">\${r.orderCount}</span>
+      </div>
+      
+      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
+        <div class="font-bold text-center mb-2">DESGLOSE DE PAGOS</div>
+        <div class="flex"><span>Efectivo:</span> <span>$\${r.cash.toLocaleString()}</span></div>
+        <div class="flex"><span>Tarjeta:</span> <span>$\${r.card.toLocaleString()}</span></div>
+        <div class="flex"><span>Transferencia:</span> <span>$\${r.transfer.toLocaleString()}</span></div>
+      </div>
+      
+      <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
+        <span>TOTAL VENTAS:</span>
+        <span>$\${r.total.toLocaleString()}</span>
+      </div>
+      
+      <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
+        FIN DEL REPORTE
+      </div>
+      <script>
+        setTimeout(() => { window.print(); window.close(); }, 500);
+      </script>
+    </body>
+  </html>
+  \`;
+
+  const printWindow = window.open('', '_blank', 'width=400,height=600');
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
+

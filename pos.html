@@ -83,6 +83,9 @@
       <button id="btnAutoPrint" onclick="toggleAutoPrint()" class="bg-[#222] border border-[#333] text-gray-400 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" title="Imprimir pedidos online automáticamente">
         <span>🖨️</span> <span class="hidden sm:inline" id="autoPrintText">Auto-Print: OFF</span>
       </button>
+      <button onclick="openPOSReport()" class="bg-[#222] hover:bg-[#333] border border-orange-500/50 text-orange-500 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+        <span>📊</span> <span class="hidden sm:inline">Corte</span>
+      </button>
       <button onclick="window.location.reload()" class="bg-[#222] hover:bg-[#333] text-gray-300 p-2 rounded-xl transition-all text-sm">🔄</button>
       <button onclick="logout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
         <span>🚪</span> <span class="hidden sm:inline">Cerrar Turno</span>
@@ -155,6 +158,30 @@
       </div>
     </div>
   </main>
+  <!-- POS REPORT MODAL -->
+  <div id="posReportModal" class="hidden fixed inset-0 z-[900] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePOSReport()"></div>
+    <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4">
+      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] rounded-t-2xl">
+        <div>
+          <h3 class="text-xl font-black text-white flex items-center gap-2"><span>📊</span> Corte de Caja</h3>
+          <p id="posReportDate" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Hoy</p>
+        </div>
+        <button onclick="closePOSReport()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">✖</button>
+      </div>
+      
+      <div class="p-6 space-y-4" id="posReportContent">
+        <!-- Totals will be injected here -->
+        <div class="text-center text-gray-500 animate-pulse font-bold text-sm">Calculando ventas del día...</div>
+      </div>
+
+      <div class="p-5 border-t border-[#222] bg-[#1a1a1a] rounded-b-2xl">
+        <button onclick="printPOSReport()" id="btnPrintPOSReport" class="w-full bg-[#222] hover:bg-white text-white hover:text-black font-black py-3.5 rounded-xl border border-[#333] transition-all text-sm flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>🖨️</span> Imprimir Ticket Z
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- TABLES MODAL -->
   <div id="tablesModal" class="hidden fixed inset-0 z-[900] flex items-center justify-center">
