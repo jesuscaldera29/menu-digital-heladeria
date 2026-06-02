@@ -351,18 +351,20 @@ function handleProductTap(prodId) {
 }
 
 // Open Accompaniments Touch Modal
+window.kioskCurrentLimit = 999;
+
 function openAccompanimentsModal(product, visualExtras) {
   currentSelectedProductId = product.id;
   tempSelectedAccompaniments = [];
   tempSelectedVisualExtras = [];
+  window.kioskCurrentLimit = product.accompaniments_limit || 999;
 
   document.getElementById('accModalTitle').textContent = product.name;
   
-  const limit = product.accompaniments_limit || 999;
   const limitLabel = document.getElementById('accModalLimit');
   if (limitLabel) {
     if (product.accompaniments_limit) {
-      limitLabel.textContent = `Elige hasta ${limit} opciones`;
+      limitLabel.textContent = `Elige hasta ${window.kioskCurrentLimit} opciones`;
     } else {
       limitLabel.textContent = 'Elige tus acompañamientos';
     }
@@ -379,12 +381,21 @@ function openAccompanimentsModal(product, visualExtras) {
     if (accList.length) {
       html += `
       <div>
-        <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Acompañamientos (Máx. ${limit})</h4>
-        <div class="flex flex-wrap gap-2">
+        <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Acompañamientos (Máx. ${window.kioskCurrentLimit})</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           ${accList.map((acc, index) => `
-            <button onclick="toggleTextAcc('${acc}', this, ${limit})" class="px-5 py-3 border-2 border-gray-100 bg-white font-bold rounded-2xl text-sm text-gray-600 active:scale-95 transition-all text-left">
-              ${acc}
-            </button>
+            <div id="kioskAccCard_${index}" class="flex items-center justify-between gap-3 bg-white border-2 border-gray-100 rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-all" onclick="updateKioskAccCount('acc_${index}', 1)">
+              <div class="min-w-0 flex-1 pointer-events-none">
+                <span class="text-sm font-bold text-gray-800 block truncate">${acc}</span>
+                <span class="text-[10px] text-red-600 font-black tracking-widest uppercase mt-0.5 block">Gratis</span>
+              </div>
+              <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
+                <button type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all" onclick="updateKioskAccCount('acc_${index}', -1)">−</button>
+                <span id="kioskCount_acc_${index}" class="font-bold text-gray-800 w-4 text-center">0</span>
+                <button type="button" class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 active:scale-95 transition-all" onclick="updateKioskAccCount('acc_${index}', 1)">+</button>
+              </div>
+              <input type="hidden" class="kiosk-acc-input" id="kioskInput_acc_${index}" value="${acc}" data-count="0">
+            </div>
           `).join('')}
         </div>
       </div>`;
@@ -394,16 +405,22 @@ function openAccompanimentsModal(product, visualExtras) {
   // 2. Visual Extras
   if (visualExtras && visualExtras.length) {
     html += `
-    <div class="border-t border-gray-100 pt-6">
+    <div class="border-t border-gray-100 pt-6 mt-6">
       <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Adicionales / Opciones</h4>
-      <div class="grid grid-cols-2 gap-4">
-        ${visualExtras.map(extra => `
-          <div onclick="toggleVisualExtra('${extra.id}', '${extra.name}', ${extra.price || 0}, this)" class="flex items-center gap-3 border-2 border-gray-100 bg-white p-4 rounded-2xl cursor-pointer active:scale-98 transition-all">
-            ${extra.image_url ? `<img src="${extra.image_url}" alt="${extra.name}" class="w-12 h-12 object-cover rounded-xl shrink-0">` : '<div class="w-12 h-12 bg-gray-50 flex items-center justify-center text-xl rounded-xl shrink-0">➕</div>'}
-            <div class="text-left flex-grow">
-              <p class="font-bold text-sm text-gray-800 leading-tight">${extra.name}</p>
-              <p class="font-black text-xs text-red-600 mt-1">${extra.price > 0 ? '+$' + Number(extra.price).toLocaleString() : 'Gratis'}</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        ${visualExtras.map((extra, index) => `
+          <div id="kioskVecCard_${index}" class="flex items-center justify-between gap-3 bg-white border-2 border-gray-100 rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-all" onclick="updateKioskAccCount('ve_${index}', 1)">
+            ${extra.image_url ? `<img src="${extra.image_url}" alt="${extra.name}" class="w-12 h-12 object-cover rounded-xl shrink-0 pointer-events-none">` : '<div class="w-12 h-12 bg-gray-50 flex items-center justify-center text-xl rounded-xl shrink-0 pointer-events-none">➕</div>'}
+            <div class="min-w-0 flex-1 pointer-events-none">
+              <span class="text-sm font-bold text-gray-800 block truncate">${extra.name}</span>
+              <span class="text-[10px] text-red-600 font-black tracking-widest uppercase mt-0.5 block">${Number(extra.price) > 0 ? '+$' + Number(extra.price).toLocaleString() : 'Gratis'}</span>
             </div>
+            <div class="flex items-center gap-3 shrink-0" onclick="event.stopPropagation()">
+              <button type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all" onclick="updateKioskAccCount('ve_${index}', -1)">−</button>
+              <span id="kioskCount_ve_${index}" class="font-bold text-gray-800 w-4 text-center">0</span>
+              <button type="button" class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 active:scale-95 transition-all" onclick="updateKioskAccCount('ve_${index}', 1)">+</button>
+            </div>
+            <input type="hidden" class="kiosk-ve-input" id="kioskInput_ve_${index}" value='${JSON.stringify(extra).replace(/'/g, "&#39;")}' data-count="0">
           </div>
         `).join('')}
       </div>
@@ -411,59 +428,94 @@ function openAccompanimentsModal(product, visualExtras) {
   }
 
   container.innerHTML = html;
-  updateAccModalTotal(product.price);
   
   // Connect Confirm Button
   const confirmBtn = document.getElementById('btnConfirmAcc');
   confirmBtn.onclick = () => {
-    addToCart(product.id, tempSelectedAccompaniments, tempSelectedVisualExtras);
+    // Collect from inputs instead of temp arrays
+    const selectedAccs = [];
+    document.querySelectorAll('.kiosk-acc-input').forEach(el => {
+      const count = parseInt(el.getAttribute('data-count')) || 0;
+      for(let i=0; i<count; i++) selectedAccs.push(el.value);
+    });
+
+    const selectedVEs = [];
+    document.querySelectorAll('.kiosk-ve-input').forEach(el => {
+      const count = parseInt(el.getAttribute('data-count')) || 0;
+      if (count > 0) {
+        const data = JSON.parse(el.value);
+        for(let i=0; i<count; i++) selectedVEs.push({ id: data.id, name: data.name, price: Number(data.price || 0) });
+      }
+    });
+
+    addToCart(product.id, selectedAccs, selectedVEs);
     closeAccompanimentsModal();
   };
 
+  updateKioskModalTotal();
   document.getElementById('accompanimentsModal').classList.remove('hidden');
   document.getElementById('accompanimentsModal').classList.add('flex');
 }
 
-function toggleTextAcc(name, el, limit) {
-  const idx = tempSelectedAccompaniments.indexOf(name);
-  if (idx > -1) {
-    tempSelectedAccompaniments.splice(idx, 1);
-    el.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600');
-    el.classList.add('border-gray-100', 'bg-white', 'text-gray-600');
-  } else {
-    if (tempSelectedAccompaniments.length >= limit) {
-      return showToast(`⚠️ Solo puedes elegir hasta ${limit} opciones`, 'error');
+window.updateKioskAccCount = function(id, delta) {
+  const inputEl = document.getElementById(`kioskInput_${id}`);
+  const countSpan = document.getElementById(`kioskCount_${id}`);
+  
+  const isAcc = id.startsWith('acc_');
+  const cardId = isAcc ? `kioskAccCard_${id.replace('acc_', '')}` : `kioskVecCard_${id.replace('ve_', '')}`;
+  const card = document.getElementById(cardId);
+
+  let current = parseInt(inputEl.getAttribute('data-count')) || 0;
+  let newCount = current + delta;
+
+  if (newCount < 0) newCount = 0;
+
+  if (delta > 0) {
+    let totalSelected = 0;
+    document.querySelectorAll('.kiosk-acc-input, .kiosk-ve-input').forEach(el => {
+      totalSelected += parseInt(el.getAttribute('data-count')) || 0;
+    });
+
+    if (totalSelected >= window.kioskCurrentLimit) {
+      if (card) {
+        card.classList.add('animate-[shake_0.4s_ease-in-out]');
+        setTimeout(() => card.classList.remove('animate-[shake_0.4s_ease-in-out]'), 400);
+      }
+      return showToast(`⚠️ Solo puedes elegir hasta ${window.kioskCurrentLimit} opciones`, 'error');
     }
-    tempSelectedAccompaniments.push(name);
-    el.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600');
-    el.classList.remove('border-gray-100', 'bg-white', 'text-gray-600');
-  }
-}
-
-function toggleVisualExtra(id, name, price, el) {
-  const existingIdx = tempSelectedVisualExtras.findIndex(x => x.id === id);
-  if (existingIdx > -1) {
-    tempSelectedVisualExtras.splice(existingIdx, 1);
-    el.classList.remove('border-orange-500', 'bg-orange-50');
-  } else {
-    tempSelectedVisualExtras.push({ id, name, price });
-    el.classList.add('border-orange-500', 'bg-orange-50');
   }
 
-  // Update Modal Total
+  inputEl.setAttribute('data-count', newCount);
+  countSpan.textContent = newCount;
+
+  if (card) {
+    if (newCount > 0) {
+      card.classList.add('border-orange-500', 'bg-orange-50');
+      card.classList.remove('border-gray-100', 'bg-white');
+    } else {
+      card.classList.remove('border-orange-500', 'bg-orange-50');
+      card.classList.add('border-gray-100', 'bg-white');
+    }
+  }
+
+  updateKioskModalTotal();
+};
+
+window.updateKioskModalTotal = function() {
   const p = products.find(x => String(x.id) === String(currentSelectedProductId));
-  if (p) {
-    updateAccModalTotal(p.price);
-  }
-}
-
-function updateAccModalTotal(basePrice) {
-  let extraTotal = basePrice;
-  tempSelectedVisualExtras.forEach(e => {
-    extraTotal += Number(e.price || 0);
+  if (!p) return;
+  let total = Number(p.price) || 0;
+  
+  document.querySelectorAll('.kiosk-ve-input').forEach(el => {
+    const count = parseInt(el.getAttribute('data-count')) || 0;
+    if (count > 0) {
+      const data = JSON.parse(el.value);
+      total += (Number(data.price || 0) * count);
+    }
   });
-  document.getElementById('accModalTotal').textContent = `$${extraTotal.toLocaleString()}`;
-}
+  
+  document.getElementById('accModalTotal').textContent = `$${total.toLocaleString()}`;
+};
 
 function closeAccompanimentsModal() {
   document.getElementById('accompanimentsModal').classList.add('hidden');
