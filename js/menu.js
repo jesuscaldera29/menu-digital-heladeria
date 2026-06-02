@@ -682,7 +682,7 @@ async function processOrder() {
       delivery_method: delivery,
       payment_method: payment,
       address: finalAddress,
-      notes,
+      notes: notes ? '[ORIGIN:MENU] ' + notes : '[ORIGIN:MENU]',
       business_id: currentBusinessId,
       tip,
       coupon_code: currentCoupon ? currentCoupon.code : '',

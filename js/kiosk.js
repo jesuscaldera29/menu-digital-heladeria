@@ -844,7 +844,7 @@ async function kProcessOrder() {
         delivery_method: delivery,
         payment_method: 'Efectivo', // Default cashier payment
         address: finalAddress,
-        notes: 'Pedido realizado desde Kiosko Auto-Servicio',
+        notes: '[ORIGIN:KIOSKO] Pedido realizado desde Kiosko Auto-Servicio',
         business_id: currentBusinessId,
         discount,
         coupon_code: currentCoupon ? currentCoupon.code : ''

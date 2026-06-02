@@ -158,27 +158,80 @@
       </div>
     </div>
   </main>
-  <!-- POS REPORT MODAL -->
+  <!-- POS REPORT / ANALYTICS MODAL -->
   <div id="posReportModal" class="hidden fixed inset-0 z-[900] flex items-center justify-center">
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePOSReport()"></div>
-    <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4">
-      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] rounded-t-2xl">
-        <div>
-          <h3 class="text-xl font-black text-white flex items-center gap-2"><span>📊</span> Corte de Caja</h3>
-          <p id="posReportDate" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Hoy</p>
-        </div>
-        <button onclick="closePOSReport()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">✖</button>
-      </div>
+    <div class="bg-[#111] border border-[#333] w-full max-w-6xl h-[95vh] md:h-[90vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
       
-      <div class="p-6 space-y-4" id="posReportContent">
-        <!-- Totals will be injected here -->
-        <div class="text-center text-gray-500 animate-pulse font-bold text-sm">Calculando ventas del día...</div>
+      <!-- Header -->
+      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
+        <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3">
+          <span>📊</span> Dashboard Financiero
+        </h3>
+        <button onclick="closePOSReport()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
       </div>
 
-      <div class="p-5 border-t border-[#222] bg-[#1a1a1a] rounded-b-2xl">
-        <button onclick="printPOSReport()" id="btnPrintPOSReport" class="w-full bg-[#222] hover:bg-white text-white hover:text-black font-black py-3.5 rounded-xl border border-[#333] transition-all text-sm flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-          <span>🖨️</span> Imprimir Ticket Z
-        </button>
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 bg-[#0a0a0a]">
+        
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222]">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">PERIODO:</span>
+            <select id="posReportDateFilter" class="bg-[#222] text-white text-sm font-bold p-2.5 rounded-xl border border-[#333] focus:border-orange-500 outline-none cursor-pointer" onchange="openPOSReport()">
+              <option value="today">Hoy</option>
+              <option value="yesterday">Ayer</option>
+              <option value="this_week">Esta Semana</option>
+              <option value="this_month">Este Mes</option>
+            </select>
+          </div>
+          <button onclick="printPOSReport()" id="btnPrintPOSReport" class="bg-white text-black font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
+            <span>🖨️</span> Imprimir Ticket Z
+          </button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="posReportKPIs">
+           <!-- Rendered via JS -->
+           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando métricas...</div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden" id="posReportCharts">
+          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
+            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Ventas por Origen</h4>
+            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartOrigin"></canvas></div>
+          </div>
+          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
+            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Métodos de Pago</h4>
+            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartPayment"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Order History Table -->
+        <div class="bg-[#1a1a1a] rounded-2xl border border-[#222] overflow-hidden hidden" id="posReportHistoryContainer">
+          <div class="p-4 border-b border-[#222]">
+            <h4 class="text-sm text-white font-bold uppercase tracking-widest">Historial de Pedidos</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-400">
+              <thead class="text-xs text-gray-500 uppercase bg-[#111] border-b border-[#222]">
+                <tr>
+                  <th class="px-4 py-3">ID / Hora</th>
+                  <th class="px-4 py-3">Cliente</th>
+                  <th class="px-4 py-3 text-center">Origen</th>
+                  <th class="px-4 py-3 text-center">Pago</th>
+                  <th class="px-4 py-3 text-right">Total</th>
+                  <th class="px-4 py-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="posReportHistoryBody" class="divide-y divide-[#222]">
+                <!-- Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -346,9 +399,10 @@
 
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/sounds.js?v=1"></script>
   <script src="js/supabase-config.js"></script>
-  <script src="js/pos.js"></script>
+  <script src="js/pos.js?v=3"></script>
 </body>
 </html>
 
