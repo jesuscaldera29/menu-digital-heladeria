@@ -227,17 +227,30 @@ function openExtrasModal(productId, extras, accList) {
 
   document.getElementById('extrasModalTitle').textContent = p.name;
   const limit = p.accompaniments_limit;
-  document.getElementById('extrasModalLimit').textContent = limit ? `Máx. ${limit} selecciones` : '';
+  const limitEl = document.getElementById('extrasModalLimit');
+  if (limit) {
+    limitEl.textContent = `Máx. ${limit} selecciones`;
+    limitEl.classList.remove('hidden');
+  } else {
+    limitEl.classList.add('hidden');
+  }
 
   let html = '';
   // Text-based accompaniments
   if (accList.length > 0) {
-    html += '<p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Acompañamientos</p>';
-    html += '<div class="grid grid-cols-2 gap-2">';
+    html += '<p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Acompañamientos</p>';
+    html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
     accList.forEach((a, i) => {
-      html += `<label class="flex items-center gap-2 bg-[#222] rounded-xl p-2.5 cursor-pointer border border-[#333] hover:border-orange-500 transition-colors">
-        <input type="checkbox" class="acc-check w-4 h-4 accent-orange-500" value="${a}" onchange="updateExtrasTotal()">
-        <span class="text-sm text-white font-bold truncate">${a}</span>
+      html += `
+      <label class="pos-extra-label flex items-center gap-3 bg-[#222] rounded-xl p-3 cursor-pointer border-2 border-transparent transition-all duration-200 select-none" onchange="updateExtrasTotal(this)">
+        <div class="relative flex items-center justify-center w-5 h-5 bg-transparent border-2 border-gray-400 rounded shrink-0 transition-all ve-checkbox-visual">
+          <svg class="w-3.5 h-3.5 text-orange-500 opacity-0 transition-opacity ve-checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <input type="checkbox" class="acc-check hidden" value="${a}">
+        <div class="min-w-0 flex-1">
+          <span class="text-sm text-white font-bold block truncate">${a}</span>
+          <span class="text-[10px] text-orange-500 font-black tracking-widest uppercase mt-0.5 block">GRATIS</span>
+        </div>
       </label>`;
     });
     html += '</div>';
@@ -245,15 +258,19 @@ function openExtrasModal(productId, extras, accList) {
 
   // Visual extras
   if (extras.length > 0) {
-    html += '<p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2 mt-4">Extras</p>';
-    html += '<div class="grid grid-cols-2 gap-2">';
+    html += '<p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3 mt-5">Extras</p>';
+    html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
     extras.forEach(e => {
-      html += `<label class="flex items-center gap-2 bg-[#222] rounded-xl p-2.5 cursor-pointer border border-[#333] hover:border-orange-500 transition-colors">
-        <input type="checkbox" class="ve-check w-4 h-4 accent-orange-500" data-id="${e.id}" data-name="${e.name}" data-price="${e.price}" onchange="updateExtrasTotal()">
+      html += `
+      <label class="pos-extra-label flex items-center gap-3 bg-[#222] rounded-xl p-3 cursor-pointer border-2 border-transparent transition-all duration-200 select-none" onchange="updateExtrasTotal(this)">
+        <div class="relative flex items-center justify-center w-5 h-5 bg-transparent border-2 border-gray-400 rounded shrink-0 transition-all ve-checkbox-visual">
+          <svg class="w-3.5 h-3.5 text-orange-500 opacity-0 transition-opacity ve-checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <input type="checkbox" class="ve-check hidden" data-id="${e.id}" data-name="${e.name}" data-price="${e.price}">
         ${e.image_url ? `<img src="${e.image_url}" class="w-8 h-8 rounded-full object-cover shrink-0">` : ''}
-        <div class="min-w-0">
-          <span class="text-xs text-white font-bold block truncate">${e.name}</span>
-          <span class="text-[10px] text-orange-400 font-bold">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
+        <div class="min-w-0 flex-1">
+          <span class="text-sm text-white font-bold block truncate">${e.name}</span>
+          <span class="text-[10px] text-orange-500 font-black tracking-widest uppercase mt-0.5 block">${Number(e.price) > 0 ? '+$' + Number(e.price).toLocaleString() : 'GRATIS'}</span>
         </div>
       </label>`;
     });
@@ -265,9 +282,52 @@ function openExtrasModal(productId, extras, accList) {
   document.getElementById('extrasModal').classList.remove('hidden');
 }
 
-function updateExtrasTotal() {
+function updateExtrasTotal(changedLabel = null) {
   const p = products.find(x => String(x.id) === String(currentExtrasProductId));
   if (!p) return;
+  const limit = p.accompaniments_limit;
+  
+  const checkedAccs = document.querySelectorAll('.acc-check:checked');
+  const checkedVEs = document.querySelectorAll('.ve-check:checked');
+  const totalChecked = checkedAccs.length + checkedVEs.length;
+
+  if (limit && totalChecked > limit) {
+    if (changedLabel) {
+      const input = changedLabel.querySelector('input[type="checkbox"]');
+      if (input) input.checked = false;
+      changedLabel.classList.add('animate-shake', 'border-red-500');
+      setTimeout(() => changedLabel.classList.remove('animate-shake', 'border-red-500'), 400);
+      showToast(`⚠️ Máximo ${limit} opciones permitidas`, 'error');
+    }
+  }
+
+  // Update visual states for custom checkboxes
+  document.querySelectorAll('.pos-extra-label').forEach(label => {
+    const input = label.querySelector('input[type="checkbox"]');
+    if (!input) return;
+    const visualBox = label.querySelector('.ve-checkbox-visual');
+    const checkmark = label.querySelector('.ve-checkmark');
+    
+    if (input.checked) {
+      label.classList.add('border-orange-500', 'bg-[#1f1f1f]');
+      label.classList.remove('border-transparent', 'bg-[#222]');
+      if (visualBox) {
+        visualBox.classList.add('bg-white', 'border-white');
+        visualBox.classList.remove('bg-transparent', 'border-gray-400');
+      }
+      if (checkmark) checkmark.classList.remove('opacity-0');
+    } else {
+      label.classList.remove('border-orange-500', 'bg-[#1f1f1f]');
+      if (!label.classList.contains('border-red-500')) label.classList.add('border-transparent');
+      label.classList.add('bg-[#222]');
+      if (visualBox) {
+        visualBox.classList.remove('bg-white', 'border-white');
+        visualBox.classList.add('bg-transparent', 'border-gray-400');
+      }
+      if (checkmark) checkmark.classList.add('opacity-0');
+    }
+  });
+
   let total = Number(p.price);
   document.querySelectorAll('.ve-check:checked').forEach(el => { total += Number(el.dataset.price || 0); });
   document.getElementById('extrasModalTotal').textContent = '$' + total.toLocaleString();
