@@ -263,7 +263,7 @@ function openExtrasModal(productId, extras, accList) {
   if (extras.length > 0) {
     html += '<p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3 mt-5">Extras</p>';
     html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
-    extras.forEach(e => {
+    extras.forEach((e, i) => {
       html += `
       <div id="posVECard_${i}" class="pos-extra-label flex items-center justify-between gap-3 bg-[#222] rounded-xl p-3 border-2 border-transparent transition-all duration-200 select-none cursor-pointer" onclick="updatePosAccCount('ve_${i}', 1)">
         ${e.image_url ? `<img src="${e.image_url}" class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none">` : ''}
