@@ -790,7 +790,8 @@ async function confirmSale() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Venta cobrada (Mesa cerrada)');
-      if (updatedOrder && updatedOrder.length > 0) printPOSTicket(updatedOrder[0]);
+      const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
+      if (updatedOrder && updatedOrder.length > 0 && shouldPrint) printPOSTicket(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -808,7 +809,8 @@ async function confirmSale() {
       }]).select();
       if (error) throw error;
       showToast('✅ Venta registrada');
-      if (insertedOrder && insertedOrder.length > 0) printPOSTicket(insertedOrder[0]);
+      const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
+      if (insertedOrder && insertedOrder.length > 0 && shouldPrint) printPOSTicket(insertedOrder[0]);
     }
 
     closeCheckoutModal();
@@ -909,7 +911,12 @@ function printPOSTicket(o) {
       </div>`
   ).join('');
 
-  const logoUrl = posSettings.logo_url ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
+  const useLogo = localStorage.getItem('receipt_cash_logo') !== 'false';
+  const customHeader = localStorage.getItem('receipt_cash_header') || '';
+  const customFooter = localStorage.getItem('receipt_cash_footer') || '¡Gracias por su compra!';
+  
+  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
+  const headerHtml = customHeader ? `<div class="text-center mb-2" style="font-size: 12px; white-space: pre-wrap;">${customHeader}</div>` : '';
 
   const ticketId = String(o.id).split('-')[0];
 
@@ -930,10 +937,11 @@ function printPOSTicket(o) {
     </head>
     <body>
       <div class="text-center mb-2">${logoUrl}</div>
-      <div class="text-center border-b font-bold text-lg">
+      ${headerHtml}
+      <div class="text-center border-b font-bold text-lg mb-2">
         TICKET DE VENTA<br>#${ticketId}
       </div>
-      <div class="mb-2" style="margin-top:10px;">
+      <div class="mb-2">
         <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
         <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type}<br>
@@ -946,8 +954,8 @@ function printPOSTicket(o) {
         <span>TOTAL:</span>
         <span>$${o.total}</span>
       </div>
-      <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
-        ¡Gracias por su compra!
+      <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px; white-space: pre-wrap;">
+        ${customFooter}
       </div>
       <script>
         setTimeout(() => { window.print(); window.close(); }, 500);

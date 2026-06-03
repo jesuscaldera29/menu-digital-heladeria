@@ -1595,21 +1595,6 @@ function bottomNavClick(sectionId, el) {
     if (el && el.classList.contains('bottom-nav-item')) el.classList.add('active');
 }
 
-function toggleMoreMenu() {
-    const mm = document.getElementById('moreMenu');
-    if (mm) mm.classList.toggle('show');
-}
-
-// Close more menu if clicked outside
-document.addEventListener('click', (e) => {
-    const mm = document.getElementById('moreMenu');
-    if (mm && mm.classList.contains('show')) {
-        if (!e.target.closest('.more-menu') && !e.target.closest('.bottom-nav-item')) {
-            mm.classList.remove('show');
-        }
-    }
-});
-
 async function loadDashboard() {
     if (!businessId) return;
     const today = new Date().toISOString().split('T')[0];

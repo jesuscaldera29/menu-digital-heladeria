@@ -251,6 +251,9 @@ function printOrderTicket(id) {
   const o = activeOrders.find(x => x.id == id);
   if (!o) return showToast('Error: No se encontró el pedido', 'error');
   
+  const showTable = localStorage.getItem('receipt_kds_table') !== 'false';
+  const showClient = localStorage.getItem('receipt_kds_client') !== 'false';
+  
   const itemsHtml = o.items.map(item => `
       <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
           <span>${item.qty}x ${item.name}</span>
@@ -289,10 +292,9 @@ function printOrderTicket(id) {
       
       <div class="mb-2" style="margin-top:10px;">
         <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
-        <strong>Cliente:</strong> ${o.customer_name}<br>
-        <strong>Tel:</strong> ${o.customer_phone}<br>
+        ${showClient ? `<strong>Cliente:</strong> ${o.customer_name}<br><strong>Tel:</strong> ${o.customer_phone}<br>` : ''}
         <strong>Tipo:</strong> ${o.delivery_method}<br>
-        <strong>Dir:</strong> ${o.address || '-'}<br>
+        ${showTable && o.address ? `<strong>Dir / Mesa:</strong> ${o.address}<br>` : ''}
         <strong>Pago:</strong> ${o.payment_method}<br>
         <strong>Notas:</strong> ${o.notes || 'Ninguna'}
       </div>

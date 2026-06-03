@@ -344,37 +344,6 @@
     }
 
     /* More Menu (mobile) */
-    .more-menu {
-      position: fixed;
-      bottom: 70px;
-      right: 8px;
-      background: white;
-      border-radius: 20px;
-      padding: 8px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-      border: 1px solid #f0f0f0;
-      z-index: 160;
-      display: none;
-      min-width: 200px;
-    }
-    .more-menu.show { display: block; }
-    .more-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-      cursor: pointer;
-      transition: background 0.2s;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-    .more-menu-item:hover { background: #f5f5f5; }
   </style>
 
   <!-- Chart.js -->
@@ -1211,7 +1180,459 @@
       </div>
     </div>
 
-  </main>
+    <!-- SECTION: MORE (Opciones) -->
+    <div id="section-more" class="section-content px-4 py-6 md:px-8 max-w-4xl mx-auto">
+      <!-- Top Cards -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-3 cursor-pointer hover:bg-gray-50 transition-all" onclick="showSection('staff')">
+          <div class="text-2xl mt-1">👤</div>
+          <div>
+            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar empleado <span class="text-gray-400 md:hidden">›</span></div>
+            <div class="text-xs text-gray-500 mt-1 leading-tight">Empleado actual:<br><span id="moreCurrentEmployee" class="font-semibold text-gray-700">Administrador</span></div>
+          </div>
+          <div class="hidden md:flex ml-auto items-center text-gray-400">›</div>
+        </div>
+        <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-3 cursor-pointer hover:bg-gray-50 transition-all" onclick="showSection('branches')">
+          <div class="text-2xl mt-1">🏪</div>
+          <div>
+            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar punto <span class="text-gray-400 md:hidden">›</span></div>
+            <div class="text-xs text-gray-500 mt-1 leading-tight">Punto de venta:<br><span id="moreCurrentBranch" class="font-semibold text-gray-700">Principal</span></div>
+          </div>
+          <div class="hidden md:flex ml-auto items-center text-gray-400">›</div>
+        </div>
+      </div>
+
+      <!-- Menu List -->
+      <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden mb-20">
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('purchases')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🛍️</span><span class="font-semibold text-gray-800 text-[15px]">Compras</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('products')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🍔</span><span class="font-semibold text-gray-800 text-[15px]">Productos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('recipes')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🧊</span><span class="font-semibold text-gray-800 text-[15px]">Insumos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('products')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🗂️</span><span class="font-semibold text-gray-800 text-[15px]">Categorías</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('customers')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">👥</span><span class="font-semibold text-gray-800 text-[15px]">Clientes/Proveedores</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('settings')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">⚙️</span><span class="font-semibold text-gray-800 text-[15px]">Ajustes</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('features')">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🛠️</span><span class="font-semibold text-gray-800 text-[15px]">Configuración adicional</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+        <button class="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-all" onclick="window.location.reload(true)">
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🔄</span><span class="font-semibold text-gray-800 text-[15px]">Actualizar base de datos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES (Main) -->
+    <div id="section-settings" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-white min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('more')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800">Ajustes</h2>
+      </div>
+
+      <div class="space-y-6 pb-20">
+        <!-- Grupo 1 -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Configuración del Negocio</h3>
+          <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-general')">
+              <span class="text-2xl text-gray-400 mr-4">🏪</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">Configuración General</div>
+                <div class="text-sm text-gray-500">Información del Negocio</div>
+              </div>
+              <span class="text-gray-400 text-xl ml-2">›</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grupo 2 -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Dispositivos y Hardware</h3>
+          <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            <button class="w-full flex items-center p-4 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-printers')">
+              <span class="text-2xl text-gray-400 mr-4">🖨️</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">Configurar impresoras</div>
+                <div class="text-sm text-gray-500">Opciones para configurar la impresora</div>
+              </div>
+              <span class="text-gray-400 text-xl ml-2">›</span>
+            </button>
+            <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left">
+              <span class="text-2xl text-gray-400 mr-4">⚖️</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">Configurar Básculas</div>
+                <div class="text-sm text-gray-500">Opciones para configurar las básculas</div>
+              </div>
+              <span class="text-yellow-500 text-xl ml-2">⚡</span>
+              <span class="text-gray-400 text-xl ml-1">›</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grupo 3 -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Configuración de Negocio</h3>
+          <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            <button class="w-full flex items-center p-4 border-b border-gray-50 hover:bg-gray-50 transition-all text-left">
+              <span class="text-2xl text-gray-400 mr-4">🔧</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">Más opciones</div>
+                <div class="text-sm text-gray-500">Más opciones para configurar el negocio y la App</div>
+              </div>
+              <span class="text-gray-400 text-xl ml-2">›</span>
+            </button>
+            <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipts')">
+              <span class="text-2xl text-gray-400 mr-4">🧾</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">Recibos de caja y rangos de numeración</div>
+                <div class="text-sm text-gray-500">Personaliza el recibo de caja y resoluciones de facturación</div>
+              </div>
+              <span class="text-gray-400 text-xl ml-2">›</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-SECTIONS WILL GO HERE -->
+
+    <!-- SECTION: AJUSTES - IMPRESORAS -->
+    <div id="section-settings-printers" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800">Configurar impresoras</h2>
+        <span class="ml-auto text-yellow-500 text-2xl">⚡</span>
+      </div>
+
+      <div class="space-y-6 pb-24">
+        <!-- Basic Print Settings -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Impresión automática</div>
+              <div class="text-sm text-gray-500 mt-1">Si habilitas esta opción siempre se imprime el recibo con cada venta</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input type="checkbox" id="toggleAutoPrint" class="sr-only peer" onchange="savePrinterSettings()">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Habilitar impresión del logo</div>
+              <div class="text-sm text-gray-500 mt-1">Personaliza tu recibo imprimiendo el logo de tu empresa</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input type="checkbox" id="togglePrintLogo" class="sr-only peer" onchange="savePrinterSettings()">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Apertura de cajón monedero</div>
+              <div class="text-sm text-gray-500 mt-1">Si habilitas esta opción el cajón se abre con cada venta</div>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0">
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleCashDrawer" class="sr-only peer" onchange="savePrinterSettings()">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+              </label>
+              <button class="flex flex-col items-center justify-center text-[10px] text-gray-500 font-bold" onclick="openCashDrawer()">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-1"><div class="w-3 h-3 rounded-full bg-orange-500 border-[3px] border-white outline-orange-500"></div></div>
+                ABRIR CAJÓN
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-5 flex items-center justify-between cursor-pointer border-b border-gray-50" onclick="document.getElementById('advPrinterOptions').classList.toggle('hidden')">
+            <h3 class="text-lg font-medium text-gray-800">Opciones avanzadas</h3>
+            <span class="text-green-700 font-bold">^</span>
+          </div>
+          
+          <div id="advPrinterOptions" class="p-5 space-y-6">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold text-gray-800 text-[15px]">Central de comandas</div>
+                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input type="checkbox" id="toggleKDS" class="sr-only peer" onchange="toggleKdsOptions()">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+              <div class="text-sm text-gray-600">Este dispositivo centraliza la impresión de comandas. Recibe las órdenes creadas en otros dispositivos por internet o LAN y las imprime automáticamente.</div>
+            </div>
+
+            <button id="btnLanPos" class="w-full flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all text-left hidden" onclick="showSection('settings-lan')">
+              <span class="text-2xl text-gray-400 mr-4">🖧</span>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800">POS conectados (LAN)</div>
+                <div class="text-sm text-gray-500">Ver y gestionar los POS de meseros conectados por red local</div>
+              </div>
+              <span class="text-gray-400 text-xl ml-2">›</span>
+            </button>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold text-gray-800 text-[15px]">No perder comandas si la impresora falla</div>
+                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input type="checkbox" id="toggleRetryPrint" class="sr-only peer" onchange="savePrinterSettings()">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+              <div class="text-sm text-gray-600">Si la impresora de cocina falla, la comanda queda guardada y se reintenta hasta 3 veces. Si sigue sin responder, el cajero recibe una alerta para reenviarla manualmente. Solo funciona con impresoras conectadas por red WiFi/cable.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sticky Bottom Button -->
+      <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
+        <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow-lg flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors" onclick="window.print()">
+          <span>🖨️</span> Nueva Impresora <span class="text-xl">+</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - POS LAN -->
+    <div id="section-settings-lan" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('settings-printers')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800">POS conectados (LAN)</h2>
+      </div>
+
+      <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 mb-6">
+        <h3 class="font-bold text-gray-800 text-lg mb-8">POS conectados (<span id="lanCount">0/0</span>)</h3>
+        
+        <div id="lanDevicesList" class="flex flex-col items-center justify-center text-center py-8">
+          <div class="text-6xl text-gray-300 mb-4">🖧</div>
+          <div class="font-semibold text-gray-600 text-lg mb-2">Aún no hay POS conectados</div>
+          <div class="text-sm text-gray-400 max-w-[250px]">Asegúrate de que los meseros tengan activado el servidor LAN KDS y estén en la misma red WiFi.</div>
+        </div>
+      </div>
+
+      <button class="w-full bg-[#00c875] text-white font-bold rounded-[16px] py-4 shadow flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors mb-6" onclick="scanLanDevices()">
+        <span class="text-xl">🔍</span> Buscar POS meseros en la red
+      </button>
+
+      <div class="bg-blue-50 rounded-[16px] border border-blue-100 p-5">
+        <div class="flex items-center gap-2 text-blue-700 font-bold mb-2">
+          <span>ℹ️</span> Cómo funciona
+        </div>
+        <p class="text-sm text-blue-800 leading-relaxed">Este central descubre automáticamente los equipos POS cada minuto y se conecta para recibir las órdenes y disparar la impresión de comandas.</p>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - RECIBOS MENU -->
+    <div id="section-settings-receipts" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800">Recibos de caja y...</h2>
+      </div>
+
+      <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+        <button class="w-full flex items-center p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipt-cash')">
+          <span class="text-2xl text-gray-400 mr-4">🧾</span>
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800 text-[15px]">Recibo de caja</div>
+            <div class="text-sm text-gray-500">Personaliza el recibo de caja</div>
+          </div>
+          <span class="text-gray-400 text-xl ml-2">›</span>
+        </button>
+        <button class="w-full flex items-center p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipt-kds')">
+          <span class="text-2xl text-gray-400 mr-4">🧾</span>
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800 text-[15px]">Recibo de comanda</div>
+            <div class="text-sm text-gray-500">Personaliza el recibo de comanda</div>
+          </div>
+          <span class="text-gray-400 text-xl ml-2">›</span>
+        </button>
+        <button class="w-full flex items-center p-4 md:p-5 hover:bg-gray-50 transition-all text-left">
+          <span class="text-2xl text-gray-400 mr-4">🗂️</span>
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800 text-[15px]">Rangos de numeración</div>
+            <div class="text-sm text-gray-500">Asigna rangos de numeración a tus recibos de caja</div>
+          </div>
+          <span class="text-yellow-500 text-xl ml-2">⚡</span>
+          <span class="text-gray-400 text-xl ml-1">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - RECIBO CAJA -->
+    <div id="section-settings-receipt-cash" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('settings-receipts')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800 truncate">Personaliza el recibo de caja</h2>
+      </div>
+
+      <div class="space-y-4 pb-24">
+        <!-- Logo Toggle -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Habilitar impresión del logo</div>
+              <div class="text-sm text-gray-500 mt-1">Personaliza tu recibo imprimiendo el logo de tu empresa</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input type="checkbox" id="toggleReceiptLogo" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Custom Info -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-5 flex items-center justify-between cursor-pointer border-b border-gray-50" onclick="document.getElementById('receiptCustomInfo').classList.toggle('hidden')">
+            <h3 class="text-lg font-medium text-gray-800">+ Incluye más información (opcional)</h3>
+            <span class="text-gray-400 font-bold">^</span>
+          </div>
+          <div id="receiptCustomInfo" class="p-5 space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-gray-500 mb-1">Texto del encabezado</label>
+              <textarea id="receiptHeader" class="w-full bg-white border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-green-500 outline-none resize-none h-20" placeholder="Texto del encabezado"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-500 mb-1">Texto del pie de página</label>
+              <textarea id="receiptFooter" class="w-full bg-white border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-green-500 outline-none resize-none h-20" placeholder="Gracias por visitarnos !!">Gracias por visitarnos !!</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Toggles -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Mostrar detalles del cálculo de impuestos</div>
+              <div class="text-sm text-gray-500 mt-1">Aplica para recibo de 80 mm</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input type="checkbox" id="toggleReceiptTaxes" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="pr-4">
+              <div class="font-semibold text-gray-800 text-[15px]">Mostrar el detalle de descuentos en la tirilla</div>
+              <div class="text-sm text-gray-500 mt-1">Usa más papel al imprimir</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input type="checkbox" id="toggleReceiptDiscounts" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
+        <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow flex items-center justify-center hover:bg-[#00b065] transition-colors" onclick="saveReceiptConfig('cash')">
+          ACTUALIZAR <span class="ml-2">💾</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - RECIBO COMANDA (KDS) -->
+    <div id="section-settings-receipt-kds" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('settings-receipts')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800 truncate">Personaliza el recibo de com...</h2>
+      </div>
+
+      <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 pb-24">
+        <h3 class="text-lg text-gray-800 mb-6">Selecciona que quieres mostrar en el recibo de comanda</h3>
+        
+        <div class="space-y-4">
+          <div class="flex items-center p-3 border border-gray-200 rounded-xl bg-white cursor-pointer" onclick="toggleCheckbox('kdsShowTable')">
+            <label class="relative inline-flex items-center cursor-pointer mr-3 pointer-events-none">
+              <input type="checkbox" id="kdsShowTable" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-700"></div>
+            </label>
+            <span class="font-medium text-gray-800">Mostrar Mesa</span>
+          </div>
+
+          <div class="flex items-center p-3 border border-gray-200 rounded-xl bg-white cursor-pointer" onclick="toggleCheckbox('kdsShowWaiter')">
+            <label class="relative inline-flex items-center cursor-pointer mr-3 pointer-events-none">
+              <input type="checkbox" id="kdsShowWaiter" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-700"></div>
+            </label>
+            <span class="font-medium text-gray-800">Mostrar Mesero</span>
+          </div>
+
+          <div class="flex items-center p-3 border border-gray-200 rounded-xl bg-white cursor-pointer" onclick="toggleCheckbox('kdsShowClient')">
+            <label class="relative inline-flex items-center cursor-pointer mr-3 pointer-events-none">
+              <input type="checkbox" id="kdsShowClient" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-700"></div>
+            </label>
+            <span class="font-medium text-gray-800">Mostrar Cliente</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
+        <button class="w-full bg-white border border-gray-200 text-gray-800 font-semibold rounded-[16px] py-4 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors" onclick="saveReceiptConfig('kds')">
+          Guardado con éxito
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - CONFIG GENERAL -->
+    <div id="section-settings-general" class="section-content bg-white min-h-screen">
+      <div class="flex items-center gap-4 p-4 border-b border-gray-100 md:px-8">
+        <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-xl font-bold text-gray-800">Tipo de negocio</h2>
+      </div>
+
+      <div class="pb-10">
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Supermercado / Tienda</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Restaurante / Comidas rápidas</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Bar / Pub</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Panadería / Pastelería</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Distribuidora</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Ferretería / Eléctricos</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Animales / Mascotas</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Carnes / Salsamentaría</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Miscelánea / Variedades</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Moda / Ropa</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 bg-gray-200 font-medium text-gray-800" onclick="saveBusinessType(this)">Droguería / Farmacia</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Cigarrería / Licores</button>
+        <button class="w-full text-left p-4 md:px-8 border-b border-gray-100 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Electrónica / Informática</button>
+        <button class="w-full text-left p-4 md:px-8 hover:bg-gray-50 font-medium text-gray-800" onclick="saveBusinessType(this)">Otro</button>
+      </div>
+    </div>
 
   <!-- BOTTOM NAV (Mobile) -->
   <nav class="bottom-nav" id="bottomNav">
@@ -1231,24 +1652,11 @@
       <span class="nav-icon">🏧</span>
       <span>CAJA</span>
     </button>
-    <button class="bottom-nav-item" onclick="toggleMoreMenu()">
+    <button class="bottom-nav-item" data-section="more" onclick="bottomNavClick('more',this)">
       <span class="nav-icon">⚙️</span>
-      <span>MÁS</span>
+      <span>OPCIONES</span>
     </button>
   </nav>
-
-  <!-- MORE MENU (Mobile) -->
-  <div class="more-menu" id="moreMenu">
-    <button class="more-menu-item" onclick="bottomNavClick('products',this)">🍔 Productos</button>
-    <button class="more-menu-item" onclick="bottomNavClick('customers',this)">👤 Clientes</button>
-    <button class="more-menu-item" onclick="bottomNavClick('reports',this)">📊 Reportes</button>
-    <button class="more-menu-item" onclick="bottomNavClick('purchases',this)">📦 Compras</button>
-    <button class="more-menu-item" onclick="bottomNavClick('suppliers',this)">🏭 Proveedores</button>
-    <button class="more-menu-item" onclick="bottomNavClick('staff',this)">👥 Personal</button>
-    <button class="more-menu-item" onclick="bottomNavClick('coupons',this)">🎟️ Cupones</button>
-    <button class="more-menu-item" onclick="bottomNavClick('credits',this)">💳 Créditos</button>
-    <button class="more-menu-item" onclick="bottomNavClick('recipes',this)">📖 Recetas</button>
-  </div>
   <!-- MODAL: APERTURA DE CAJA -->
   <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
@@ -1729,6 +2137,7 @@
   <script src="js/admin-staff.js?v=1"></script>
   <script src="js/admin-branches.js?v=1"></script>
   <script src="js/admin-features.js?v=1"></script>
+  <script src="js/admin-settings.js?v=1"></script>
   <!-- AUDIO Y SW -->
   <script>
     // Toggle Mobile Sidebar
