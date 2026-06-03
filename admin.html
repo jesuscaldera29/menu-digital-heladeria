@@ -778,6 +778,18 @@
     </div>
 
   </main>
+  <!-- MODAL: APERTURA DE CAJA -->
+  <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 class="text-2xl font-black mb-2">🔓 Apertura de Caja</h2>
+      <p class="text-sm text-gray-500 mb-6">Ingresa el monto inicial con el que empiezas tu turno en la caja.</p>
+      <input type="number" id="openingAmount" class="input" placeholder="Monto base ($)" min="0">
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button class="btn btn-primary bg-green-500 hover:bg-green-600 border-none text-white" onclick="confirmCashOpening()">✅ Abrir Caja</button>
+        <button class="btn btn-danger" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: CIERRE DE CAJA -->
   <div id="cashClosingModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">

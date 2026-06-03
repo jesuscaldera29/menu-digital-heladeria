@@ -13,6 +13,7 @@ let selectedVisualExtras = [];
 let selectedAccompaniments = [];
 let posSettings = {};
 let currentOpenOrderId = null;
+let posCustomers = [];
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -44,6 +45,7 @@ async function initPOS() {
   await loadSettings();
   await loadProducts();
   await loadVisualExtras();
+  await loadCustomers();
 
   // Init Auto-Print
   autoPrintEnabled = localStorage.getItem('pos_auto_print') === 'true';
@@ -173,6 +175,38 @@ async function loadSettings() {
         .payment-btn.active { background-color: ${data.brand_color} !important; border-color: ${data.brand_color} !important; color: white !important; }
       `;
       document.head.appendChild(style);
+    }
+  }
+}
+
+async function loadCustomers() {
+  try {
+    const { data, error } = await supabaseClient.from('customers').select('*').eq('business_id', businessId).order('name');
+    if (error) throw error;
+    posCustomers = data || [];
+    
+    const datalist = document.getElementById('customersDataList');
+    if (datalist) {
+      datalist.innerHTML = posCustomers.map(c => `<option value="${c.name}"></option>`).join('');
+    }
+  } catch (err) {
+    console.error('Error loading customers for POS:', err);
+  }
+}
+
+function handleCustomerSelection() {
+  const inputVal = document.getElementById('customerName').value.trim();
+  const customer = posCustomers.find(c => c.name.toLowerCase() === inputVal.toLowerCase());
+  
+  if (customer) {
+    if (document.getElementById('customerPhone')) {
+      document.getElementById('customerPhone').value = customer.phone || '';
+    }
+    if (document.getElementById('deliveryAddress')) {
+      document.getElementById('deliveryAddress').value = customer.address || '';
+    }
+    if (document.getElementById('deliveryNeighborhood')) {
+      document.getElementById('deliveryNeighborhood').value = customer.neighborhood || '';
     }
   }
 }
@@ -545,12 +579,44 @@ function toggleMobileCart() {
 // === CHECKOUT MODAL ===
 function openCheckoutModal() {
   if (!Object.keys(posCart).length) return;
-  const total = getCartTotal();
-  document.getElementById('modalTotal').textContent = '$' + total.toLocaleString();
   document.getElementById('cashReceived').value = '';
   document.getElementById('changeDisplay').classList.add('hidden');
   document.getElementById('insufficientDisplay').classList.add('hidden');
   document.getElementById('checkoutModal').classList.remove('hidden');
+  
+  // Ensure btnSaveTable visibility and total is correct
+  const orderType = document.getElementById('orderType').value;
+  const activeBtn = Array.from(document.querySelectorAll('.order-type-btn')).find(b => b.classList.contains('active'));
+  if (activeBtn) {
+    selectOrderType(orderType, activeBtn);
+  } else {
+    updateCheckoutTotal();
+  }
+}
+
+function updateCheckoutTotal() {
+  let total = getCartTotal();
+  const orderType = document.getElementById('orderType').value;
+  
+  const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+  
+  if (orderType === 'Domicilio' && posSettings.delivery_fee) {
+      total += Number(posSettings.delivery_fee);
+      if (deliveryFeeDisplay) {
+          deliveryFeeDisplay.textContent = '+$' + Number(posSettings.delivery_fee).toLocaleString() + ' (Domicilio)';
+          deliveryFeeDisplay.classList.remove('hidden');
+      }
+  } else {
+      if (deliveryFeeDisplay) {
+          deliveryFeeDisplay.classList.add('hidden');
+      }
+  }
+  
+  document.getElementById('modalTotal').textContent = '$' + total.toLocaleString();
+  
+  const paymentMethod = document.getElementById('paymentMethod').value;
+  if (paymentMethod === 'Dividido') calculateSplitTotal();
+  if (paymentMethod === 'Efectivo') calculateChange();
 }
 
 function closeCheckoutModal() { document.getElementById('checkoutModal').classList.add('hidden'); }
@@ -571,6 +637,8 @@ function selectOrderType(type, el) {
   document.getElementById('phoneField').classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
   if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
+  
+  updateCheckoutTotal();
 }
 
 function selectPayment(method, el) {
@@ -594,8 +662,17 @@ function selectPayment(method, el) {
   }
 }
 
+function getCheckoutTotal() {
+  let total = getCartTotal();
+  const orderType = document.getElementById('orderType')?.value;
+  if (orderType === 'Domicilio' && posSettings.delivery_fee) {
+      total += Number(posSettings.delivery_fee);
+  }
+  return total;
+}
+
 function calculateSplitTotal() {
-  const total = getCartTotal();
+  const total = getCheckoutTotal();
   const c = parseFloat(document.getElementById('splitCash').value) || 0;
   const t = parseFloat(document.getElementById('splitCard').value) || 0;
   const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
@@ -615,7 +692,7 @@ function calculateSplitTotal() {
 }
 
 function calculateChange() {
-  const total = getCartTotal();
+  const total = getCheckoutTotal();
   const received = parseFloat(document.getElementById('cashReceived').value) || 0;
   const changeEl = document.getElementById('changeDisplay');
   const insuffEl = document.getElementById('insufficientDisplay');
@@ -644,7 +721,7 @@ async function confirmSale() {
   // Validate cash payment
   if (paymentMethod === 'Efectivo') {
     const received = parseFloat(document.getElementById('cashReceived').value) || 0;
-    const total = getCartTotal();
+    const total = getCheckoutTotal();
     if (received > 0 && received < total) {
       showToast('⚠️ Monto insuficiente', 'error');
       return;
@@ -657,7 +734,7 @@ async function confirmSale() {
     const t = parseFloat(document.getElementById('splitCard').value) || 0;
     const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
     const sum = c + t + f;
-    const total = getCartTotal();
+    const total = getCheckoutTotal();
 
     if (sum !== total) {
       showToast('⚠️ La suma dividida debe ser exactamente igual al total ($' + total.toLocaleString() + ')', 'error');
@@ -687,13 +764,17 @@ async function confirmSale() {
   btn.disabled = true;
 
   try {
-    let total = 0;
     const items = [];
     keys.forEach(k => {
       const item = posCart[k];
-      total += item.price * item.qty;
       items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
     });
+    
+    let total = getCheckoutTotal();
+    let appliedDeliveryFee = 0;
+    if (orderType === 'Domicilio' && posSettings.delivery_fee) {
+        appliedDeliveryFee = Number(posSettings.delivery_fee);
+    }
 
     if (currentOpenOrderId) {
       const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
@@ -703,6 +784,7 @@ async function confirmSale() {
         split_payments: Object.keys(splitPaymentsJSON).length ? splitPaymentsJSON : null,
         items: items,
         total: total,
+        delivery_fee: appliedDeliveryFee,
         status: 'Entregado',
         notes: '[ORIGIN:POS]'
       }).eq('id', currentOpenOrderId).select();
@@ -720,6 +802,7 @@ async function confirmSale() {
         split_payments: Object.keys(splitPaymentsJSON).length ? splitPaymentsJSON : null,
         items: items,
         total: total,
+        delivery_fee: appliedDeliveryFee,
         status: 'Entregado',
         notes: '[ORIGIN:POS]'
       }]).select();
@@ -761,13 +844,12 @@ async function saveTableOrder() {
   btn.disabled = true;
 
   try {
-    let total = 0;
     const items = [];
     keys.forEach(k => {
       const item = posCart[k];
-      total += item.price * item.qty;
       items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
     });
+    let total = getCheckoutTotal();
 
     if (currentOpenOrderId) {
       const { error } = await supabaseClient.from('orders').update({
