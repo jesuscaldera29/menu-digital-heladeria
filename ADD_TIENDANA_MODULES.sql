@@ -92,3 +92,34 @@ CREATE POLICY "insert_cash_movements" ON cash_movements FOR INSERT WITH CHECK (
 CREATE POLICY "delete_cash_movements" ON cash_movements FOR DELETE USING (
   business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid() UNION SELECT business_id FROM staff WHERE user_id = auth.uid())
 );
+
+-- ============================================================
+-- 4. Tabla de Insumos (Supplies)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS supplies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  category TEXT DEFAULT 'Sin Categoría',
+  stock NUMERIC DEFAULT 0,
+  cost_price NUMERIC DEFAULT 0,
+  unit TEXT DEFAULT 'unidad',
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplies_business ON supplies(business_id);
+
+ALTER TABLE supplies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "read_supplies" ON supplies FOR SELECT USING (
+  business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid() UNION SELECT business_id FROM staff WHERE user_id = auth.uid())
+);
+CREATE POLICY "insert_supplies" ON supplies FOR INSERT WITH CHECK (
+  business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid() UNION SELECT business_id FROM staff WHERE user_id = auth.uid())
+);
+CREATE POLICY "update_supplies" ON supplies FOR UPDATE USING (
+  business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid() UNION SELECT business_id FROM staff WHERE user_id = auth.uid())
+);
+CREATE POLICY "delete_supplies" ON supplies FOR DELETE USING (
+  business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid() UNION SELECT business_id FROM staff WHERE user_id = auth.uid())
+);

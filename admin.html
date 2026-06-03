@@ -1212,7 +1212,7 @@
           <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🍔</span><span class="font-semibold text-gray-800 text-[15px]">Productos</span></div>
           <span class="text-gray-400 text-xl">›</span>
         </button>
-        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('recipes')">
+        <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('supplies')">
           <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🧊</span><span class="font-semibold text-gray-800 text-[15px]">Insumos</span></div>
           <span class="text-gray-400 text-xl">›</span>
         </button>
@@ -1610,6 +1610,116 @@
           <span>ℹ️</span> Cómo funciona
         </div>
         <p class="text-sm text-blue-800 leading-relaxed">Este central descubre automáticamente los equipos POS cada minuto y se conecta para recibir las órdenes y disparar la impresión de comandas.</p>
+      </div>
+    <!-- SECTION: INSUMOS -->
+    <div id="section-supplies" class="section-content bg-gray-50 min-h-screen pb-24">
+      <div class="sticky top-0 bg-gray-50 z-10">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between p-4 gap-3">
+          <button onclick="showSection('more')" class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm flex-shrink-0">
+            <i class="text-xl">‹</i>
+          </button>
+          
+          <div class="flex-1 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              🔍
+            </div>
+            <input type="text" id="searchSupplies" placeholder="Buscar insumos" class="w-full bg-white border border-gray-100 rounded-full py-2.5 pl-10 pr-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00c875] shadow-sm">
+          </div>
+          
+          <div class="flex items-center gap-3 text-gray-500 flex-shrink-0">
+            <button onclick="renderSupplies()" class="text-xl hover:text-gray-800 transition-colors">↻</button>
+            <button class="text-xl hover:text-gray-800 transition-colors">📱</button>
+            <button class="text-xl hover:text-gray-800 transition-colors">Y</button>
+          </div>
+        </div>
+
+        <!-- Pill Toggle -->
+        <div class="px-4 pb-3 flex justify-center">
+          <div class="bg-white rounded-full p-1 shadow-sm border border-gray-100 flex inline-flex">
+            <button onclick="showSection('products')" class="px-6 py-2 rounded-full text-sm font-bold text-gray-600 hover:text-gray-800 transition-colors">Productos</button>
+            <button class="px-6 py-2 rounded-full text-sm font-bold text-gray-800 bg-green-50 flex items-center gap-2">
+              Insumos <span class="w-1.5 h-1.5 rounded-full bg-[#00c875]"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories Filter -->
+        <div class="px-4 pb-3 overflow-x-auto hide-scrollbar">
+          <div class="flex gap-2 w-max" id="suppliesCategoriesFilter">
+            <button class="px-4 py-1.5 rounded-lg border border-gray-200 bg-[#1a3636] text-white text-xs font-bold whitespace-nowrap uppercase">Todos</button>
+            <button class="px-4 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 whitespace-nowrap uppercase hover:bg-gray-50">BEBIDAS FRIAS</button>
+            <button class="px-4 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 whitespace-nowrap uppercase hover:bg-gray-50">Cerveza</button>
+            <button class="px-4 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 whitespace-nowrap uppercase hover:bg-gray-50">COCTELES GRANIZAD</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 md:px-8 max-w-2xl mx-auto space-y-3 mt-2">
+        <!-- Info Box -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-start gap-3">
+          <input type="checkbox" id="selectAllSupplies" class="mt-1 w-4 h-4 text-[#00c875] rounded border-gray-300 focus:ring-[#00c875]">
+          <p class="text-sm text-gray-600 leading-snug">
+            Selecciona uno o varios insumos para asignarlos a uno o más productos. Desliza una tarjeta para editar o duplicar.
+          </p>
+        </div>
+
+        <!-- List -->
+        <div id="suppliesListContainer" class="space-y-2">
+          <!-- Cards injected via JS -->
+        </div>
+      </div>
+
+      <!-- Floating Add Button -->
+      <button onclick="openSupplyModal()" class="fixed bottom-24 right-6 w-14 h-14 bg-[#00c875] text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-bold hover:bg-[#00b065] transition-transform hover:scale-105 z-20">
+        +
+      </button>
+    </div>
+
+    <!-- MODAL: Insumo -->
+    <div id="supplyModal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-[24px] w-full max-w-md overflow-hidden transform transition-all shadow-xl">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h3 class="text-xl font-bold text-gray-800" id="supplyModalTitle">Nuevo Insumo</h3>
+          <button onclick="closeSupplyModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 flex items-center justify-center font-bold">×</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <input type="hidden" id="supplyId">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Nombre del Insumo</label>
+            <input type="text" id="supplyName" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]" placeholder="Ej. Aloe Vera">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Categoría</label>
+              <input type="text" id="supplyCategory" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:outline-none focus:border-[#00c875]" placeholder="Ej. Bebidas">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Unidad</label>
+              <select id="supplyUnit" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:outline-none focus:border-[#00c875]">
+                <option value="unidad">Unidad</option>
+                <option value="kg">Kg</option>
+                <option value="gr">Gr</option>
+                <option value="litro">Litro</option>
+                <option value="ml">Ml</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Stock Inicial</label>
+              <input type="number" id="supplyStock" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:outline-none focus:border-[#00c875]" placeholder="0">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Costo ($)</label>
+              <input type="number" id="supplyCost" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:outline-none focus:border-[#00c875]" placeholder="0">
+            </div>
+          </div>
+        </div>
+        <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+          <button onclick="closeSupplyModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-colors">Cancelar</button>
+          <button onclick="saveSupply()" class="px-8 py-3 rounded-xl font-bold text-white bg-[#00c875] hover:bg-[#00b065] transition-colors shadow-sm">Guardar</button>
+        </div>
       </div>
     </div>
 
@@ -2303,6 +2413,7 @@
   <script src="js/admin-branches.js?v=1"></script>
   <script src="js/admin-features.js?v=1"></script>
   <script src="js/admin-settings.js?v=1"></script>
+  <script src="js/admin-supplies.js?v=1"></script>
   <!-- AUDIO Y SW -->
   <script>
     // Toggle Mobile Sidebar
