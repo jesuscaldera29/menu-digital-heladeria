@@ -1,5 +1,5 @@
 // Service Worker - MenuPro PWA
-const CACHE_NAME = 'menupro-v1';
+const CACHE_NAME = 'menupro-v2';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
