@@ -247,6 +247,39 @@
       main.max-w-7xl { padding-bottom: 90px; }
       header nav#adminNavTabs { display: none !important; }
     }
+
+    /* Mobile Sidebar Menu */
+    .mobile-sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 280px;
+      height: 100vh;
+      background: white;
+      z-index: 200;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.1);
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .mobile-sidebar.open {
+      right: 0;
+    }
+    .mobile-sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .mobile-sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .bottom-nav-item {
       flex: 1;
       display: flex;
@@ -350,14 +383,20 @@
 
 <body>
 
-  <!-- HEADER -->
-  <header class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-6 shadow-xl sticky top-0 z-[100]">
+  <header class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-4 sm:p-6 shadow-xl sticky top-0 z-[100]">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div>
-          <h1 class="text-2xl font-black">👨‍🍳 Administrador</h1>
-          <p class="opacity-90 text-xs font-medium uppercase tracking-widest">Gestión de Menú</p>
+      
+      <!-- Top Row: Logo & Hamburger -->
+      <div class="flex items-center justify-between w-full sm:w-auto">
+        <div class="flex items-center gap-4">
+          <div>
+            <h1 class="text-2xl font-black">👨‍🍳 Administrador</h1>
+            <p class="opacity-90 text-xs font-medium uppercase tracking-widest">Gestión de Menú</p>
+          </div>
         </div>
+        <button onclick="toggleAdminSidebar()" class="sm:hidden bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl transition-all">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
       </div>
 
       <!-- TABS -->
@@ -390,7 +429,7 @@
           class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
       </nav>
 
-      <div class="flex items-center gap-2">
+      <div class="hidden sm:flex items-center gap-2">
         <button id="btnEnableNotifications" onclick="enableNotifications()"
           class="hidden sm:block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg transition-all">🔔
           Activar Alertas</button>
@@ -415,6 +454,38 @@
       </div>
     </div>
   </header>
+
+  <!-- MOBILE SIDEBAR -->
+  <div class="mobile-sidebar-overlay" id="adminSidebarOverlay" onclick="toggleAdminSidebar()"></div>
+  <aside class="mobile-sidebar" id="adminSidebar">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+      <h2 class="font-black text-lg text-gray-800">Menú Principal</h2>
+      <button onclick="toggleAdminSidebar()" class="text-gray-400 hover:text-red-500 font-black text-xl px-2">×</button>
+    </div>
+    <div class="p-5 flex-1 overflow-y-auto space-y-3">
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Herramientas</p>
+      <a href="pos.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-green-50 text-green-700 font-bold active:scale-95 transition-all">
+        <span class="text-xl">💰</span> Punto de Venta
+      </a>
+      <a href="kiosk.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-bold active:scale-95 transition-all">
+        <span class="text-xl">📱</span> Kiosko Self-Service
+      </a>
+      <a href="kds.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-orange-50 text-orange-700 font-bold active:scale-95 transition-all">
+        <span class="text-xl">🔪</span> Pantalla Cocina
+      </a>
+      <a href="index.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 text-purple-700 font-bold active:scale-95 transition-all">
+        <span class="text-xl">🍔</span> Ver Menú Digital
+      </a>
+      
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-6 mb-2">Cuenta</p>
+      <button onclick="enableNotifications()" class="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold transition-all text-left">
+        <span class="text-xl">🔔</span> Activar Alertas
+      </button>
+      <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-left">
+        <span class="text-xl">🚪</span> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
 
   <!-- MAIN -->
   <main class="max-w-7xl mx-auto p-6">
@@ -1658,7 +1729,21 @@
   <script src="js/admin-staff.js?v=1"></script>
   <script src="js/admin-branches.js?v=1"></script>
   <script src="js/admin-features.js?v=1"></script>
+  <!-- AUDIO Y SW -->
   <script>
+    // Toggle Mobile Sidebar
+    function toggleAdminSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('adminSidebarOverlay');
+      if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+      }
+    }
+
     // Registrar Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
