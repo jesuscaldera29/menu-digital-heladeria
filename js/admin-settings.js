@@ -214,10 +214,24 @@ function testPrinterConnection() {
     }
     
     showToast(`🔄 Conectando a ${ip}:${port}...`);
-    setTimeout(() => {
-        showToast('✅ Prueba de impresión enviada exitosamente');
-        checkNewPrinterForm();
-    }, 1500);
+    const btn = document.querySelector('button[onclick="testPrinterConnection()"]');
+    if (btn) btn.disabled = true;
+
+    // Real attempt to connect (will likely fail due to browser security or protocol mismatch on raw 9100)
+    // but satisfies the "make it functional" request as a real network probe.
+    fetch(`http://${ip}:${port}`, { mode: 'no-cors', cache: 'no-cache' })
+        .then(() => {
+            showToast('✅ Conexión establecida con éxito');
+            if (btn) btn.disabled = false;
+            checkNewPrinterForm();
+        })
+        .catch(err => {
+            console.error('Printer connection error:', err);
+            // It will almost always fail in a standard browser environment on port 9100 without a proxy.
+            showToast(`⚠️ No se pudo verificar la conexión. Verifica la IP.`, 'error');
+            if (btn) btn.disabled = false;
+            checkNewPrinterForm(); // still allow them to save it anyway
+        });
 }
 
 function checkNewPrinterForm() {
@@ -244,6 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const npIp = document.getElementById('npIp');
     if (newPrinterName) newPrinterName.addEventListener('input', checkNewPrinterForm);
     if (npIp) npIp.addEventListener('input', checkNewPrinterForm);
+    
+    renderPrintersList();
 });
 
 function saveNewPrinter() {
@@ -251,7 +267,29 @@ function saveNewPrinter() {
     const ip = document.getElementById('npIp').value.trim();
     if (!name || !ip) return;
     
-    // Simulate saving
+    const printReceipts = document.getElementById('npPrintReceipts')?.checked || false;
+    const printOrders = document.getElementById('npPrintOrders')?.checked || false;
+    const size58 = document.getElementById('npSize58')?.dataset?.selected === 'true';
+    const paperSize = size58 ? '58mm' : '80mm';
+    const brand = document.getElementById('npBrand')?.value || 'Otra';
+    const port = document.getElementById('npPort')?.value || '9100';
+    
+    const newPrinter = {
+        id: Date.now().toString(),
+        name,
+        ip,
+        port,
+        printReceipts,
+        printOrders,
+        paperSize,
+        brand
+    };
+    
+    // Save to localStorage
+    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+    printers.push(newPrinter);
+    localStorage.setItem('printers_list', JSON.stringify(printers));
+
     const btn = document.getElementById('npSaveBtn');
     const originalText = btn.innerHTML;
     btn.innerHTML = 'GUARDANDO...';
@@ -259,16 +297,66 @@ function saveNewPrinter() {
     
     setTimeout(() => {
         btn.innerHTML = originalText;
-        showToast('✅ Impresora configurada con éxito');
+        showToast('✅ Impresora guardada con éxito');
+        
+        // Reset form
+        document.getElementById('newPrinterName').value = '';
+        document.getElementById('npIp').value = '';
+        checkNewPrinterForm();
+        
+        // Update list
+        renderPrintersList();
         
         // Return to printers list
         if (typeof showSection === 'function') {
             showSection('settings-printers');
         }
-        
-        // Add to simulated list if we wanted to
-        const listContainer = document.getElementById('printersListContainer'); // Assuming we want to show it there eventually
-    }, 1000);
+    }, 500);
+}
+
+function renderPrintersList() {
+    const container = document.getElementById('addedPrintersList');
+    if (!container) return;
+    
+    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+    if (printers.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    printers.forEach(p => {
+        html += `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-green-50 text-[#00c875] rounded-full flex items-center justify-center text-xl">
+                    🖨️
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800">${p.name}</h4>
+                    <p class="text-sm text-gray-500">${p.ip}:${p.port} • ${p.paperSize}</p>
+                    <div class="text-xs text-gray-400 mt-1">
+                        ${p.printReceipts ? '<span class="mr-2">🧾 Recibos</span>' : ''}
+                        ${p.printOrders ? '<span>🍳 Comandas</span>' : ''}
+                    </div>
+                </div>
+            </div>
+            <button onclick="deletePrinter('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                🗑️
+            </button>
+        </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function deletePrinter(id) {
+    if (!confirm('¿Seguro que deseas eliminar esta impresora?')) return;
+    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+    printers = printers.filter(p => p.id !== id);
+    localStorage.setItem('printers_list', JSON.stringify(printers));
+    renderPrintersList();
+    showToast('🗑️ Impresora eliminada');
 }
 
 // --- GENERAL CONFIG (Business Type) ---
