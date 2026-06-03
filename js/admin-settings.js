@@ -177,6 +177,100 @@ function saveReceiptConfig(type) {
     }
 }
 
+// --- NEW PRINTER SETTINGS ---
+function selectPaperSize(size) {
+    const btn58 = document.getElementById('npSize58');
+    const btn80 = document.getElementById('npSize80');
+    
+    // Reset classes
+    const activeClasses = ['border-2', 'border-[#00c875]', 'text-[#00c875]'];
+    const inactiveClasses = ['border', 'border-gray-200', 'text-gray-400'];
+    
+    btn58.classList.remove(...activeClasses);
+    btn58.classList.add(...inactiveClasses);
+    btn80.classList.remove(...activeClasses);
+    btn80.classList.add(...inactiveClasses);
+
+    // Apply active to selected
+    if (size === '58mm') {
+        btn58.classList.remove(...inactiveClasses);
+        btn58.classList.add(...activeClasses);
+        btn58.dataset.selected = "true";
+        btn80.dataset.selected = "false";
+    } else {
+        btn80.classList.remove(...inactiveClasses);
+        btn80.classList.add(...activeClasses);
+        btn80.dataset.selected = "true";
+        btn58.dataset.selected = "false";
+    }
+}
+
+function testPrinterConnection() {
+    const ip = document.getElementById('npIp').value.trim();
+    const port = document.getElementById('npPort').value.trim();
+    if (!ip) {
+        showToast('❌ Ingrese una dirección IP primero', 'error');
+        return;
+    }
+    
+    showToast(`🔄 Conectando a ${ip}:${port}...`);
+    setTimeout(() => {
+        showToast('✅ Prueba de impresión enviada exitosamente');
+        checkNewPrinterForm();
+    }, 1500);
+}
+
+function checkNewPrinterForm() {
+    const name = document.getElementById('newPrinterName').value.trim();
+    const ip = document.getElementById('npIp').value.trim();
+    const btn = document.getElementById('npSaveBtn');
+    
+    if (name && ip) {
+        btn.disabled = false;
+        btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+        btn.classList.add('bg-[#00c875]', 'text-white', 'hover:bg-[#00b065]');
+        btn.querySelector('span').classList.replace('bg-gray-400', 'bg-white');
+    } else {
+        btn.disabled = true;
+        btn.classList.remove('bg-[#00c875]', 'text-white', 'hover:bg-[#00b065]');
+        btn.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+        btn.querySelector('span').classList.replace('bg-white', 'bg-gray-400');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add input listeners for new printer form
+    const newPrinterName = document.getElementById('newPrinterName');
+    const npIp = document.getElementById('npIp');
+    if (newPrinterName) newPrinterName.addEventListener('input', checkNewPrinterForm);
+    if (npIp) npIp.addEventListener('input', checkNewPrinterForm);
+});
+
+function saveNewPrinter() {
+    const name = document.getElementById('newPrinterName').value.trim();
+    const ip = document.getElementById('npIp').value.trim();
+    if (!name || !ip) return;
+    
+    // Simulate saving
+    const btn = document.getElementById('npSaveBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'GUARDANDO...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        showToast('✅ Impresora configurada con éxito');
+        
+        // Return to printers list
+        if (typeof showSection === 'function') {
+            showSection('settings-printers');
+        }
+        
+        // Add to simulated list if we wanted to
+        const listContainer = document.getElementById('printersListContainer'); // Assuming we want to show it there eventually
+    }, 1000);
+}
+
 // --- GENERAL CONFIG (Business Type) ---
 function saveBusinessType(btn) {
     // Reset all buttons visual state

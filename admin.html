@@ -1412,8 +1412,169 @@
       
       <!-- Sticky Bottom Button -->
       <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
-        <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow-lg flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors" onclick="window.print()">
+        <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors" onclick="showSection('new-printer')">
           <span>🖨️</span> Nueva Impresora <span class="text-xl">+</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION: AJUSTES - NUEVA IMPRESORA -->
+    <div id="section-new-printer" class="section-content bg-gray-50 min-h-screen pb-24">
+      <div class="flex items-center justify-between p-4 bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
+        <div class="flex items-center gap-4">
+          <button onclick="showSection('settings-printers')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <i class="text-xl">‹</i>
+          </button>
+          <h2 class="text-xl font-bold text-gray-800">Nueva Impresora</h2>
+        </div>
+        <button class="text-green-600 text-2xl font-bold">↻</button>
+      </div>
+
+      <div class="p-4 md:px-8 max-w-2xl mx-auto space-y-6">
+        
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center gap-3 border-b border-gray-100 pb-2 mb-4">
+            <span class="text-gray-400 text-xl">🖨️</span>
+            <input type="text" id="newPrinterName" placeholder="Nombre de la impresora" class="w-full text-lg outline-none text-gray-800 font-medium bg-transparent placeholder-gray-400">
+          </div>
+
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="pr-4">
+                <div class="font-semibold text-gray-800 text-[15px]">Imprimir recibos</div>
+                <div class="text-sm text-gray-500 mt-1">Este dispositivo imprime recibo de caja</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="npPrintReceipts" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00c875]"></div>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="pr-4">
+                <div class="font-semibold text-gray-800 text-[15px]">Imprimir Comandas</div>
+                <div class="text-sm text-gray-500 mt-1">Este dispositivo imprime órdenes para cocina</div>
+              </div>
+              <div class="flex items-center gap-3 flex-shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="npPrintOrders" class="sr-only peer">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00c875]"></div>
+                </label>
+                <button class="flex flex-col items-center justify-center text-[10px] text-gray-500 font-bold hover:text-yellow-600 transition-colors">
+                  <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center mb-1 text-orange-400 text-lg">🗂️</div>
+                  ZONAS
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <h3 class="text-[15px] text-gray-800 mb-4">Tamaño de papel</h3>
+            <div class="flex gap-4">
+              <button id="npSize58" class="flex-1 py-8 rounded-3xl border-2 border-[#00c875] text-[#00c875] font-bold text-xl flex items-center justify-center bg-white transition-all" onclick="selectPaperSize('58mm')">
+                58mm
+              </button>
+              <button id="npSize80" class="flex-1 py-8 rounded-3xl border border-gray-200 text-gray-400 font-bold text-xl flex items-center justify-center bg-white hover:bg-gray-50 transition-all" onclick="selectPaperSize('80mm')">
+                80mm
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Marca</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📺</div>
+                <select id="npBrand" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
+                  <option>Otra</option>
+                  <option>Epson</option>
+                  <option>Star</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Tipo de impresora</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">🖨️</div>
+                <select id="npType" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
+                  <option>Seleccionar</option>
+                  <option>Red (LAN/WiFi)</option>
+                  <option>Bluetooth</option>
+                  <option>USB</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-5 flex items-center justify-between cursor-pointer border-b border-gray-50" onclick="document.getElementById('npAdvOptions').classList.toggle('hidden')">
+            <h3 class="text-lg font-medium text-gray-800">Opciones avanzadas</h3>
+            <span class="text-green-700 font-bold text-xl">^</span>
+          </div>
+          
+          <div id="npAdvOptions" class="p-5 space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Tipo de impresión</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📄</div>
+                <select class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none">
+                  <option>Texto</option>
+                  <option>Imagen (Raster)</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Codificación de caracteres</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">🔤</div>
+                <select class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none">
+                  <option>CP1252 default</option>
+                  <option>UTF-8</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Commands ESC/POS apertura de cajon</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📟</div>
+                <input type="text" value="27,112,00,30,255,00" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 font-bold text-gray-800 focus:outline-none">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5">
+          <h3 class="text-lg font-medium text-gray-800 mb-2">Selecciona el dispositivo</h3>
+          <p class="text-sm text-gray-600 mb-4">No se encontraron dispositivos, configuralo manualmente:</p>
+          
+          <div class="space-y-4 mb-4">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📡</div>
+              <input type="text" id="npIp" placeholder="Dirección IP" class="w-full bg-white border border-gray-200 rounded-xl py-4 pl-10 pr-4 text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">#</div>
+              <input type="number" id="npPort" value="9100" class="w-full bg-white border border-gray-200 rounded-xl py-4 pl-10 pr-4 text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
+            </div>
+          </div>
+
+          <button class="w-full bg-white border border-[#00c875] text-[#00c875] font-bold rounded-[16px] py-4 flex items-center justify-center gap-2 hover:bg-green-50 transition-colors" onclick="testPrinterConnection()">
+            Imprimir prueba <span class="bg-[#00c875] text-white p-1 rounded">🖨️</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:px-8">
+        <button id="npSaveBtn" class="w-full bg-gray-200 text-gray-400 font-bold text-lg rounded-[16px] py-4 flex items-center justify-center gap-2 transition-colors cursor-not-allowed" onclick="saveNewPrinter()" disabled>
+          GUARDAR <span class="w-2 h-2 rounded-full bg-gray-400 ml-2"></span>
         </button>
       </div>
     </div>
