@@ -890,11 +890,23 @@ function showSection(sectionId, event) {
     if (sectionId === 'orders') loadOrders();
     if (sectionId === 'customers') loadCustomers();
     if (sectionId === 'reports') initReports();
+    if (sectionId === 'home') { if (typeof loadDashboard === 'function') loadDashboard(); }
     if (sectionId === 'expenses') { if (typeof loadExpenses === 'function') loadExpenses(); if (typeof loadCashClosings === 'function') loadCashClosings(); }
     if (sectionId === 'staff') { if (typeof loadStaff === 'function') loadStaff(); }
     if (sectionId === 'coupons') { if (typeof loadCoupons === 'function') loadCoupons(); }
     if (sectionId === 'credits') { if (typeof loadCredits === 'function') loadCredits(); }
     if (sectionId === 'recipes') { if (typeof loadRecipes === 'function') loadRecipes(); }
+    if (sectionId === 'purchases') { if (typeof loadPurchases === 'function') loadPurchases(); if (typeof loadSuppliersDropdown === 'function') loadSuppliersDropdown(); }
+    if (sectionId === 'suppliers') { if (typeof loadSuppliers === 'function') loadSuppliers(); }
+
+    // Sync bottom nav active state
+    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+    const bnBtn = document.querySelector(`.bottom-nav-item[data-section="${sectionId}"]`);
+    if (bnBtn) bnBtn.classList.add('active');
+    
+    // Close more menu
+    const mm = document.getElementById('moreMenu');
+    if (mm) mm.classList.remove('show');
 }
 
 // Load orders
@@ -1565,9 +1577,329 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!ok) return;
     await loadSettings();
     await loadProducts();
+    loadDashboard();
 });
 
 // logout() is defined at the top of the file
+
+// ==========================================
+// BOTTOM NAV & DASHBOARD
+// ==========================================
+
+function bottomNavClick(sectionId, el) {
+    const mm = document.getElementById('moreMenu');
+    if (mm) mm.classList.remove('show');
+    showSection(sectionId, { target: document.getElementById('tab-' + sectionId) });
+    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+    if (el && el.classList.contains('bottom-nav-item')) el.classList.add('active');
+}
+
+function toggleMoreMenu() {
+    const mm = document.getElementById('moreMenu');
+    if (mm) mm.classList.toggle('show');
+}
+
+// Close more menu if clicked outside
+document.addEventListener('click', (e) => {
+    const mm = document.getElementById('moreMenu');
+    if (mm && mm.classList.contains('show')) {
+        if (!e.target.closest('.more-menu') && !e.target.closest('.bottom-nav-item')) {
+            mm.classList.remove('show');
+        }
+    }
+});
+
+async function loadDashboard() {
+    if (!businessId) return;
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+        // Today's orders
+        const { data: todayOrders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).gte('created_at', today).neq('status', 'Cancelado');
+        const orders = todayOrders || [];
+        const totalSales = orders.reduce((s, o) => s + Number(o.total), 0);
+        document.getElementById('dashTodaySales').textContent = '$' + totalSales.toLocaleString();
+        document.getElementById('dashTodayOrders').textContent = orders.length;
+
+        // Today's expenses
+        const { data: todayExpenses } = await supabaseClient.from('expenses').select('amount').eq('business_id', businessId).gte('date', today);
+        const totalExpenses = (todayExpenses || []).reduce((s, e) => s + Number(e.amount), 0);
+        document.getElementById('dashTodayExpenses').textContent = '$' + totalExpenses.toLocaleString();
+
+        // Net profit
+        const net = totalSales - totalExpenses;
+        const netEl = document.getElementById('dashNetProfit');
+        netEl.textContent = (net >= 0 ? '+' : '') + '$' + net.toLocaleString();
+        netEl.className = 'text-2xl font-black mt-1 ' + (net >= 0 ? 'text-green-600' : 'text-red-500');
+
+        // Debts (credits receivable)
+        const { data: credits } = await supabaseClient.from('credit_accounts').select('balance').eq('business_id', businessId).eq('is_active', true);
+        const totalReceivable = (credits || []).reduce((s, c) => s + Number(c.balance), 0);
+        document.getElementById('dashDebtReceivable').textContent = '$' + totalReceivable.toLocaleString();
+        if (document.getElementById('creditsTotalReceivable')) {
+            document.getElementById('creditsTotalReceivable').textContent = '$' + totalReceivable.toLocaleString();
+        }
+        if (document.getElementById('creditsTotalAccounts')) {
+            document.getElementById('creditsTotalAccounts').textContent = (credits || []).length;
+        }
+
+        // Pending to pay (purchases on credit)
+        const { data: creditPurchases } = await supabaseClient.from('purchases').select('total').eq('business_id', businessId).eq('payment_method', 'Crédito Proveedor');
+        const totalPayable = (creditPurchases || []).reduce((s, p) => s + Number(p.total), 0);
+        document.getElementById('dashDebtPayable').textContent = '$' + totalPayable.toLocaleString();
+
+        // Cash status
+        const { data: cashSessions } = await supabaseClient.from('cash_closings').select('*').eq('business_id', businessId).order('id', { ascending: false }).limit(1);
+        const lastSession = cashSessions?.[0];
+        const cashStatusEl = document.getElementById('dashCashStatus');
+        const cashBtnEl = document.getElementById('dashCashBtn');
+        if (lastSession && lastSession.is_open) {
+            cashStatusEl.textContent = 'Caja Abierta';
+            cashStatusEl.classList.add('text-green-600');
+            cashBtnEl.textContent = '🔒 Ir a Caja';
+            cashBtnEl.className = 'bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all';
+        } else {
+            cashStatusEl.textContent = 'Caja Cerrada';
+            cashStatusEl.classList.remove('text-green-600');
+            cashBtnEl.textContent = '🔓 Abrir Caja';
+            cashBtnEl.className = 'bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all';
+        }
+
+        // Recent orders (last 5)
+        const { data: recentOrders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).order('created_at', { ascending: false }).limit(5);
+        const container = document.getElementById('dashRecentOrders');
+        if (!recentOrders?.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 italic">No hay pedidos recientes</p>';
+        } else {
+            container.innerHTML = recentOrders.map(o => {
+                const status = o.status || 'Pendiente';
+                const statusColors = { Pendiente: 'bg-yellow-100 text-yellow-800', Confirmado: 'bg-blue-100 text-blue-800', Preparando: 'bg-purple-100 text-purple-800', Entregado: 'bg-green-100 text-green-800', Cancelado: 'bg-red-100 text-red-800' };
+                return `<div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div>
+                        <span class="font-black text-orange-600">#${String(o.id).padStart(4,'0')}</span>
+                        <span class="font-bold ml-2">${o.customer_name}</span>
+                        <span class="text-xs text-gray-400 ml-2">${new Date(o.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-black">$${Number(o.total).toLocaleString()}</span>
+                        <span class="text-[10px] px-2 py-1 rounded-full font-bold ${statusColors[status] || 'bg-gray-100 text-gray-800'}">${status}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        console.error('Dashboard error:', err);
+    }
+}
+
+// ==========================================
+// PROVEEDORES (SUPPLIERS)
+// ==========================================
+let allSuppliers = [];
+
+async function loadSuppliers() {
+    try {
+        const { data, error } = await supabaseClient.from('suppliers').select('*').eq('business_id', businessId).order('name');
+        if (error) throw error;
+        allSuppliers = data || [];
+        
+        const tbody = document.getElementById('suppliersList');
+        if (!tbody) return;
+        if (!allSuppliers.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-400">No hay proveedores registrados</td></tr>';
+            return;
+        }
+        tbody.innerHTML = allSuppliers.map(s => `<tr>
+            <td class="font-bold">${s.name}</td>
+            <td>${s.phone || '-'}</td>
+            <td class="text-sm">${s.email || '-'}</td>
+            <td class="text-xs text-gray-500">${s.notes || '-'}</td>
+            <td><button onclick="deleteSupplier('${s.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
+        </tr>`).join('');
+    } catch (err) {
+        showToast('Error cargando proveedores: ' + err.message, 'error');
+    }
+}
+
+async function loadSuppliersDropdown() {
+    try {
+        const { data } = await supabaseClient.from('suppliers').select('id, name').eq('business_id', businessId).order('name');
+        const sel = document.getElementById('purchaseSupplier');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Seleccionar Proveedor --</option>' + (data || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    } catch (e) {}
+}
+
+async function saveSupplier(event) {
+    const name = document.getElementById('supplierName').value.trim();
+    const phone = document.getElementById('supplierPhone').value.trim();
+    const email = document.getElementById('supplierEmail').value.trim();
+    const address = document.getElementById('supplierAddress').value.trim();
+    const notes = document.getElementById('supplierNotes').value.trim();
+    
+    if (!name) return showToast('⚠️ El nombre es obligatorio', 'error');
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = '⏳...';
+    
+    try {
+        const { error } = await supabaseClient.from('suppliers').insert([{
+            business_id: businessId, name, phone, email, address, notes
+        }]);
+        if (error) throw error;
+        showToast('✅ Proveedor guardado');
+        document.getElementById('supplierName').value = '';
+        document.getElementById('supplierPhone').value = '';
+        document.getElementById('supplierEmail').value = '';
+        document.getElementById('supplierAddress').value = '';
+        document.getElementById('supplierNotes').value = '';
+        loadSuppliers();
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '🏭 Guardar Proveedor';
+    }
+}
+
+async function deleteSupplier(id) {
+    if (!confirm('¿Eliminar este proveedor?')) return;
+    try {
+        const { error } = await supabaseClient.from('suppliers').delete().eq('id', id);
+        if (error) throw error;
+        showToast('🗑️ Proveedor eliminado');
+        loadSuppliers();
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
+
+// ==========================================
+// COMPRAS (PURCHASES)
+// ==========================================
+let allPurchases = [];
+
+function addPurchaseItemRow() {
+    const container = document.getElementById('purchaseItemsForm');
+    const row = document.createElement('div');
+    row.className = 'flex gap-2';
+    row.innerHTML = `
+        <input type="text" class="input !mt-0 flex-1 pi-name" placeholder="Producto">
+        <input type="number" class="input !mt-0 w-20 pi-qty" placeholder="Cant." min="1">
+        <input type="number" class="input !mt-0 w-24 pi-cost" placeholder="Costo" min="0">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-bold text-lg px-1">×</button>
+    `;
+    container.appendChild(row);
+}
+
+async function savePurchase(event) {
+    const supplierEl = document.getElementById('purchaseSupplier');
+    const supplierId = supplierEl.value || null;
+    const supplierName = supplierEl.options[supplierEl.selectedIndex]?.text || '';
+    const payMethod = document.getElementById('purchasePayMethod').value;
+    const notes = document.getElementById('purchaseNotes').value.trim();
+    
+    // Collect items
+    const rows = document.querySelectorAll('#purchaseItemsForm > div');
+    const items = [];
+    let total = 0;
+    rows.forEach(row => {
+        const name = row.querySelector('.pi-name')?.value?.trim();
+        const qty = parseFloat(row.querySelector('.pi-qty')?.value) || 0;
+        const cost = parseFloat(row.querySelector('.pi-cost')?.value) || 0;
+        if (name && qty > 0) {
+            items.push({ name, qty, cost });
+            total += qty * cost;
+        }
+    });
+    
+    if (!items.length) return showToast('⚠️ Agrega al menos un ítem', 'error');
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = '⏳...';
+    
+    try {
+        const { error } = await supabaseClient.from('purchases').insert([{
+            business_id: businessId,
+            supplier_id: supplierId,
+            supplier_name: supplierName === '-- Seleccionar Proveedor --' ? '' : supplierName,
+            items, total, payment_method: payMethod, notes
+        }]);
+        if (error) throw error;
+        showToast('✅ Compra registrada');
+        // Reset form
+        document.getElementById('purchaseItemsForm').innerHTML = `<div class="flex gap-2">
+            <input type="text" class="input !mt-0 flex-1 pi-name" placeholder="Producto">
+            <input type="number" class="input !mt-0 w-20 pi-qty" placeholder="Cant." min="1">
+            <input type="number" class="input !mt-0 w-24 pi-cost" placeholder="Costo" min="0">
+        </div>`;
+        document.getElementById('purchaseNotes').value = '';
+        supplierEl.selectedIndex = 0;
+        loadPurchases();
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '📦 Registrar Compra';
+    }
+}
+
+async function loadPurchases() {
+    if (!businessId) return;
+    const filter = document.getElementById('purchaseTimeFilter')?.value || 'month';
+    let query = supabaseClient.from('purchases').select('*').eq('business_id', businessId).order('date', { ascending: false });
+    const now = new Date();
+    if (filter === 'month') {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        query = query.gte('date', start);
+    } else if (filter === 'week') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        query = query.gte('date', d.toISOString().split('T')[0]);
+    }
+    try {
+        const { data, error } = await query;
+        if (error) throw error;
+        allPurchases = data || [];
+        
+        const monthTotal = allPurchases.reduce((s, p) => s + Number(p.total), 0);
+        const totalEl = document.getElementById('purchasesMonthTotal');
+        if (totalEl) totalEl.textContent = '$' + monthTotal.toLocaleString();
+        
+        const tbody = document.getElementById('purchasesList');
+        if (!tbody) return;
+        if (!allPurchases.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-400">No hay compras registradas</td></tr>';
+            return;
+        }
+        tbody.innerHTML = allPurchases.map(p => {
+            const itemsText = (p.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
+            return `<tr>
+                <td class="text-sm">${new Date(p.date).toLocaleDateString()}</td>
+                <td class="font-bold">${p.supplier_name || '-'}</td>
+                <td class="text-xs text-gray-500">${itemsText || '-'}</td>
+                <td class="font-black text-green-600">$${Number(p.total).toLocaleString()}</td>
+                <td><span class="bg-gray-100 px-2 py-1 rounded-full text-xs font-bold">${p.payment_method}</span></td>
+                <td><button onclick="deletePurchase('${p.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        showToast('Error cargando compras: ' + err.message, 'error');
+    }
+}
+
+async function deletePurchase(id) {
+    if (!confirm('¿Eliminar esta compra?')) return;
+    try {
+        const { error } = await supabaseClient.from('purchases').delete().eq('id', id);
+        if (error) throw error;
+        showToast('🗑️ Compra eliminada');
+        loadPurchases();
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
 
 // ==========================================
 // GESTOR DE EXTRAS VISUALES

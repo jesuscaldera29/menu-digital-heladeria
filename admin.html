@@ -204,6 +204,111 @@
       color: #ea580c;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
+
+    /* BOTTOM NAV - Mobile Only */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #f0f0f0;
+      z-index: 150;
+      padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+    @media (max-width: 768px) {
+      .bottom-nav { display: flex; }
+      main.max-w-7xl { padding-bottom: 80px; }
+      header nav#adminNavTabs { display: none !important; }
+    }
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+      position: relative;
+    }
+    .bottom-nav-item.active { color: #ea580c; }
+    .bottom-nav-item .nav-icon { font-size: 22px; line-height: 1; }
+    .bottom-nav-item.active::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 3px;
+      background: #ea580c;
+      border-radius: 0 0 3px 3px;
+    }
+
+    /* Dashboard Cards */
+    .dash-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .dash-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+    .dash-card:active { transform: scale(0.97); }
+    .dash-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    /* More Menu (mobile) */
+    .more-menu {
+      position: fixed;
+      bottom: 70px;
+      right: 8px;
+      background: white;
+      border-radius: 20px;
+      padding: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      border: 1px solid #f0f0f0;
+      z-index: 160;
+      display: none;
+      min-width: 200px;
+    }
+    .more-menu.show { display: block; }
+    .more-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .more-menu-item:hover { background: #f5f5f5; }
   </style>
 
   <!-- Chart.js -->
@@ -224,8 +329,10 @@
 
       <!-- TABS -->
       <nav id="adminNavTabs" class="flex bg-white/10 p-1 rounded-2xl backdrop-blur-md flex-wrap gap-1">
+        <button id="tab-home" onclick="showSection('home', event)"
+          class="nav-tab active px-4 py-2 rounded-xl text-xs font-bold transition-all">🏠 Inicio</button>
         <button id="tab-products" onclick="showSection('products', event)"
-          class="nav-tab active px-4 py-2 rounded-xl text-xs font-bold transition-all">🍔 Productos</button>
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🍔 Productos</button>
         <button id="tab-orders" onclick="showSection('orders', event)"
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🛒 Pedidos</button>
         <button id="tab-customers" onclick="showSection('customers', event)"
@@ -240,6 +347,10 @@
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🎫 Cupones</button>
         <button id="tab-credits" onclick="showSection('credits', event)"
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💳 Créditos</button>
+        <button id="tab-purchases" onclick="showSection('purchases', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📦 Compras</button>
+        <button id="tab-suppliers" onclick="showSection('suppliers', event)"
+          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🏭 Proveedores</button>
         <button id="tab-recipes" onclick="showSection('recipes', event)"
           class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📖 Recetas</button>
         <button id="tab-branches" onclick="showSection('branches', event)"
@@ -275,8 +386,109 @@
   <!-- MAIN -->
   <main class="max-w-7xl mx-auto p-6">
 
+    <!-- SECTION: INICIO (DASHBOARD) -->
+    <div id="section-home" class="section-content active">
+      <div class="space-y-6">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="card !p-4 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Ventas Hoy</p>
+            <h3 id="dashTodaySales" class="text-2xl font-black mt-1">$0</h3>
+          </div>
+          <div class="card !p-4 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pedidos Hoy</p>
+            <h3 id="dashTodayOrders" class="text-2xl font-black mt-1">0</h3>
+          </div>
+          <div class="card !p-4 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Gastos Hoy</p>
+            <h3 id="dashTodayExpenses" class="text-2xl font-black text-red-500 mt-1">$0</h3>
+          </div>
+          <div class="card !p-4 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Ganancia Neta</p>
+            <h3 id="dashNetProfit" class="text-2xl font-black text-green-600 mt-1">$0</h3>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="dash-card flex items-center gap-4" onclick="window.open('pos.html','_blank')">
+            <div class="dash-icon bg-blue-50 text-blue-600">🛒</div>
+            <div>
+              <p class="font-black text-sm">Nueva Venta</p>
+              <p class="text-[10px] text-gray-400">Abrir POS</p>
+            </div>
+          </div>
+          <div class="dash-card flex items-center gap-4" onclick="showSection('purchases',event)">
+            <div class="dash-icon bg-green-50 text-green-600">📦</div>
+            <div>
+              <p class="font-black text-sm">Nueva Compra</p>
+              <p class="text-[10px] text-gray-400">Abastece inventario</p>
+            </div>
+          </div>
+          <div class="dash-card flex items-center gap-4" onclick="showSection('expenses',event)">
+            <div class="dash-icon bg-red-50 text-red-600">💰</div>
+            <div>
+              <p class="font-black text-sm">Nuevo Gasto</p>
+              <p class="text-[10px] text-gray-400">Registra tus gastos</p>
+            </div>
+          </div>
+          <div class="dash-card flex items-center gap-4" onclick="showSection('reports',event)">
+            <div class="dash-icon bg-purple-50 text-purple-600">📊</div>
+            <div>
+              <p class="font-black text-sm">Ver Estadísticas</p>
+              <p class="text-[10px] text-gray-400">Reportes y análisis</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deudas Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card !p-5 border-l-4 border-orange-500 cursor-pointer" onclick="showSection('credits',event)">
+            <div class="flex items-center gap-3">
+              <div class="dash-icon bg-orange-50 text-orange-600">💸</div>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Pendiente por Cobrar</p>
+                <h3 id="dashDebtReceivable" class="text-xl font-black text-orange-600">$0</h3>
+              </div>
+            </div>
+          </div>
+          <div class="card !p-5 border-l-4 border-blue-500 cursor-pointer" onclick="showSection('suppliers',event)">
+            <div class="flex items-center gap-3">
+              <div class="dash-icon bg-blue-50 text-blue-600">💳</div>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Pendiente por Pagar</p>
+                <h3 id="dashDebtPayable" class="text-xl font-black text-blue-600">$0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caja Status -->
+        <div class="card !p-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="dash-icon bg-gray-100">🏧</div>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Estado de Caja</p>
+                <h3 id="dashCashStatus" class="text-lg font-black">Caja Cerrada</h3>
+              </div>
+            </div>
+            <button id="dashCashBtn" onclick="showSection('expenses',event)" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all">🔓 Abrir Caja</button>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="card">
+          <h2 class="text-lg font-black mb-4">🕐 Últimos Pedidos</h2>
+          <div id="dashRecentOrders" class="space-y-3">
+            <p class="text-sm text-gray-400 italic">Cargando...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- SECTION: PRODUCTOS -->
-    <div id="section-products" class="section-content active">
+    <div id="section-products" class="section-content">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <!-- LEFT: Controles -->
         <div class="lg:col-span-4 space-y-8">
@@ -702,6 +914,27 @@
 
     <!-- SECTION: CRÉDITOS -->
     <div id="section-credits" class="section-content">
+      <!-- Deudas Summary -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="card !p-5 border-l-4 border-orange-500">
+          <div class="flex items-center gap-3">
+            <div class="dash-icon bg-orange-50 text-orange-600">💸</div>
+            <div>
+              <p class="text-xs font-bold text-gray-400 uppercase">Total Pendiente por Cobrar</p>
+              <h3 id="creditsTotalReceivable" class="text-xl font-black text-orange-600">$0</h3>
+            </div>
+          </div>
+        </div>
+        <div class="card !p-5 border-l-4 border-green-500">
+          <div class="flex items-center gap-3">
+            <div class="dash-icon bg-green-50 text-green-600">✅</div>
+            <div>
+              <p class="text-xs font-bold text-gray-400 uppercase">Cuentas Activas</p>
+              <h3 id="creditsTotalAccounts" class="text-xl font-black text-green-600">0</h3>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
@@ -716,6 +949,83 @@
           <div class="card">
             <h2 class="text-2xl font-black mb-6">📋 Cuentas de Crédito</h2>
             <div id="creditsList" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: COMPRAS -->
+    <div id="section-purchases" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 space-y-6">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">📦 Registrar Compra</h2>
+            <select id="purchaseSupplier" class="input">
+              <option value="">-- Seleccionar Proveedor --</option>
+            </select>
+            <div id="purchaseItemsForm" class="space-y-2 mt-3">
+              <div class="flex gap-2">
+                <input type="text" class="input !mt-0 flex-1 pi-name" placeholder="Producto">
+                <input type="number" class="input !mt-0 w-20 pi-qty" placeholder="Cant." min="1">
+                <input type="number" class="input !mt-0 w-24 pi-cost" placeholder="Costo" min="0">
+              </div>
+            </div>
+            <button onclick="addPurchaseItemRow()" class="text-sm text-green-600 font-bold mt-2">+ Agregar ítem</button>
+            <select id="purchasePayMethod" class="input">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Crédito Proveedor">Crédito Proveedor</option>
+            </select>
+            <textarea id="purchaseNotes" class="input" placeholder="Notas (opcional)" rows="2"></textarea>
+            <button class="btn btn-primary mt-4" onclick="savePurchase(event)">📦 Registrar Compra</button>
+          </div>
+          <div class="card bg-green-50 border-green-100">
+            <p class="text-xs font-black text-green-600 uppercase tracking-widest">Compras del Mes</p>
+            <h3 id="purchasesMonthTotal" class="text-3xl font-black mt-2">$0</h3>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-black">📋 Historial de Compras</h2>
+              <select id="purchaseTimeFilter" onchange="loadPurchases()" class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold">
+                <option value="month">Este Mes</option>
+                <option value="week">Esta Semana</option>
+                <option value="all">Todas</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="admin-table"><thead><tr><th>Fecha</th><th>Proveedor</th><th>Ítems</th><th>Total</th><th>Pago</th><th>Acciones</th></tr></thead>
+                <tbody id="purchasesList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: PROVEEDORES -->
+    <div id="section-suppliers" class="section-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+          <div class="card">
+            <h2 class="text-xl font-bold mb-5">🏭 Nuevo Proveedor</h2>
+            <input type="text" id="supplierName" class="input" placeholder="Nombre del proveedor">
+            <input type="tel" id="supplierPhone" class="input" placeholder="Teléfono">
+            <input type="email" id="supplierEmail" class="input" placeholder="Email (opcional)">
+            <input type="text" id="supplierAddress" class="input" placeholder="Dirección (opcional)">
+            <textarea id="supplierNotes" class="input" placeholder="Notas (productos que vende, etc.)" rows="2"></textarea>
+            <button class="btn btn-primary mt-4" onclick="saveSupplier(event)">🏭 Guardar Proveedor</button>
+          </div>
+        </div>
+        <div class="lg:col-span-8">
+          <div class="card">
+            <h2 class="text-2xl font-black mb-6">📋 Mis Proveedores</h2>
+            <div class="overflow-x-auto">
+              <table class="admin-table"><thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Notas</th><th>Acciones</th></tr></thead>
+                <tbody id="suppliersList"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -778,6 +1088,43 @@
     </div>
 
   </main>
+
+  <!-- BOTTOM NAV (Mobile) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" data-section="home" onclick="bottomNavClick('home',this)">
+      <span class="nav-icon">🏠</span>
+      <span>INICIO</span>
+    </button>
+    <button class="bottom-nav-item" data-section="orders" onclick="bottomNavClick('orders',this)">
+      <span class="nav-icon">📝</span>
+      <span>ÓRDENES</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.open('pos.html','_blank')">
+      <span class="nav-icon">🛒</span>
+      <span>VENTAS</span>
+    </button>
+    <button class="bottom-nav-item" data-section="expenses" onclick="bottomNavClick('expenses',this)">
+      <span class="nav-icon">🏧</span>
+      <span>CAJA</span>
+    </button>
+    <button class="bottom-nav-item" onclick="toggleMoreMenu()">
+      <span class="nav-icon">⚙️</span>
+      <span>MÁS</span>
+    </button>
+  </nav>
+
+  <!-- MORE MENU (Mobile) -->
+  <div class="more-menu" id="moreMenu">
+    <button class="more-menu-item" onclick="bottomNavClick('products',this)">🍔 Productos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('customers',this)">👤 Clientes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('reports',this)">📊 Reportes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('purchases',this)">📦 Compras</button>
+    <button class="more-menu-item" onclick="bottomNavClick('suppliers',this)">🏭 Proveedores</button>
+    <button class="more-menu-item" onclick="bottomNavClick('staff',this)">👥 Personal</button>
+    <button class="more-menu-item" onclick="bottomNavClick('coupons',this)">🎟️ Cupones</button>
+    <button class="more-menu-item" onclick="bottomNavClick('credits',this)">💳 Créditos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('recipes',this)">📖 Recetas</button>
+  </div>
   <!-- MODAL: APERTURA DE CAJA -->
   <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
