@@ -2389,6 +2389,30 @@
     </style>
   </div>
 
+  <!-- BOTTOM NAVIGATION (MOBILE) -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item active" data-section="home" onclick="showSection('home', event)">
+      <span class="nav-icon">🏠</span>
+      <span>Inicio</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.open('pos.html', '_blank')">
+      <span class="nav-icon">💰</span>
+      <span>POS</span>
+    </button>
+    <button class="bottom-nav-item" data-section="orders" onclick="showSection('orders', event)">
+      <span class="nav-icon">🛒</span>
+      <span>Pedidos</span>
+    </button>
+    <button class="bottom-nav-item" data-section="products" onclick="showSection('products', event)">
+      <span class="nav-icon">🍔</span>
+      <span>Productos</span>
+    </button>
+    <button class="bottom-nav-item" onclick="toggleAdminSidebar()">
+      <span class="nav-icon">☰</span>
+      <span>Más</span>
+    </button>
+  </nav>
+
   <!-- MODAL: APERTURA DE CAJA -->
   <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
