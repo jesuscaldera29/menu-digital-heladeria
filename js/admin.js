@@ -907,6 +907,9 @@ function showSection(sectionId, event) {
     // Close more menu
     const mm = document.getElementById('moreMenu');
     if (mm) mm.classList.remove('show');
+
+    // Reset scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Load orders
