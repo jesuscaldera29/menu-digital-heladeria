@@ -991,6 +991,7 @@ function renderOrders() {
                             <option value="Cancelado" ${status === 'Cancelado' ? 'selected' : ''}>❌ Cancelado</option>
                         </select>
                         <button onclick="viewOrderDetail(${o.id})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">Ver detalles</button>
+                        <button onclick="printOrderTicket(${o.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm" title="Imprimir Ticket">🖨️</button>
                         <button onclick="deleteOrder(${o.id})" class="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1.5 rounded-lg text-xs transition-all shadow-sm" title="Eliminar Pedido">🗑️</button>
                     </div>
                 </td>
@@ -1144,9 +1145,9 @@ function viewOrderDetail(id) {
     document.getElementById('orderDetailModal').style.display = 'flex';
 }
 
-window.printOrderTicket = function() {
-    if (!window.currentActiveDetailOrder) return;
-    const o = window.currentActiveDetailOrder;
+window.printOrderTicket = function(id) {
+    const o = id ? allOrders.find(x => x.id === id) : window.currentActiveDetailOrder;
+    if (!o) return showToast('Error: No se encontró el pedido', 'error');
     
     const itemsHtml = o.items.map(item => `
         <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
@@ -1682,7 +1683,8 @@ async function loadDashboard() {
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="font-black">$${Number(o.total).toLocaleString()}</span>
-                        <span class="text-[10px] px-2 py-1 rounded-full font-bold ${statusColors[status] || 'bg-gray-100 text-gray-800'}">${status}</span>
+                        <span class="text-[10px] px-2 py-1 rounded-full font-bold ${statusColors[status] || 'bg-gray-100 text-gray-800'} hidden sm:inline-block">${status}</span>
+                        <button onclick="printOrderTicket(${o.id})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded-lg text-xs font-bold transition-all shadow-sm" title="Imprimir Ticket">🖨️</button>
                     </div>
                 </div>`;
             }).join('');

@@ -34,25 +34,28 @@
 <body class="h-screen w-screen overflow-hidden flex flex-col font-sans">
 
   <!-- Header -->
-  <header class="bg-[#1f232b] border-b border-[#2d333f] px-6 py-4 flex justify-between items-center shrink-0 shadow-lg">
-    <div class="flex items-center gap-4">
-      <span class="text-4xl bg-gradient-to-r from-orange-500 to-red-500 text-transparent bg-clip-text font-black">🔪 KDS</span>
-      <div class="h-8 w-px bg-gray-600 mx-2"></div>
-      <div>
-        <h1 id="businessName" class="text-xl font-black text-white tracking-wide">Cargando...</h1>
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest"><span id="orderCount">0</span> Pedidos Activos</p>
+  <header class="bg-[#1f232b] border-b border-[#2d333f] px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center shrink-0 shadow-lg gap-4">
+    <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-start">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl sm:text-4xl bg-gradient-to-r from-orange-500 to-red-500 text-transparent bg-clip-text font-black">🔪 KDS</span>
+        <div class="h-6 sm:h-8 w-px bg-gray-600 mx-1 sm:mx-2"></div>
+        <div>
+          <h1 id="businessName" class="text-base sm:text-xl font-black text-white tracking-wide truncate max-w-[150px] sm:max-w-none">Cargando...</h1>
+          <p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest"><span id="orderCount">0</span> Pedidos</p>
+        </div>
       </div>
+      <!-- Hamburger for mobile could go here, but we just put buttons below -->
     </div>
     
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 bg-[#15181e] px-4 py-2 rounded-xl border border-[#2d333f]">
-        <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-        <span class="text-xs font-bold text-gray-300">En Vivo</span>
+    <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+      <div class="flex items-center gap-2 bg-[#15181e] px-3 sm:px-4 py-2 rounded-xl border border-[#2d333f]">
+        <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse"></span>
+        <span class="text-[10px] sm:text-xs font-bold text-gray-300 hidden sm:inline">En Vivo</span>
       </div>
-      <button onclick="toggleSound()" id="btnSound" class="bg-[#2d333f] hover:bg-[#3d4554] text-white w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all shadow-md">
+      <button onclick="toggleSound()" id="btnSound" class="bg-[#2d333f] hover:bg-[#3d4554] text-white w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl transition-all shadow-md">
         🔊
       </button>
-      <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-md">
+      <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 px-3 py-2 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md">
         Salir
       </button>
     </div>
