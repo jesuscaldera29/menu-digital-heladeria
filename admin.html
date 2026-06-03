@@ -237,13 +237,13 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid rgba(0,0,0,0.05);
-      z-index: 150;
+      z-index: 9999;
       padding: 8px 8px max(8px, env(safe-area-inset-bottom));
       box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
       border-radius: 24px 24px 0 0;
     }
     @media (max-width: 768px) {
-      .bottom-nav { display: flex; }
+      .bottom-nav { display: flex !important; }
       main.max-w-7xl { padding-bottom: 90px; }
       header nav#adminNavTabs { display: none !important; }
     }
@@ -2458,6 +2458,20 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(reg => {
           console.log('Service Worker registrado', reg);
+          
+          // Force update check
+          reg.update();
+          
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Hay una nueva actualización disponible
+                console.log('Nueva versión disponible. Actualizando...');
+                window.location.reload();
+              }
+            };
+          };
         }).catch(err => {
           console.warn('Error al registrar Service Worker', err);
         });
