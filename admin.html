@@ -21,17 +21,38 @@
       color: #1a1a1a;
     }
 
+    /* Global Animations */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-content.active {
+      display: block;
+      animation: fadeSlideUp 0.4s ease-out forwards;
+    }
+
     .card {
       background: white;
       border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
-      border: 1px solid rgba(0, 0, 0, 0.03);
-      transition: all 0.3s ease;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(0,0,0,0.02);
     }
 
     .card:hover {
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    /* Hide scrollbar for header tabs */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     .input {
@@ -212,15 +233,18 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: white;
-      border-top: 1px solid #f0f0f0;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.05);
       z-index: 150;
-      padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+      border-radius: 24px 24px 0 0;
     }
     @media (max-width: 768px) {
       .bottom-nav { display: flex; }
-      main.max-w-7xl { padding-bottom: 80px; }
+      main.max-w-7xl { padding-bottom: 90px; }
       header nav#adminNavTabs { display: none !important; }
     }
     .bottom-nav-item {
@@ -228,29 +252,38 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      padding: 6px 4px;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 4px;
       font-size: 10px;
-      font-weight: 700;
-      color: #999;
+      font-weight: 800;
+      color: #a1a1aa;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: none;
       background: none;
       position: relative;
     }
+    .bottom-nav-item:active { transform: scale(0.9); }
     .bottom-nav-item.active { color: #ea580c; }
-    .bottom-nav-item .nav-icon { font-size: 22px; line-height: 1; }
+    .bottom-nav-item .nav-icon { 
+      font-size: 24px; 
+      line-height: 1;
+      transition: transform 0.3s;
+    }
+    .bottom-nav-item.active .nav-icon {
+      transform: translateY(-2px);
+    }
     .bottom-nav-item.active::after {
       content: '';
       position: absolute;
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 20px;
-      height: 3px;
+      width: 24px;
+      height: 4px;
       background: #ea580c;
-      border-radius: 0 0 3px 3px;
+      border-radius: 4px;
     }
 
     /* Dashboard Cards */
@@ -328,33 +361,33 @@
       </div>
 
       <!-- TABS -->
-      <nav id="adminNavTabs" class="flex bg-white/10 p-1 rounded-2xl backdrop-blur-md flex-wrap gap-1">
+      <nav id="adminNavTabs" class="flex bg-black/10 p-1.5 rounded-2xl backdrop-blur-md flex-nowrap overflow-x-auto hide-scrollbar gap-1 max-w-full" style="-webkit-overflow-scrolling: touch;">
         <button id="tab-home" onclick="showSection('home', event)"
-          class="nav-tab active px-4 py-2 rounded-xl text-xs font-bold transition-all">🏠 Inicio</button>
+          class="nav-tab active px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏠 Inicio</button>
         <button id="tab-products" onclick="showSection('products', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🍔 Productos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🍔 Productos</button>
         <button id="tab-orders" onclick="showSection('orders', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🛒 Pedidos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🛒 Pedidos</button>
         <button id="tab-customers" onclick="showSection('customers', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">👤 Clientes</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👤 Clientes</button>
         <button id="tab-reports" onclick="showSection('reports', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📊 Reportes</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📊 Reportes</button>
         <button id="tab-expenses" onclick="showSection('expenses', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💰 Gastos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💰 Caja</button>
         <button id="tab-staff" onclick="showSection('staff', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">👥 Personal</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👥 Personal</button>
         <button id="tab-coupons" onclick="showSection('coupons', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🎫 Cupones</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🎫 Cupones</button>
         <button id="tab-credits" onclick="showSection('credits', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">💳 Créditos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💳 Créditos</button>
         <button id="tab-purchases" onclick="showSection('purchases', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📦 Compras</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📦 Compras</button>
         <button id="tab-suppliers" onclick="showSection('suppliers', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">🏭 Proveedores</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏭 Proveedores</button>
         <button id="tab-recipes" onclick="showSection('recipes', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all">📖 Recetas</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📖 Recetas</button>
         <button id="tab-branches" onclick="showSection('branches', event)"
-          class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition-all hidden">🏪 Sucursales</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
       </nav>
 
       <div class="flex items-center gap-2">
