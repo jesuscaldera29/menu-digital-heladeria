@@ -905,9 +905,9 @@ document.addEventListener('DOMContentLoaded', initPOS);
 
 function printPOSTicket(o) {
   const itemsHtml = o.items.map(item => `
-      <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
-          <span>${item.qty || item.quantity}x ${item.name}</span>
-          <span>$${item.price}</span>
+      <div style="display:flex;justify-content:space-between;padding:4px 0; border-bottom:1px dashed #eee;">
+          <span style="flex:1;">${item.qty || item.quantity}x ${item.name}</span>
+          <span style="font-weight:bold;">$${Number((item.price) * (item.qty || item.quantity)).toLocaleString()}</span>
       </div>`
   ).join('');
 
@@ -919,6 +919,14 @@ function printPOSTicket(o) {
   const headerHtml = customHeader ? `<div class="text-center mb-2" style="font-size: 12px; white-space: pre-wrap;">${customHeader}</div>` : '';
 
   const ticketId = String(o.id).split('-')[0];
+  const discount = Number(o.discount || 0);
+  const tip = Number(o.tip || 0);
+  const deliveryFee = Number(o.delivery_fee || 0);
+
+  let extraRows = '';
+  if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
+  if (deliveryFee > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Domicilio:</span><span>+$${deliveryFee.toLocaleString()}</span></div>`;
+  if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
 
   const html = `
   <html>
@@ -928,6 +936,8 @@ function printPOSTicket(o) {
         body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
+        .text-xl { font-size: 18px; }
+        .text-2xl { font-size: 24px; }
         .mb-2 { margin-bottom: 8px; }
         .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
@@ -937,22 +947,27 @@ function printPOSTicket(o) {
     </head>
     <body>
       <div class="text-center mb-2">${logoUrl}</div>
+      <div class="text-center font-bold text-2xl mb-2">${posSettings.business_name || 'MI NEGOCIO'}</div>
       ${headerHtml}
       <div class="text-center border-b font-bold text-lg mb-2">
         TICKET DE VENTA<br>#${ticketId}
       </div>
-      <div class="mb-2">
-        <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
+      <div class="mb-2" style="font-size: 12px;">
+        <strong>Fecha:</strong> ${new Date(o.created_at || Date.now()).toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
-        <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type}<br>
-        <strong>Pago:</strong> ${o.payment_method}
+        <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
+        <strong>Dirección:</strong> ${o.address || 'N/A'}<br>
+        <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type || 'N/A'}<br>
+        <strong>Pago:</strong> ${o.payment_method || 'N/A'}
       </div>
       <div class="border-t border-b mb-2" style="margin-top:10px;">
+        <div class="flex font-bold" style="padding-bottom: 4px;"><span>CANT DESCRIPCIÓN</span><span>TOTAL</span></div>
         ${itemsHtml}
       </div>
-      <div class="flex border-t font-bold text-lg" style="margin-top:10px; padding-top:10px;">
+      ${extraRows}
+      <div class="flex border-t font-bold text-xl" style="margin-top:10px; padding-top:10px;">
         <span>TOTAL:</span>
-        <span>$${o.total}</span>
+        <span>$${Number(o.total).toLocaleString()}</span>
       </div>
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px; white-space: pre-wrap;">
         ${customFooter}
