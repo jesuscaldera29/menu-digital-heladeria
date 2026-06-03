@@ -19,6 +19,7 @@ async function loadExpenses() {
     if (error) throw error;
     allExpenses = data || [];
     renderExpenses();
+    if (typeof loadCashMovements === 'function') loadCashMovements();
   } catch (err) { showToast('Error cargando gastos: ' + err.message, 'error'); }
 }
 
@@ -240,4 +241,111 @@ async function loadCashClosings() {
       </tr>`;
     }).join('');
   } catch (err) { console.error(err); }
+}
+
+// ==========================================
+// MOVIMIENTOS DE CAJA (DEPÓSITOS / SALIDAS)
+// ==========================================
+
+function openCashMovementModal(type) {
+  document.getElementById('cmType').value = type;
+  const title = type === 'deposit' ? '📥 Ingreso de Efectivo' : '📤 Salida de Efectivo';
+  const desc = type === 'deposit' 
+    ? 'Registra un ingreso de dinero a la caja (ej: Base adicional, Cambio).'
+    : 'Registra un retiro de dinero de la caja (ej: Retiro del dueño, Pago de proveedor).';
+  document.getElementById('cmModalTitle').innerText = title;
+  document.getElementById('cmModalDesc').innerText = desc;
+  document.getElementById('cmAmount').value = '';
+  document.getElementById('cmReason').value = '';
+  document.getElementById('cashMovementModal').style.display = 'flex';
+}
+
+async function confirmCashMovement() {
+  const type = document.getElementById('cmType').value;
+  const amount = parseFloat(document.getElementById('cmAmount').value);
+  const reason = document.getElementById('cmReason').value.trim();
+
+  if (!amount || amount <= 0) return showToast('⚠️ Ingresa un monto válido', 'error');
+  if (!reason) return showToast('⚠️ Ingresa el motivo del movimiento', 'error');
+
+  const btn = document.getElementById('cmConfirmBtn');
+  btn.disabled = true;
+  btn.innerText = '⏳...';
+
+  try {
+    const { error } = await supabaseClient.from('cash_movements').insert([{
+      business_id: businessId,
+      type: type,
+      amount: amount,
+      reason: reason
+    }]);
+
+    if (error) throw error;
+    
+    showToast('✅ Movimiento registrado correctamente');
+    document.getElementById('cashMovementModal').style.display = 'none';
+    loadCashMovements();
+    // Update dashboard since cash might have changed (although not reflected in dashboard directly, but good practice)
+    if (typeof loadDashboard === 'function') loadDashboard();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerText = '✅ Confirmar';
+  }
+}
+
+async function loadCashMovements() {
+  if (!businessId) return;
+  
+  try {
+    // Solo cargamos movimientos de hoy para mantener la caja limpia, o podemos traer los últimos 20
+    const { data, error } = await supabaseClient
+      .from('cash_movements')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    const tbody = document.getElementById('cashMovementsList');
+    if (!tbody) return;
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-400">No hay movimientos recientes</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(m => {
+      const isDeposit = m.type === 'deposit';
+      const typeBadge = isDeposit
+        ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded-full font-bold">INGRESO</span>'
+        : '<span class="bg-orange-100 text-orange-800 text-[10px] px-2 py-1 rounded-full font-bold">SALIDA</span>';
+      const amountColor = isDeposit ? 'text-green-600' : 'text-orange-600';
+      const prefix = isDeposit ? '+' : '-';
+
+      return `<tr>
+        <td class="text-sm">${new Date(m.created_at).toLocaleString()}</td>
+        <td>${typeBadge}</td>
+        <td class="text-sm font-bold">${m.reason}</td>
+        <td class="font-black ${amountColor}">${prefix}$${Number(m.amount).toLocaleString()}</td>
+        <td><button onclick="deleteCashMovement('${m.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('Error cargando movimientos de caja:', err);
+  }
+}
+
+async function deleteCashMovement(id) {
+  if (!confirm('¿Eliminar este movimiento de caja?')) return;
+  try {
+    const { error } = await supabaseClient.from('cash_movements').delete().eq('id', id);
+    if (error) throw error;
+    showToast('🗑️ Movimiento eliminado');
+    loadCashMovements();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
 }

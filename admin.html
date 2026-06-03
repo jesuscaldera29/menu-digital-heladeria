@@ -804,6 +804,26 @@
           </div>
         </div>
       </div>
+      
+      <!-- Movimientos de Efectivo (Depósitos / Salidas) -->
+      <div class="card mt-8">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+          <div>
+            <h2 class="text-2xl font-black">💵 Movimientos de Efectivo</h2>
+            <p class="text-sm text-gray-500">Registra entradas o salidas de dinero que NO son ventas ni gastos (Ej: Cambio, Devoluciones, Retiros de dueño).</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openCashMovementModal('deposit')" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-4">📥 Ingreso de Efectivo</button>
+            <button onclick="openCashMovementModal('withdrawal')" class="btn bg-orange-500 hover:bg-orange-600 text-white !w-auto !px-4">📤 Salida de Efectivo</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="admin-table"><thead><tr><th>Fecha / Hora</th><th>Tipo</th><th>Motivo</th><th>Monto</th><th>Acciones</th></tr></thead>
+            <tbody id="cashMovementsList"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Gestión de Caja -->
       <div class="card mt-8">
         <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
@@ -1133,7 +1153,22 @@
       <input type="number" id="openingAmount" class="input" placeholder="Monto base ($)" min="0">
       <div class="grid grid-cols-2 gap-4 mt-6">
         <button class="btn btn-primary bg-green-500 hover:bg-green-600 border-none text-white" onclick="confirmCashOpening()">✅ Abrir Caja</button>
-        <button class="btn btn-danger" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
+        <button class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 border-none" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MOVIMIENTO DE CAJA -->
+  <div id="cashMovementModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
+      <h2 id="cmModalTitle" class="text-2xl font-black mb-2">💵 Movimiento de Caja</h2>
+      <p id="cmModalDesc" class="text-sm text-gray-500 mb-6">Registra el movimiento.</p>
+      <input type="hidden" id="cmType">
+      <input type="number" id="cmAmount" class="input" placeholder="Monto ($)" min="0">
+      <input type="text" id="cmReason" class="input" placeholder="Motivo (Ej: Cambio para base)">
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button id="cmConfirmBtn" class="btn btn-primary bg-blue-500 border-none text-white" onclick="confirmCashMovement()">✅ Confirmar</button>
+        <button class="btn bg-gray-200 text-gray-700 border-none" onclick="document.getElementById('cashMovementModal').style.display='none'">Cancelar</button>
       </div>
     </div>
   </div>
