@@ -851,8 +851,12 @@ async function saveTableOrder() {
     });
     let total = getCheckoutTotal();
 
+    const customerPhone = document.getElementById('customerPhone')?.value?.trim() || 'N/A';
+
     if (currentOpenOrderId) {
       const { error } = await supabaseClient.from('orders').update({
+        customer_name: customerName,
+        customer_phone: customerPhone,
         items: items,
         total: total,
         status: 'En preparación',
@@ -864,6 +868,7 @@ async function saveTableOrder() {
       const { error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
         customer_name: customerName,
+        customer_phone: customerPhone,
         address: address,
         delivery_method: orderType,
         payment_method: 'Pendiente',
