@@ -231,8 +231,8 @@ function renderKioskProducts() {
     return;
   }
 
-  container.innerHTML = filtered.map(p => `
-    <div class="kiosk-product-card relative flex flex-col h-full border border-gray-100 ${p.is_featured ? 'border-2 border-orange-500/30' : ''}">
+  container.innerHTML = filtered.map((p, index) => `
+    <div class="kiosk-product-card relative flex flex-col h-full border border-gray-100 opacity-0 animate-fade-in-up ${p.is_featured ? 'border-2 border-orange-500/30 shadow-[0_8px_30px_rgba(234,88,12,0.08)]' : ''}" style="animation-delay: ${index * 0.05}s">
       ${p.is_featured ? `<span class="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-10">🔥 RECOMENDADO</span>` : ''}
       
       <div class="h-44 w-full bg-gray-100 relative overflow-hidden flex items-center justify-center">
@@ -247,7 +247,7 @@ function renderKioskProducts() {
         
         <div class="flex items-center justify-between mt-auto pt-2">
           <div class="text-xl font-black text-red-600">$${Number(p.price).toLocaleString()}</div>
-          <button onclick="handleProductTap('${p.id}')" class="bg-black text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl active:scale-90 transition-all shadow-md">
+          <button onclick="handleProductTap('${p.id}')" class="bg-black text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl active:scale-90 transition-all shadow-md hover:bg-gray-800">
             ＋
           </button>
         </div>
@@ -562,8 +562,8 @@ function updateKioskCartUI() {
 
   if (cartKeys.length === 0) {
     container.innerHTML = `
-      <div class="h-full flex flex-col items-center justify-center text-gray-400 font-bold py-20 text-center">
-        <span class="text-6xl mb-4">🛒</span>
+      <div class="h-full flex flex-col items-center justify-center text-gray-400 font-bold py-10 md:py-20 text-center">
+        <span class="text-6xl mb-4 opacity-50">🛒</span>
         <p class="text-lg">Tu carrito está vacío</p>
         <p class="text-xs font-normal text-gray-400 mt-1">Selecciona productos a la izquierda para agregarlos.</p>
       </div>`;

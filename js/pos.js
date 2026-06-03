@@ -220,8 +220,8 @@ function renderProducts() {
     const hasAcc = p.accompaniments && p.accompaniments.trim().length > 0;
     return `
     <div class="bg-[#111] border border-[#222] rounded-xl overflow-hidden cursor-pointer hover:border-gray-600 transition-all active:scale-95 select-none flex flex-col h-full" onclick="handleProductClick('${p.id}')">
-      <div class="h-20 md:h-24 bg-[#1a1a1a] flex items-center justify-center overflow-hidden shrink-0 relative">
-        ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-cover">` : `<span class="text-3xl">🍽️</span>`}
+      <div class="h-32 md:h-40 bg-white flex items-center justify-center overflow-hidden shrink-0 relative">
+        ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-contain p-1">` : `<span class="text-3xl">🍽️</span>`}
         ${(hasExtras || hasAcc) ? '<span class="absolute top-1 right-1 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg">+Extras</span>' : ''}
       </div>
       <div class="p-2 md:p-3 flex flex-col flex-1">

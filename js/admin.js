@@ -5,6 +5,7 @@ let currentOrderFilter = 'Todos';
 let currentTimeFilter = 'all';
 let businessId = null;
 let businessSlug = null;
+let currentBusinessName = '';
 let lastPendingCount = 0;
 let salesChartInstance = null;
 let currentReportData = [];
@@ -64,6 +65,7 @@ async function initAdmin() {
 
     businessId = biz.id;
     businessSlug = biz.slug;
+    currentBusinessName = biz.business_name || '';
     
     // Enforce Staff Role routing and views
     const staffRole = localStorage.getItem('staff_role');
@@ -1221,7 +1223,7 @@ function sendTrackingLinkWhatsApp() {
     let cleanPhone = o.customer_phone.replace(/\D/g, '');
     if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) cleanPhone = '57' + cleanPhone;
 
-    let msg = `Hola *${o.customer_name}*, el estado de tu pedido *#${String(o.id).padStart(4, '0')}* en *Tronco E' Filo* ha sido actualizado.\n\n`;
+    let msg = `Hola *${o.customer_name}*, el estado de tu pedido *#${String(o.id).padStart(4, '0')}* en *${currentBusinessName || 'nuestro local'}* ha sido actualizado.\n\n`;
     msg += `Puedes ver su progreso en tiempo real aquí (enlace temporal válido por 1 hora):\n${trackingUrl}`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
