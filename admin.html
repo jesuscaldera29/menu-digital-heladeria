@@ -319,6 +319,33 @@
       border-radius: 4px;
     }
 
+    .more-menu {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      z-index: 9998;
+      padding: 8px;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+    }
+    .more-menu.show { display: flex; }
+    .more-menu-item {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: bold;
+      color: #3f3f46;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      width: 100%;
+    }
+    .more-menu-item:hover { background: #f4f4f5; }
+
     /* Dashboard Cards */
     .dash-card {
       background: white;
@@ -2368,29 +2395,43 @@
     </style>
   </div>
 
-  <!-- BOTTOM NAVIGATION (MOBILE) -->
-  <nav class="bottom-nav">
-    <button class="bottom-nav-item active" data-section="home" onclick="showSection('home', event)">
+  <!-- BOTTOM NAV (Mobile) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" data-section="home" onclick="bottomNavClick('home',this)">
       <span class="nav-icon">🏠</span>
-      <span>Inicio</span>
+      <span>INICIO</span>
     </button>
-    <button class="bottom-nav-item" onclick="window.open('pos.html', '_blank')">
-      <span class="nav-icon">💰</span>
-      <span>POS</span>
+    <button class="bottom-nav-item" data-section="orders" onclick="bottomNavClick('orders',this)">
+      <span class="nav-icon">📝</span>
+      <span>ÓRDENES</span>
     </button>
-    <button class="bottom-nav-item" data-section="orders" onclick="showSection('orders', event)">
+    <button class="bottom-nav-item" onclick="window.open('pos.html','_blank')">
       <span class="nav-icon">🛒</span>
-      <span>Pedidos</span>
+      <span>VENTAS</span>
     </button>
-    <button class="bottom-nav-item" data-section="products" onclick="showSection('products', event)">
-      <span class="nav-icon">🍔</span>
-      <span>Productos</span>
+    <button class="bottom-nav-item" data-section="expenses" onclick="bottomNavClick('expenses',this)">
+      <span class="nav-icon">🏧</span>
+      <span>CAJA</span>
     </button>
-    <button class="bottom-nav-item" onclick="toggleAdminSidebar()">
-      <span class="nav-icon">☰</span>
-      <span>Más</span>
+    <button class="bottom-nav-item" data-section="more" onclick="bottomNavClick('more',this)">
+      <span class="nav-icon">⚙️</span>
+      <span>OPCIONES</span>
     </button>
   </nav>
+
+  <!-- MORE MENU (Mobile) -->
+  <div class="more-menu" id="moreMenu">
+    <button class="more-menu-item" onclick="bottomNavClick('products',this)">🍔 Productos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('customers',this)">👤 Clientes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('reports',this)">📊 Reportes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('purchases',this)">📦 Compras</button>
+    <button class="more-menu-item" onclick="bottomNavClick('suppliers',this)">🏭 Proveedores</button>
+    <button class="more-menu-item" onclick="bottomNavClick('staff',this)">👥 Personal</button>
+    <button class="more-menu-item" onclick="bottomNavClick('coupons',this)">🎟️ Cupones</button>
+    <button class="more-menu-item" onclick="bottomNavClick('credits',this)">💳 Créditos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('recipes',this)">📖 Recetas</button>
+    <button class="more-menu-item" onclick="bottomNavClick('supplies',this)">🛒 Insumos</button>
+  </div>
 
 
 
