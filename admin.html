@@ -1909,29 +1909,7 @@
       </div>
     </div>
 
-  <!-- BOTTOM NAV (Mobile) -->
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="bottom-nav-item active" data-section="home" onclick="bottomNavClick('home',this)">
-      <span class="nav-icon">🏠</span>
-      <span>INICIO</span>
-    </button>
-    <button class="bottom-nav-item" data-section="orders" onclick="bottomNavClick('orders',this)">
-      <span class="nav-icon">📝</span>
-      <span>ÓRDENES</span>
-    </button>
-    <button class="bottom-nav-item" onclick="window.open('pos.html','_blank')">
-      <span class="nav-icon">🛒</span>
-      <span>VENTAS</span>
-    </button>
-    <button class="bottom-nav-item" data-section="expenses" onclick="bottomNavClick('expenses',this)">
-      <span class="nav-icon">🏧</span>
-      <span>CAJA</span>
-    </button>
-    <button class="bottom-nav-item" data-section="more" onclick="bottomNavClick('more',this)">
-      <span class="nav-icon">⚙️</span>
-      <span>OPCIONES</span>
-    </button>
-  </nav>
+
   <!-- MODAL: APERTURA DE CAJA -->
   <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
@@ -2414,18 +2392,7 @@
     </button>
   </nav>
 
-  <!-- MODAL: APERTURA DE CAJA -->
-  <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
-    <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-4">🔓 Apertura de Caja</h2>
-      <p class="text-sm text-gray-500 mb-4">Ingresa el monto base (efectivo) con el que iniciarás el turno.</p>
-      <input type="number" id="openingAmount" class="input" placeholder="Monto base ($)" min="0" value="0">
-      <div class="grid grid-cols-2 gap-4 mt-6">
-        <button class="btn btn-primary !bg-green-500 hover:!bg-green-600 border-none" onclick="confirmCashOpening()">✅ Abrir Caja</button>
-        <button class="btn btn-danger" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
-      </div>
-    </div>
-  </div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
