@@ -1272,6 +1272,58 @@
       </div>
     </div>
 
+    <!-- SECTION: EXTRAS (Configuración Adicional) -->
+    <div id="section-features" class="section-content px-4 py-6 md:px-8 max-w-4xl mx-auto">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="showSection('more')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors md:hidden">
+          <i class="text-xl">‹</i>
+        </button>
+        <h2 class="text-2xl font-black text-gray-800">Extras y Herramientas</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-20">
+        <!-- Módulos de Venta -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="showSection('coupons')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">🎫</div>
+          <h3 class="font-bold text-gray-800 text-lg">Cupones de Descuento</h3>
+          <p class="text-sm text-gray-500 mt-1">Crea y administra códigos de promoción y ofertas</p>
+        </div>
+        
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="showSection('credits')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">💳</div>
+          <h3 class="font-bold text-gray-800 text-lg">Créditos (Fiados)</h3>
+          <p class="text-sm text-gray-500 mt-1">Control de cuentas por cobrar y abonos de clientes</p>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="showSection('recipes')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">📖</div>
+          <h3 class="font-bold text-gray-800 text-lg">Recetas</h3>
+          <p class="text-sm text-gray-500 mt-1">Costeo de ingredientes y fichas técnicas</p>
+        </div>
+
+        <!-- Módulos Administrativos -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="showSection('suppliers')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">🏭</div>
+          <h3 class="font-bold text-gray-800 text-lg">Proveedores</h3>
+          <p class="text-sm text-gray-500 mt-1">Gestión de proveedores y contactos de insumos</p>
+        </div>
+
+        <!-- Herramientas -->
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="openImportModal('products')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">📥</div>
+          <h3 class="font-bold text-gray-800 text-lg">Importar Productos</h3>
+          <p class="text-sm text-gray-500 mt-1">Carga masiva de catálogo desde archivo CSV</p>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all group" onclick="openImportModal('customers')">
+          <div class="text-4xl mb-3 group-hover:scale-110 transition-transform origin-left">👥</div>
+          <h3 class="font-bold text-gray-800 text-lg">Importar Clientes</h3>
+          <p class="text-sm text-gray-500 mt-1">Carga de base de datos de clientes desde CSV</p>
+        </div>
+      </div>
+    </div>
+
+
     <!-- SECTION: AJUSTES (Main) -->
     <div id="section-settings" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-white min-h-screen">
       <div class="flex items-center gap-4 mb-6">
