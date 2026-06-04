@@ -396,33 +396,39 @@
       </div>
 
       <!-- TABS -->
-      <nav id="adminNavTabs" class="flex bg-black/10 p-1.5 rounded-2xl backdrop-blur-md flex-nowrap overflow-x-auto hide-scrollbar gap-1 max-w-full" style="-webkit-overflow-scrolling: touch;">
+      <nav id="adminNavTabs" class="flex bg-black/10 p-1.5 rounded-2xl backdrop-blur-md flex-wrap justify-center gap-1 max-w-full" style="-webkit-overflow-scrolling: touch;">
         <button id="tab-home" onclick="showSection('home', event)"
-          class="nav-tab active px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏠 Inicio</button>
+          class="nav-tab active px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏠 Inicio</button>
         <button id="tab-products" onclick="showSection('products', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🍔 Productos</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🍔 Productos</button>
+        <button id="tab-supplies" onclick="showSection('supplies', event)"
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🧊 Insumos</button>
         <button id="tab-orders" onclick="showSection('orders', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🛒 Pedidos</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🛒 Pedidos</button>
         <button id="tab-customers" onclick="showSection('customers', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👤 Clientes</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👤 Clientes</button>
         <button id="tab-reports" onclick="showSection('reports', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📊 Reportes</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📊 Reportes</button>
         <button id="tab-expenses" onclick="showSection('expenses', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💰 Caja</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💰 Caja</button>
         <button id="tab-staff" onclick="showSection('staff', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👥 Personal</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👥 Personal</button>
         <button id="tab-coupons" onclick="showSection('coupons', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🎫 Cupones</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🎫 Cupones</button>
         <button id="tab-credits" onclick="showSection('credits', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💳 Créditos</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💳 Créditos</button>
         <button id="tab-purchases" onclick="showSection('purchases', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📦 Compras</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📦 Compras</button>
         <button id="tab-suppliers" onclick="showSection('suppliers', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏭 Proveedores</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏭 Prov.</button>
         <button id="tab-recipes" onclick="showSection('recipes', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📖 Recetas</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📖 Recetas</button>
+        <button id="tab-settings" onclick="showSection('settings', event)"
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">⚙️ Ajustes</button>
+        <button id="tab-features" onclick="showSection('features', event)"
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🛠️ Extras</button>
         <button id="tab-branches" onclick="showSection('branches', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
+          class="nav-tab px-4 py-2 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
       </nav>
 
       <div class="hidden sm:flex items-center gap-2">
@@ -1352,6 +1358,15 @@
         <span class="ml-auto text-yellow-500 text-2xl">⚡</span>
       </div>
 
+      <button onclick="document.getElementById('printerHelpModal').classList.remove('hidden')" class="w-full bg-blue-50 text-blue-700 p-4 rounded-2xl flex items-center gap-3 mb-6 hover:bg-blue-100 transition-colors text-left border border-blue-100">
+        <span class="text-3xl drop-shadow-sm">📖</span>
+        <div>
+          <div class="font-bold text-base">Guía de instalación de impresoras</div>
+          <div class="text-xs text-blue-600 mt-0.5">Aprende a configurar el Auto-Print, impresoras USB y de Red (IP)</div>
+        </div>
+        <span class="ml-auto font-bold text-xl">›</span>
+      </button>
+
       <div class="space-y-6 pb-24">
         <!-- Lista de impresoras agregadas funcional -->
         <div id="addedPrintersList" class="space-y-4"></div>
@@ -1747,6 +1762,107 @@
         <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
           <button onclick="closeSupplyModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-colors">Cancelar</button>
           <button onclick="saveSupply()" class="px-8 py-3 rounded-xl font-bold text-white bg-[#00c875] hover:bg-[#00b065] transition-colors shadow-sm">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Guía de Impresoras -->
+    <div id="printerHelpModal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-[24px] w-full max-w-2xl overflow-hidden transform transition-all shadow-xl my-8 max-h-[90vh] flex flex-col">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📖</span>
+            <h3 class="text-xl font-bold text-gray-800">Guía de instalación</h3>
+          </div>
+          <button onclick="document.getElementById('printerHelpModal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 flex items-center justify-center font-bold">×</button>
+        </div>
+        
+        <div class="p-6 space-y-8 overflow-y-auto grow">
+          
+          <!-- Auto-Print Chrome -->
+          <div class="space-y-3">
+            <h4 class="font-black text-lg text-gray-800 flex items-center gap-2"><span class="bg-yellow-100 text-yellow-600 w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0">1</span> Impresión silenciosa (Auto-Print)</h4>
+            <p class="text-gray-600 text-sm leading-relaxed">Para que el sistema imprima automáticamente sin mostrar la ventana de confirmación en cada venta, debes configurar tu navegador Chrome.</p>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm">
+              <p class="font-bold mb-2">En Windows:</p>
+              <ol class="list-decimal pl-4 space-y-2 text-gray-600">
+                <li>Haz clic derecho en el acceso directo de Google Chrome y selecciona <strong>Propiedades</strong>.</li>
+                <li>En la pestaña "Acceso directo", busca el campo <strong>Destino</strong>.</li>
+                <li>Al final del texto (después de las comillas), agrega un espacio y escribe: <code class="bg-white px-2 py-1 rounded border border-gray-200 text-gray-800 font-mono">--kiosk-printing</code></li>
+                <li>El resultado debe verse así: <code class="text-gray-500 text-xs break-all">"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing</code></li>
+                <li>Guarda los cambios, cierra todas las ventanas de Chrome y vuelve a abrirlo desde ese acceso directo.</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Impresora de Red (IP) -->
+          <div class="space-y-3">
+            <h4 class="font-black text-lg text-gray-800 flex items-center gap-2"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0">2</span> Configurar Impresora de Red (IP)</h4>
+            <p class="text-gray-600 text-sm leading-relaxed">Las impresoras de red (Ethernet o WiFi) son ideales para la cocina porque se conectan directamente al router. Ejemplo usando <strong>GP-L80180 Series</strong>:</p>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm space-y-4">
+              <div class="flex items-start gap-3">
+                <div class="text-xl">🔌</div>
+                <div>
+                  <p class="font-bold text-gray-800">1. Conectar y obtener la IP</p>
+                  <p class="text-gray-600 mt-1">Conecta la impresora a tu router con un cable de red. Enciéndela y presiona el botón "Feed" para imprimir un recibo de prueba que mostrará su dirección IP (Ej: <code class="bg-white px-1 rounded border border-gray-200 font-mono">192.168.80.20</code>).</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="text-xl">💻</div>
+                <div>
+                  <p class="font-bold text-gray-800">2. Instalar en Windows</p>
+                  <ul class="list-disc pl-4 space-y-1 text-gray-600 mt-1">
+                    <li>Abre <strong>Dispositivos e impresoras</strong> en Windows.</li>
+                    <li>Haz clic en <strong>Agregar una impresora</strong>.</li>
+                    <li>Selecciona "Agregar una impresora local o de red con configuración manual".</li>
+                    <li>Crea un nuevo puerto tipo <strong>Standard TCP/IP Port</strong>.</li>
+                    <li>Ingresa la <strong>Dirección IP</strong> (Ej: 192.168.80.20) y usa el puerto predeterminado <strong>9100</strong>.</li>
+                    <li>Instala los drivers correspondientes (Ej: POSPrinter o GP-L80180 Series).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="text-xl">⚙️</div>
+                <div>
+                  <p class="font-bold text-gray-800">3. Configurar en el POS</p>
+                  <p class="text-gray-600 mt-1">En la sección <strong>Configurar impresoras</strong>, toca en <strong>Nueva Impresora</strong>, selecciona el tipo "Red (LAN/WiFi)" e ingresa la misma IP y puerto. ¡Listo!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Impresora USB -->
+          <div class="space-y-3">
+            <h4 class="font-black text-lg text-gray-800 flex items-center gap-2"><span class="bg-purple-100 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0">3</span> Configurar Impresora USB</h4>
+            <p class="text-gray-600 text-sm leading-relaxed">Las impresoras USB son fáciles de instalar pero deben estar conectadas directamente al computador donde está la caja.</p>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm space-y-4">
+              <div class="flex items-start gap-3">
+                <div class="text-xl">🔌</div>
+                <div>
+                  <p class="font-bold text-gray-800">1. Conexión</p>
+                  <p class="text-gray-600 mt-1">Conecta la impresora a la corriente y el cable USB a tu computador.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="text-xl">💿</div>
+                <div>
+                  <p class="font-bold text-gray-800">2. Instalación de Drivers</p>
+                  <p class="text-gray-600 mt-1">Instala los drivers que vienen en el CD o descárgalos de la página del fabricante. En la instalación, asegúrate de seleccionar el puerto <strong>USB001</strong> o similar.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="text-xl">✅</div>
+                <div>
+                  <p class="font-bold text-gray-800">3. Verificación</p>
+                  <p class="text-gray-600 mt-1">Imprime una página de prueba desde Windows. Luego, en el POS, simplemente asegúrate de tener la opción "Impresión automática" activa. El navegador usará tu impresora predeterminada.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="p-5 border-t border-gray-100 bg-white shrink-0">
+          <button onclick="document.getElementById('printerHelpModal').classList.add('hidden')" class="w-full bg-gray-100 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors">Cerrar Guía</button>
         </div>
       </div>
     </div>
