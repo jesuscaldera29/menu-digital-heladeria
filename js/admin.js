@@ -875,18 +875,34 @@ function showSection(sectionId, event) {
         }
     }
 
-    event = event || window.event;
+    // Hide all sections and deactivate all tabs
     document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
-    document.getElementById(`section-${sectionId}`).classList.add('active');
-    
-    let tabBtn = event && event.target;
-    if (!tabBtn) {
-        tabBtn = document.getElementById(`tab-${sectionId}`);
+    // Show target section (safe check)
+    const sectionEl = document.getElementById('section-' + sectionId);
+    if (sectionEl) {
+        sectionEl.classList.add('active');
+    } else {
+        console.warn('Section not found: section-' + sectionId);
+        return;
     }
+
+    // Highlight the correct tab button
+    // For sub-sections like 'settings-printers', highlight parent tab 'settings'
+    let tabId = sectionId;
+    if (sectionId.indexOf('-') !== -1) {
+        // e.g. settings-printers -> settings, settings-receipt-cash -> settings
+        const parentId = sectionId.split('-')[0];
+        if (document.getElementById('tab-' + parentId)) {
+            tabId = parentId;
+        }
+    }
+    // Also handle sections that don't have their own tab (more -> more)
+    const tabBtn = document.getElementById('tab-' + tabId);
     if (tabBtn) tabBtn.classList.add('active');
 
+    // Load data for the section
     if (sectionId === 'orders') loadOrders();
     if (sectionId === 'customers') loadCustomers();
     if (sectionId === 'reports') initReports();
@@ -898,10 +914,11 @@ function showSection(sectionId, event) {
     if (sectionId === 'recipes') { if (typeof loadRecipes === 'function') loadRecipes(); }
     if (sectionId === 'purchases') { if (typeof loadPurchases === 'function') loadPurchases(); if (typeof loadSuppliersDropdown === 'function') loadSuppliersDropdown(); }
     if (sectionId === 'suppliers') { if (typeof loadSuppliers === 'function') loadSuppliers(); }
+    if (sectionId === 'supplies') { if (typeof renderSupplies === 'function') renderSupplies(); }
 
     // Sync bottom nav active state
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-    const bnBtn = document.querySelector(`.bottom-nav-item[data-section="${sectionId}"]`);
+    const bnBtn = document.querySelector('.bottom-nav-item[data-section="' + sectionId + '"]');
     if (bnBtn) bnBtn.classList.add('active');
     
     // Close more menu
@@ -1591,7 +1608,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function bottomNavClick(sectionId, el) {
     const mm = document.getElementById('moreMenu');
     if (mm) mm.classList.remove('show');
-    showSection(sectionId, { target: document.getElementById('tab-' + sectionId) });
+    showSection(sectionId);
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
     if (el && el.classList.contains('bottom-nav-item')) el.classList.add('active');
 }

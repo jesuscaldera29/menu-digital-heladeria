@@ -164,19 +164,4 @@ function editSupply(id) {
     openSupplyModal(id);
 }
 
-// Hook into showSection to auto-load supplies
-const originalShowSection = window.showSection;
-if (originalShowSection) {
-    window.showSection = function(sectionId, event) {
-        originalShowSection(sectionId, event);
-        if (sectionId === 'supplies') {
-            renderSupplies();
-        }
-    };
-} else {
-    // Fallback if defined differently
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('[onclick^="showSection(\'supplies\'"]');
-        if (btn) renderSupplies();
-    });
-}
+// Supplies loading is handled by showSection in admin.js
