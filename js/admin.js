@@ -875,34 +875,18 @@ function showSection(sectionId, event) {
         }
     }
 
-    // Hide all sections and deactivate all tabs
+    event = event || window.event;
     document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
-    // Show target section (safe check)
-    const sectionEl = document.getElementById('section-' + sectionId);
-    if (sectionEl) {
-        sectionEl.classList.add('active');
-    } else {
-        console.warn('Section not found: section-' + sectionId);
-        return;
+    document.getElementById(`section-${sectionId}`).classList.add('active');
+    
+    let tabBtn = event && event.target;
+    if (!tabBtn) {
+        tabBtn = document.getElementById(`tab-${sectionId}`);
     }
-
-    // Highlight the correct tab button
-    // For sub-sections like 'settings-printers', highlight parent tab 'settings'
-    let tabId = sectionId;
-    if (sectionId.indexOf('-') !== -1) {
-        // e.g. settings-printers -> settings, settings-receipt-cash -> settings
-        const parentId = sectionId.split('-')[0];
-        if (document.getElementById('tab-' + parentId)) {
-            tabId = parentId;
-        }
-    }
-    // Also handle sections that don't have their own tab (more -> more)
-    const tabBtn = document.getElementById('tab-' + tabId);
     if (tabBtn) tabBtn.classList.add('active');
 
-    // Load data for the section
     if (sectionId === 'orders') loadOrders();
     if (sectionId === 'customers') loadCustomers();
     if (sectionId === 'reports') initReports();
@@ -914,11 +898,10 @@ function showSection(sectionId, event) {
     if (sectionId === 'recipes') { if (typeof loadRecipes === 'function') loadRecipes(); }
     if (sectionId === 'purchases') { if (typeof loadPurchases === 'function') loadPurchases(); if (typeof loadSuppliersDropdown === 'function') loadSuppliersDropdown(); }
     if (sectionId === 'suppliers') { if (typeof loadSuppliers === 'function') loadSuppliers(); }
-    if (sectionId === 'supplies') { if (typeof renderSupplies === 'function') renderSupplies(); }
 
     // Sync bottom nav active state
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-    const bnBtn = document.querySelector('.bottom-nav-item[data-section="' + sectionId + '"]');
+    const bnBtn = document.querySelector(`.bottom-nav-item[data-section="${sectionId}"]`);
     if (bnBtn) bnBtn.classList.add('active');
     
     // Close more menu
@@ -1170,20 +1153,17 @@ window.printOrderTicket = function(id) {
     if (!o) return showToast('Error: No se encontró el pedido', 'error');
     
     const itemsHtml = o.items.map(item => `
-        <div style="display:flex;justify-content:space-between;padding:4px 0; border-bottom:1px dashed #eee;">
-            <span style="flex:1;">${item.qty || item.quantity}x ${item.name}</span>
-            <span style="font-weight:bold;">$${Number((item.price) * (item.qty || item.quantity)).toLocaleString()}</span>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
+            <span>${item.qty}x ${item.name}</span>
+            <span>$${Number(item.price * item.qty).toLocaleString()}</span>
         </div>
     `).join('');
 
     const discount = Number(o.discount || 0);
     const tip = Number(o.tip || 0);
-    const deliveryFee = Number(o.delivery_fee || 0);
-    
     let extraRows = '';
-    if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
-    if (deliveryFee > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Domicilio:</span><span>+$${deliveryFee.toLocaleString()}</span></div>`;
-    if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
+    if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;color:#2563eb;padding:4px 0;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
+    if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;color:#16a34a;padding:4px 0;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
 
     const html = `
     <html>
@@ -1193,9 +1173,9 @@ window.printOrderTicket = function(id) {
           body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
-          .text-xl { font-size: 18px; }
-          .text-2xl { font-size: 24px; }
           .mb-2 { margin-bottom: 8px; }
+          .mb-4 { margin-bottom: 16px; }
+          .text-lg { font-size: 18px; }
           .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
           .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
           .flex { display: flex; justify-content: space-between; }
@@ -1204,30 +1184,35 @@ window.printOrderTicket = function(id) {
       </head>
       <body>
         <div class="text-center mb-2">
-          ${document.getElementById('logoPreview')?.src && document.getElementById('logoPreview').src !== window.location.href ? \`<img src="\${document.getElementById('logoPreview').src}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">\` : ''}
+          ${document.getElementById('logoPreview')?.src && document.getElementById('logoPreview').src !== window.location.href ? `<img src="${document.getElementById('logoPreview').src}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : ''}
         </div>
-        <div class="text-center font-bold text-2xl mb-2">${window.currentBusinessName || 'MI NEGOCIO'}</div>
-        <div class="text-center border-b font-bold text-lg mb-2">
-          TICKET DE PEDIDO<br>#${String(o.id).split('-')[0]}
+        <div class="text-center border-b font-bold text-lg">
+          TICKET DE PEDIDO
+          <br>#${String(o.id).padStart(4, '0')}
         </div>
-        <div class="mb-2" style="font-size: 12px;">
+        
+        <div class="mb-2" style="margin-top:10px;">
           <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
-          <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
-          <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
-          <strong>Dirección:</strong> ${o.address || 'N/A'}<br>
-          <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type || 'N/A'}<br>
-          <strong>Pago:</strong> ${o.payment_method || 'N/A'}
+          <strong>Cliente:</strong> ${o.customer_name}<br>
+          <strong>Tel:</strong> ${o.customer_phone}<br>
+          <strong>Tipo:</strong> ${o.delivery_method}<br>
+          <strong>Dir:</strong> ${o.address || '-'}<br>
+          <strong>Pago:</strong> ${o.payment_method}<br>
+          <strong>Notas:</strong> ${o.notes || 'Ninguna'}
         </div>
+        
         <div class="border-t border-b mb-2" style="margin-top:10px;">
-          <div class="flex font-bold" style="padding-bottom: 4px;"><span>CANT DESCRIPCIÓN</span><span>TOTAL</span></div>
           ${itemsHtml}
         </div>
+        
         ${extraRows}
-        <div class="flex border-t font-bold text-xl" style="margin-top:10px; padding-top:10px;">
+
+        <div class="flex border-t font-bold text-lg" style="margin-top:10px; padding-top:10px;">
           <span>TOTAL:</span>
           <span>$${Number(o.total).toLocaleString()}</span>
         </div>
-        <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px; white-space: pre-wrap;">
+        
+        <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
           ¡Gracias por su compra!
         </div>
         <script>
@@ -1608,7 +1593,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function bottomNavClick(sectionId, el) {
     const mm = document.getElementById('moreMenu');
     if (mm) mm.classList.remove('show');
-    showSection(sectionId);
+    showSection(sectionId, { target: document.getElementById('tab-' + sectionId) });
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
     if (el && el.classList.contains('bottom-nav-item')) el.classList.add('active');
 }
