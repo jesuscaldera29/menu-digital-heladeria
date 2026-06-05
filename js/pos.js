@@ -1146,6 +1146,56 @@ function printComanda(o) {
   printWindow.document.close();
 }
 
+// MANUAL COMANDA LOGIC
+window.manualPrintComanda = async function() {
+  const keys = Object.keys(posCart);
+  if (!keys.length) {
+    showToast('⚠️ Agrega productos primero', 'error');
+    return;
+  }
+  
+  if (currentOpenOrderId) {
+    const { data, error } = await supabaseClient.from('orders').select('*').eq('id', currentOpenOrderId).single();
+    if (!error && data) {
+      printComanda(data);
+      showToast('🖨️ Comanda enviada a impresora');
+    }
+  } else {
+    const items = keys.map(k => {
+      const item = posCart[k];
+      return { id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty };
+    });
+    const orderType = document.getElementById('orderType').value;
+    const customerName = document.getElementById('customerName').value.trim() || 'Mostrador';
+    
+    let fakeId = 'PENDIENTE';
+    if (orderType === 'A la mesa') {
+      const mesa = document.getElementById('tableNumber').value;
+      fakeId = mesa ? 'MESA-' + mesa : 'MESA';
+    }
+
+    const fakeOrder = {
+      id: fakeId,
+      created_at: new Date().toISOString(),
+      delivery_method: orderType,
+      customer_name: customerName,
+      customer_phone: document.getElementById('customerPhone')?.value?.trim() || 'N/A',
+      items: items
+    };
+    
+    printComanda(fakeOrder);
+    showToast('🖨️ Comanda enviada a impresora');
+  }
+};
+
+window.reprintTableComanda = function(e, orderId) {
+  e.stopPropagation(); // Prevent opening the table
+  const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
+  if (!order) return;
+  printComanda(order);
+  showToast('🖨️ Comanda reimpresa');
+};
+
 // TABLES MODAL LOGIC
 window.openTablesModal = async function () {
   document.getElementById('tablesModal').classList.remove('hidden');
@@ -1179,7 +1229,10 @@ window.openTablesModal = async function () {
         // Ocupada
         const timeDiff = Math.floor((new Date() - new Date(order.created_at)) / 60000);
         html += `
-          <div onclick="openTableOrder('${order.id}')" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center">
+          <div onclick="openTableOrder('${order.id}')" class="relative bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center group">
+            <button onclick="reprintTableComanda(event, '${order.id}')" class="absolute top-2 right-2 bg-[#222] border border-[#333] hover:bg-white hover:text-black w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg text-sm" title="Reimprimir Comanda">
+              🖨️
+            </button>
             <span class="text-3xl mb-2">🔴</span>
             <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
             <span class="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-widest">Ocupada</span>
