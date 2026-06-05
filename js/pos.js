@@ -867,7 +867,6 @@ async function saveTableOrder() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
-      if (updatedOrder && updatedOrder.length > 0) executePrintComanda(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -883,7 +882,6 @@ async function saveTableOrder() {
       }]).select();
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
-      if (insertedOrder && insertedOrder.length > 0) executePrintComanda(insertedOrder[0]);
     }
     
     closeCheckoutModal();
@@ -1118,6 +1116,16 @@ function showComandaPreview(o) {
       </div>`
   }).join('');
 
+  const deliveryFee = Number(o.delivery_fee || 0);
+  let deliveryFeeHtml = '';
+  if (deliveryType === 'DOMICILIO' && deliveryFee > 0) {
+    deliveryFeeHtml = `
+      <div style="font-weight:bold; font-size:20px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
+        + TARIFA DOMICILIO: $${deliveryFee.toLocaleString()}
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
@@ -1128,6 +1136,7 @@ function showComandaPreview(o) {
       <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
       <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
         ${itemsHtml}
+        ${deliveryFeeHtml}
       </div>
     </div>
   `;
@@ -1165,6 +1174,16 @@ function executePrintComanda(o) {
       </div>`
   }).join('');
 
+  const deliveryFee = Number(o.delivery_fee || 0);
+  let deliveryFeeHtml = '';
+  if (deliveryType === 'DOMICILIO' && deliveryFee > 0) {
+    deliveryFeeHtml = `
+      <div style="font-weight:bold; font-size:20px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
+        + TARIFA DOMICILIO: $${deliveryFee.toLocaleString()}
+      </div>
+    `;
+  }
+
   const html = `
   <html>
     <head>
@@ -1183,6 +1202,7 @@ function executePrintComanda(o) {
       <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
       <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
         ${itemsHtml}
+        ${deliveryFeeHtml}
       </div>
       <script>
         setTimeout(() => { window.print(); window.close(); }, 500);
@@ -1229,7 +1249,8 @@ window.manualPrintComanda = async function() {
       delivery_method: orderType,
       customer_name: customerName,
       customer_phone: document.getElementById('customerPhone')?.value?.trim() || 'N/A',
-      items: items
+      items: items,
+      delivery_fee: (orderType === 'Domicilio' && posSettings.delivery_fee) ? Number(posSettings.delivery_fee) : 0
     };
     
     showComandaPreview(fakeOrder);
