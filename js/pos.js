@@ -964,6 +964,15 @@ function showTicketPreview(o) {
   window._lastTicketOrder = o;
 
   document.getElementById('ticketPreviewModal').classList.remove('hidden');
+
+  // Auto-print if enabled
+  const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
+  if (shouldPrint) {
+    // Add a slight delay to ensure modal renders first
+    setTimeout(() => {
+      printTicketFromPreview();
+    }, 300);
+  }
 }
 
 function closeTicketPreview() {
