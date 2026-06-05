@@ -809,7 +809,7 @@ async function confirmSale() {
       if (error) throw error;
       showToast('✅ Venta registrada');
       if (insertedOrder && insertedOrder.length > 0) {
-        printComanda(insertedOrder[0]);
+        executePrintComanda(insertedOrder[0]);
         showTicketPreview(insertedOrder[0]);
       }
     }
@@ -867,7 +867,7 @@ async function saveTableOrder() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
-      if (updatedOrder && updatedOrder.length > 0) printComanda(updatedOrder[0]);
+      if (updatedOrder && updatedOrder.length > 0) executePrintComanda(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -883,7 +883,7 @@ async function saveTableOrder() {
       }]).select();
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
-      if (insertedOrder && insertedOrder.length > 0) printComanda(insertedOrder[0]);
+      if (insertedOrder && insertedOrder.length > 0) executePrintComanda(insertedOrder[0]);
     }
     
     closeCheckoutModal();
@@ -909,6 +909,8 @@ document.addEventListener('DOMContentLoaded', initPOS);
 function showTicketPreview(o) {
   const container = document.getElementById('ticketPreviewContent');
   if (!container) return;
+
+  window._previewType = 'ticket';
 
   const itemsHtml = o.items.map(item => `
       <div style="display:flex;justify-content:space-between;padding:6px 0; border-bottom:1px dashed #ddd;">
@@ -965,18 +967,12 @@ function showTicketPreview(o) {
     </div>
   `;
 
-  // Store order data for printing
   window._lastTicketOrder = o;
-
   document.getElementById('ticketPreviewModal').classList.remove('hidden');
 
-  // Auto-print if enabled
   const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
   if (shouldPrint) {
-    // Add a slight delay to ensure modal renders first
-    setTimeout(() => {
-      printTicketFromPreview();
-    }, 300);
+    setTimeout(() => { printTicketFromPreview(); }, 300);
   }
 }
 
@@ -987,7 +983,11 @@ function closeTicketPreview() {
 function printTicketFromPreview() {
   const o = window._lastTicketOrder;
   if (!o) return;
-  printPOSTicket(o);
+  if (window._previewType === 'comanda') {
+    executePrintComanda(o);
+  } else {
+    printPOSTicket(o);
+  }
 }
 
 function downloadTicketFromPreview() {
@@ -1089,10 +1089,59 @@ function printPOSTicket(o) {
   printWindow.document.close();
 }
 
-function printComanda(o) {
-  const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
-  if (!shouldPrint) return;
+function showComandaPreview(o) {
+  const container = document.getElementById('ticketPreviewContent');
+  if (!container) return;
 
+  window._previewType = 'comanda';
+
+  const ticketId = String(o.id).split('-')[0].toUpperCase();
+  const timeStr = new Date(o.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  const customerName = o.customer_name || 'Mostrador';
+  const customerPhone = o.customer_phone && o.customer_phone !== 'N/A' ? `<div style="font-weight:bold; font-size:20px; text-align:center;">${o.customer_phone}</div>` : '';
+
+  const itemsHtml = o.items.map(item => {
+    let mainName = item.name;
+    let extrasHtml = '';
+    const match = item.name.match(/^(.*) \((.*)\)$/);
+    if (match) {
+       mainName = match[1];
+       const extras = match[2].split(',').map(e => e.trim());
+       extrasHtml = extras.map(e => `<div style="padding-left:20px; font-size:18px;">+ ${e}</div>`).join('');
+    }
+    
+    return `
+      <div style="padding:6px 0;">
+          <div style="font-weight:bold; font-size:20px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
+          ${extrasHtml}
+      </div>`
+  }).join('');
+
+  container.innerHTML = `
+    <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+      <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center;">PEDIDO #${ticketId}</div>
+      ${customerPhone}
+      <div style="font-weight:bold; font-size:20px; text-align:center;">${timeStr}</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center;">${deliveryType}</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
+      <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+
+  window._lastTicketOrder = o;
+  document.getElementById('ticketPreviewModal').classList.remove('hidden');
+
+  const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
+  if (shouldPrint) {
+    setTimeout(() => { printTicketFromPreview(); }, 300);
+  }
+}
+
+function executePrintComanda(o) {
   const ticketId = String(o.id).split('-')[0].toUpperCase();
   const timeStr = new Date(o.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
@@ -1157,8 +1206,8 @@ window.manualPrintComanda = async function() {
   if (currentOpenOrderId) {
     const { data, error } = await supabaseClient.from('orders').select('*').eq('id', currentOpenOrderId).single();
     if (!error && data) {
-      printComanda(data);
-      showToast('🖨️ Comanda enviada a impresora');
+      showComandaPreview(data);
+      showToast('🖨️ Comanda generada');
     }
   } else {
     const items = keys.map(k => {
@@ -1183,8 +1232,8 @@ window.manualPrintComanda = async function() {
       items: items
     };
     
-    printComanda(fakeOrder);
-    showToast('🖨️ Comanda enviada a impresora');
+    showComandaPreview(fakeOrder);
+    showToast('🖨️ Comanda generada');
   }
 };
 
@@ -1192,8 +1241,8 @@ window.reprintTableComanda = function(e, orderId) {
   e.stopPropagation(); // Prevent opening the table
   const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
   if (!order) return;
-  printComanda(order);
-  showToast('🖨️ Comanda reimpresa');
+  showComandaPreview(order);
+  showToast('🖨️ Comanda generada');
 };
 
 // TABLES MODAL LOGIC
