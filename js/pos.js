@@ -808,7 +808,10 @@ async function confirmSale() {
       }]).select();
       if (error) throw error;
       showToast('✅ Venta registrada');
-      if (insertedOrder && insertedOrder.length > 0) showTicketPreview(insertedOrder[0]);
+      if (insertedOrder && insertedOrder.length > 0) {
+        printComanda(insertedOrder[0]);
+        showTicketPreview(insertedOrder[0]);
+      }
     }
 
     closeCheckoutModal();
@@ -854,18 +857,19 @@ async function saveTableOrder() {
     const customerPhone = document.getElementById('customerPhone')?.value?.trim() || 'N/A';
 
     if (currentOpenOrderId) {
-      const { error } = await supabaseClient.from('orders').update({
+      const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
         customer_name: customerName,
         customer_phone: customerPhone,
         items: items,
         total: total,
         status: 'En preparación',
         notes: '[ORIGIN:POS]'
-      }).eq('id', currentOpenOrderId);
+      }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
+      if (updatedOrder && updatedOrder.length > 0) printComanda(updatedOrder[0]);
     } else {
-      const { error } = await supabaseClient.from('orders').insert([{
+      const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -876,9 +880,10 @@ async function saveTableOrder() {
         total: total,
         status: 'En preparación',
         notes: '[ORIGIN:POS]'
-      }]);
+      }]).select();
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
+      if (insertedOrder && insertedOrder.length > 0) printComanda(insertedOrder[0]);
     }
     
     closeCheckoutModal();
@@ -1076,6 +1081,63 @@ function printPOSTicket(o) {
       <script>
         setTimeout(() => { window.print(); window.close(); }, 500);
       <\/script>
+    </body>
+  </html>`;
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+function printComanda(o) {
+  const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
+  if (!shouldPrint) return;
+
+  const ticketId = String(o.id).split('-')[0].toUpperCase();
+  const timeStr = new Date(o.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  const customerName = o.customer_name || 'Mostrador';
+  const customerPhone = o.customer_phone && o.customer_phone !== 'N/A' ? `<div style="font-weight:bold; font-size:20px; text-align:center;">${o.customer_phone}</div>` : '';
+
+  const itemsHtml = o.items.map(item => {
+    let mainName = item.name;
+    let extrasHtml = '';
+    const match = item.name.match(/^(.*) \((.*)\)$/);
+    if (match) {
+       mainName = match[1];
+       const extras = match[2].split(',').map(e => e.trim());
+       extrasHtml = extras.map(e => `<div style="padding-left:20px; font-size:18px;">+ ${e}</div>`).join('');
+    }
+    
+    return `
+      <div style="padding:6px 0;">
+          <div style="font-weight:bold; font-size:20px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
+          ${extrasHtml}
+      </div>`
+  }).join('');
+
+  const html = `
+  <html>
+    <head>
+      <title>Comanda #${ticketId}</title>
+      <style>
+        body { font-family: 'Courier New', Courier, monospace; font-size: 16px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        @media print { body { width: 100%; margin:0; padding:0; } }
+      </style>
+    </head>
+    <body>
+      <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center;">PEDIDO #${ticketId}</div>
+      ${customerPhone}
+      <div style="font-weight:bold; font-size:20px; text-align:center;">${timeStr}</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center;">${deliveryType}</div>
+      <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
+      <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
+        ${itemsHtml}
+      </div>
+      <script>
+        setTimeout(() => { window.print(); window.close(); }, 500);
+      </script>
     </body>
   </html>`;
 
