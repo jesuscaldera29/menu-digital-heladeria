@@ -226,7 +226,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    /* BOTTOM NAV - Cross-Device Dock */
+    /* BOTTOM NAV - All Devices */
     .bottom-nav {
       display: flex;
       position: fixed;
@@ -383,7 +383,7 @@
       <div class="flex items-center justify-between w-full sm:w-auto">
         <div class="flex items-center gap-4">
           <div>
-            <h1 class="text-2xl font-black">�x�⬍�x�� Administrador</h1>
+            <h1 class="text-2xl font-black">👨‍🍳 Administrador</h1>
             <p class="opacity-90 text-xs font-medium uppercase tracking-widest">Gestión de Menú</p>
           </div>
         </div>
@@ -395,54 +395,54 @@
       <!-- TABS -->
       <nav id="adminNavTabs" class="flex bg-black/10 p-1.5 rounded-2xl backdrop-blur-md flex-nowrap overflow-x-auto hide-scrollbar gap-1 max-w-full" style="-webkit-overflow-scrolling: touch;">
         <button id="tab-home" onclick="showSection('home', event)"
-          class="nav-tab active px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x�� Inicio</button>
+          class="nav-tab active px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏠 Inicio</button>
         <button id="tab-products" onclick="showSection('products', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Productos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🍔 Productos</button>
         <button id="tab-orders" onclick="showSection('orders', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x: Pedidos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🛒 Pedidos</button>
         <button id="tab-customers" onclick="showSection('customers', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Clientes</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👤 Clientes</button>
         <button id="tab-reports" onclick="showSection('reports', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x` Reportes</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📊 Reportes</button>
         <button id="tab-expenses" onclick="showSection('expenses', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Caja</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💰 Caja</button>
         <button id="tab-staff" onclick="showSection('staff', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Personal</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">👥 Personal</button>
         <button id="tab-coupons" onclick="showSection('coupons', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x}� Cupones</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🎫 Cupones</button>
         <button id="tab-credits" onclick="showSection('credits', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Créditos</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">💳 Créditos</button>
         <button id="tab-purchases" onclick="showSection('purchases', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x� Compras</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📦 Compras</button>
         <button id="tab-suppliers" onclick="showSection('suppliers', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x�� Proveedores</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏭 Proveedores</button>
         <button id="tab-recipes" onclick="showSection('recipes', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">�x Recetas</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📖 Recetas</button>
         <button id="tab-branches" onclick="showSection('branches', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">�x�� Sucursales</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
       </nav>
 
       <div class="hidden sm:flex items-center gap-2">
         <button id="btnEnableNotifications" onclick="enableNotifications()"
-          class="hidden sm:block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg transition-all">�x
+          class="hidden sm:block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg transition-all">🔔
           Activar Alertas</button>
         <button id="btnInstallApp"
-          class="hidden bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all">�x�
+          class="hidden bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all">📱
           Instalar App</button>
         <a href="pos.html" target="_blank"
-          class="bg-green-500/20 text-green-100 px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-green-500/40 transition-all border border-green-400/30">�x�
+          class="bg-green-500/20 text-green-100 px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-green-500/40 transition-all border border-green-400/30">💰
           POS</a>
         <a href="kiosk.html" target="_blank"
-          class="bg-blue-500/20 text-blue-100 px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-500/40 transition-all border border-blue-400/30">�x�
+          class="bg-blue-500/20 text-blue-100 px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-500/40 transition-all border border-blue-400/30">📱
           Kiosko</a>
         <a href="kds.html" target="_blank"
-          class="bg-white/10 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-white/20 transition-all border border-white/20">�x�
+          class="bg-white/10 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-white/20 transition-all border border-white/20">🔪
           Cocina</a>
         <a href="index.html"
-          class="bg-white text-black px-6 py-2 rounded-xl font-black text-sm shadow-lg active:scale-95 transition-all">�x�
+          class="bg-white text-black px-6 py-2 rounded-xl font-black text-sm shadow-lg active:scale-95 transition-all">📱
           Menú</a>
         <button onclick="logout()"
-          class="bg-white/20 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/30 transition-all">�xa�
+          class="bg-white/20 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/30 transition-all">🚪
           Salir</button>
       </div>
     </div>
@@ -453,29 +453,29 @@
   <aside class="mobile-sidebar" id="adminSidebar">
     <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
       <h2 class="font-black text-lg text-gray-800">Menú Principal</h2>
-      <button onclick="toggleAdminSidebar()" class="text-gray-400 hover:text-red-500 font-black text-xl px-2">�</button>
+      <button onclick="toggleAdminSidebar()" class="text-gray-400 hover:text-red-500 font-black text-xl px-2">×</button>
     </div>
     <div class="p-5 flex-1 overflow-y-auto space-y-3">
       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Herramientas</p>
       <a href="pos.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-green-50 text-green-700 font-bold active:scale-95 transition-all">
-        <span class="text-xl">�x�</span> Punto de Venta
+        <span class="text-xl">💰</span> Punto de Venta
       </a>
       <a href="kiosk.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-bold active:scale-95 transition-all">
-        <span class="text-xl">�x�</span> Kiosko Self-Service
+        <span class="text-xl">📱</span> Kiosko Self-Service
       </a>
       <a href="kds.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-orange-50 text-orange-700 font-bold active:scale-95 transition-all">
-        <span class="text-xl">�x�</span> Pantalla Cocina
+        <span class="text-xl">🔪</span> Pantalla Cocina
       </a>
       <a href="index.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 text-purple-700 font-bold active:scale-95 transition-all">
-        <span class="text-xl">�x�</span> Ver Menú Digital
+        <span class="text-xl">🍔</span> Ver Menú Digital
       </a>
       
       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-6 mb-2">Cuenta</p>
       <button onclick="enableNotifications()" class="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold transition-all text-left">
-        <span class="text-xl">�x</span> Activar Alertas
+        <span class="text-xl">🔔</span> Activar Alertas
       </button>
       <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-left">
-        <span class="text-xl">�xa�</span> Cerrar Sesión
+        <span class="text-xl">🚪</span> Cerrar Sesión
       </button>
     </div>
   </aside>
@@ -509,28 +509,28 @@
         <!-- Quick Actions -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="dash-card flex items-center gap-4" onclick="window.open('pos.html','_blank')">
-            <div class="dash-icon bg-blue-50 text-blue-600">�x:</div>
+            <div class="dash-icon bg-blue-50 text-blue-600">🛒</div>
             <div>
               <p class="font-black text-sm">Nueva Venta</p>
               <p class="text-[10px] text-gray-400">Abrir POS</p>
             </div>
           </div>
           <div class="dash-card flex items-center gap-4" onclick="showSection('purchases',event)">
-            <div class="dash-icon bg-green-50 text-green-600">�x�</div>
+            <div class="dash-icon bg-green-50 text-green-600">📦</div>
             <div>
               <p class="font-black text-sm">Nueva Compra</p>
               <p class="text-[10px] text-gray-400">Abastece inventario</p>
             </div>
           </div>
           <div class="dash-card flex items-center gap-4" onclick="showSection('expenses',event)">
-            <div class="dash-icon bg-red-50 text-red-600">�x�</div>
+            <div class="dash-icon bg-red-50 text-red-600">💰</div>
             <div>
               <p class="font-black text-sm">Nuevo Gasto</p>
               <p class="text-[10px] text-gray-400">Registra tus gastos</p>
             </div>
           </div>
           <div class="dash-card flex items-center gap-4" onclick="showSection('reports',event)">
-            <div class="dash-icon bg-purple-50 text-purple-600">�x`</div>
+            <div class="dash-icon bg-purple-50 text-purple-600">📊</div>
             <div>
               <p class="font-black text-sm">Ver Estadísticas</p>
               <p class="text-[10px] text-gray-400">Reportes y análisis</p>
@@ -542,7 +542,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="card !p-5 border-l-4 border-orange-500 cursor-pointer" onclick="showSection('credits',event)">
             <div class="flex items-center gap-3">
-              <div class="dash-icon bg-orange-50 text-orange-600">�x�</div>
+              <div class="dash-icon bg-orange-50 text-orange-600">💸</div>
               <div>
                 <p class="text-xs font-bold text-gray-400 uppercase">Pendiente por Cobrar</p>
                 <h3 id="dashDebtReceivable" class="text-xl font-black text-orange-600">$0</h3>
@@ -551,7 +551,7 @@
           </div>
           <div class="card !p-5 border-l-4 border-blue-500 cursor-pointer" onclick="showSection('suppliers',event)">
             <div class="flex items-center gap-3">
-              <div class="dash-icon bg-blue-50 text-blue-600">�x�</div>
+              <div class="dash-icon bg-blue-50 text-blue-600">💳</div>
               <div>
                 <p class="text-xs font-bold text-gray-400 uppercase">Pendiente por Pagar</p>
                 <h3 id="dashDebtPayable" class="text-xl font-black text-blue-600">$0</h3>
@@ -564,19 +564,19 @@
         <div class="card !p-5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="dash-icon bg-gray-100">�x��</div>
+              <div class="dash-icon bg-gray-100">🏧</div>
               <div>
                 <p class="text-xs font-bold text-gray-400 uppercase">Estado de Caja</p>
                 <h3 id="dashCashStatus" class="text-lg font-black">Caja Cerrada</h3>
               </div>
             </div>
-            <button id="dashCashBtn" onclick="showSection('expenses',event)" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all">�x Abrir Caja</button>
+            <button id="dashCashBtn" onclick="showSection('expenses',event)" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all">🔓 Abrir Caja</button>
           </div>
         </div>
 
         <!-- Recent Orders -->
         <div class="card">
-          <h2 class="text-lg font-black mb-4">�x"� �altimos Pedidos</h2>
+          <h2 class="text-lg font-black mb-4">🕐 Últimos Pedidos</h2>
           <div id="dashRecentOrders" class="space-y-3">
             <p class="text-sm text-gray-400 italic">Cargando...</p>
           </div>
@@ -591,7 +591,7 @@
         <div class="lg:col-span-4 space-y-8">
           <!-- LOGO -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-4">�x�️ Logo del negocio</h2>
+            <h2 class="text-xl font-bold mb-4">🖼️ Logo del negocio</h2>
             <div class="mb-4 flex flex-col items-center">
               <img id="logoPreview"
                 class="w-32 h-32 object-contain rounded-xl border border-gray-100 bg-gray-50 mb-3 hidden">
@@ -603,14 +603,14 @@
 
           <!-- WHATSAPP -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-4">�x� WhatsApp</h2>
+            <h2 class="text-xl font-bold mb-4">📲 WhatsApp</h2>
             <input type="text" id="whatsappInput" class="input" placeholder="573001112233">
             <button class="btn btn-primary mt-4" onclick="saveWhatsApp(event)">Guardar WhatsApp</button>
           </div>
 
-          <!-- CONFIGURACI�N DE MESAS Y URL -->
+          <!-- CONFIGURACIÓN DE MESAS Y URL -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-4">�a"️ Configuración del Menú</h2>
+            <h2 class="text-xl font-bold mb-4">⚙️ Configuración del Menú</h2>
             <div class="space-y-4">
               <div>
                 <label class="font-bold text-xs text-gray-500 uppercase tracking-widest">URL de tu Menú</label>
@@ -645,23 +645,23 @@
                 <input type="number" id="deliveryFeeInput" class="input !mt-1" placeholder="Ej: 5000" min="0">
                 <p class="text-[10px] text-gray-400 mt-1">Costo adicional que se suma al total cuando el cliente elige "Domicilio".</p>
               </div>
-              <button class="btn btn-primary w-full" onclick="saveMenuConfig(event)">�x� Guardar Configuración</button>
+              <button class="btn btn-primary w-full" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
             </div>
 
             <div class="mt-6 pt-6 border-t border-gray-100">
-              <h3 class="font-bold text-sm mb-3">�x�️ Generar Códigos QR</h3>
+              <h3 class="font-bold text-sm mb-3">🖨️ Generar Códigos QR</h3>
               <button class="btn bg-black text-white hover:bg-gray-800" onclick="generateQRs()">Generar QRs para Mesas</button>
             </div>
           </div>
 
-          <!-- IMPRESI�N AUTOMÁTICA -->
+          <!-- IMPRESIÓN AUTOMÁTICA -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-4">�x�️ Impresión Automática</h2>
+            <h2 class="text-xl font-bold mb-4">🖨️ Impresión Automática</h2>
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
               <p class="font-bold mb-2">¿Cómo activar la impresión automática en tu Cajero/POS?</p>
               <ol class="list-decimal pl-4 space-y-2">
                 <li>Ve a tu sistema de Cajero (POS) usando Google Chrome.</li>
-                <li>Activa el botón <strong>"�x�️ Auto-Print"</strong> en la barra superior del POS.</li>
+                <li>Activa el botón <strong>"🖨️ Auto-Print"</strong> en la barra superior del POS.</li>
                 <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200">--kiosk-printing</code>.</li>
               </ol>
               <div class="mt-3 text-xs bg-white p-3 rounded-lg border border-blue-100">
@@ -673,7 +673,7 @@
 
           <!-- AGREGAR PRODUCTO -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x� Agregar Producto</h2>
+            <h2 class="text-xl font-bold mb-5">🍔 Agregar Producto</h2>
             <input type="text" id="prodName" class="input" placeholder="Nombre producto">
             <input type="number" id="prodPrice" class="input" placeholder="Precio">
             <textarea id="prodDescription" class="input" placeholder="Descripción..." rows="3"></textarea>
@@ -681,7 +681,7 @@
               <input type="text" id="prodAccompaniments" class="input" placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
               <div class="flex items-center gap-2">
                 <select id="copyAccompanimentsFrom" class="input !py-2 text-xs text-gray-400">
-                  <option value="">�x9 Copiar acompañamientos de otro producto...</option>
+                  <option value="">📋 Copiar acompañamientos de otro producto...</option>
                 </select>
                 <button type="button" onclick="copyAccompaniments()" class="bg-[#333] hover:bg-[#444] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all border border-[#555] shrink-0">Copiar</button>
               </div>
@@ -689,14 +689,14 @@
             <input type="number" id="prodAccompanimentsLimit" class="input"
               placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
             <div class="mt-4">
-              <label class="font-bold text-sm text-gray-500 uppercase">�x Categoría</label>
+              <label class="font-bold text-sm text-gray-500 uppercase">📂 Categoría</label>
               <select id="prodCategory" class="input">
                 <option value="">Seleccionar</option>
-                <option value="Desayunos">�x�� Desayunos</option>
-                <option value="Almuerzos">�x�: Almuerzos</option>
-                <option value="Comidas Rápidas">�x� Comidas Rápidas</option>
-                <option value="Acompañantes">�x�x Acompañantes</option>
-                <option value="Bebidas">�x�� Bebidas</option>
+                <option value="Desayunos">🍳 Desayunos</option>
+                <option value="Almuerzos">🍛 Almuerzos</option>
+                <option value="Comidas Rápidas">🍔 Comidas Rápidas</option>
+                <option value="Acompañantes">🍟 Acompañantes</option>
+                <option value="Bebidas">🥤 Bebidas</option>
               </select>
               <div class="flex gap-2 mt-2">
                 <input type="text" id="newCategory" class="input !mt-0" placeholder="Nueva...">
@@ -710,12 +710,12 @@
               </div>
               <div class="flex items-center gap-2">
                 <input type="checkbox" id="prodPosOnly" class="w-5 h-5 accent-red-600 rounded cursor-pointer">
-                <label for="prodPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">�x�� Solo para el local (ocultar del menú online)</label>
+                <label for="prodPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">🏪 Solo para el local (ocultar del menú online)</label>
               </div>
             </div>
             <input type="file" id="prodImage" accept="image/*" class="input" onchange="previewImage(event)">
             <img id="prodPreview" class="preview">
-            <button class="btn btn-primary mt-5" onclick="addProduct(event)">�~" Agregar</button>
+            <button class="btn btn-primary mt-5" onclick="addProduct(event)">➕ Agregar</button>
           </div>
         </div>
 
@@ -723,7 +723,7 @@
         <div class="lg:col-span-8">
           <div class="card">
             <div class="flex items-center justify-between mb-8">
-              <h2 class="text-2xl font-black">�x9 Productos</h2>
+              <h2 class="text-2xl font-black">📋 Productos</h2>
               <div id="totalProducts"
                 class="bg-black text-white px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider">Cargando...
               </div>
@@ -738,30 +738,30 @@
     <div id="section-orders" class="section-content">
       <div class="card">
         <div class="flex flex-col lg:flex-row items-center justify-between mb-8 gap-4">
-          <h2 class="text-2xl font-black">�x: Pedidos Recientes</h2>
+          <h2 class="text-2xl font-black">🛒 Pedidos Recientes</h2>
           <div class="flex bg-gray-100 p-1 rounded-2xl flex-wrap justify-center gap-1">
             <button onclick="filterOrdersByStatus('Todos')"
               class="order-filter-btn active px-4 py-1.5 rounded-xl text-xs font-bold transition-all">Todos</button>
             <button onclick="filterOrdersByStatus('Pendiente')"
               class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">⏳ Pendientes</button>
             <button onclick="filterOrdersByStatus('Confirmado')"
-              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">�S& Confirmados</button>
+              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">✅ Confirmados</button>
             <button onclick="filterOrdersByStatus('Preparando')"
-              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">�x�⬍�x�� En
+              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">👨‍🍳 En
               Preparación</button>
             <button onclick="filterOrdersByStatus('Entregado')"
-              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">�xaa Entregados</button>
+              class="order-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold transition-all">🚚 Entregados</button>
           </div>
           <div class="flex items-center gap-2">
             <select id="orderTimeFilter" onchange="filterOrdersByTime(this.value)"
               class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer">
               <option value="all" selected>Todos los tiempos</option>
               <option value="today">Hoy</option>
-              <option value="7days">�altimos 7 días</option>
-              <option value="30days">�altimos 30 días</option>
+              <option value="7days">Últimos 7 días</option>
+              <option value="30days">Últimos 30 días</option>
             </select>
             <button onclick="loadOrders()"
-              class="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 transition-all flex items-center gap-2 text-sm font-bold">�x
+              class="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 transition-all flex items-center gap-2 text-sm font-bold">🔄
               Recargar</button>
           </div>
         </div>
@@ -789,13 +789,13 @@
     <div id="section-customers" class="section-content">
       <div class="card">
         <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
-          <h2 class="text-2xl font-black">�x� Directorio de Clientes</h2>
+          <h2 class="text-2xl font-black">👤 Directorio de Clientes</h2>
           <div class="flex gap-2 flex-wrap">
-            <button onclick="openNewCustomerModal()" class="btn bg-green-600 hover:bg-green-700 text-white !w-auto !py-2 !px-4 !text-sm">�~" Nuevo Cliente</button>
-            <button onclick="openImportModal('customers')" class="btn bg-blue-600 text-white !w-auto !py-2 !px-4 !text-sm">�x� Importar CSV</button>
-            <button onclick="openImportModal('products')" class="btn bg-purple-600 text-white !w-auto !py-2 !px-4 !text-sm">�x� Importar Productos CSV</button>
+            <button onclick="openNewCustomerModal()" class="btn bg-green-600 hover:bg-green-700 text-white !w-auto !py-2 !px-4 !text-sm">➕ Nuevo Cliente</button>
+            <button onclick="openImportModal('customers')" class="btn bg-blue-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar CSV</button>
+            <button onclick="openImportModal('products')" class="btn bg-purple-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar Productos CSV</button>
             <button onclick="deleteSelectedCustomers()"
-              class="btn btn-danger !w-auto !py-2 !px-6 !text-sm flex items-center gap-2">�x️ Eliminar Seleccionados</button>
+              class="btn btn-danger !w-auto !py-2 !px-6 !text-sm flex items-center gap-2">🗑️ Eliminar Seleccionados</button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -839,13 +839,13 @@
 
       <div class="card">
         <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-          <h2 class="text-2xl font-black">�x` Resumen de Ventas</h2>
+          <h2 class="text-2xl font-black">📊 Resumen de Ventas</h2>
           <div class="flex flex-wrap items-center justify-center gap-2">
             <input type="date" id="reportStartDate" class="input !mt-0 !py-2 !px-4 !text-sm !w-auto">
             <span class="text-gray-400">a</span>
             <input type="date" id="reportEndDate" class="input !mt-0 !py-2 !px-4 !text-sm !w-auto">
             <button onclick="generateReport()" class="btn btn-primary !w-auto !py-2 !px-6 !text-sm">Generar</button>
-            <button onclick="downloadReportCSV()" class="btn bg-green-600 text-white !w-auto !py-2 !px-6 !text-sm">�x�
+            <button onclick="downloadReportCSV()" class="btn bg-green-600 text-white !w-auto !py-2 !px-6 !text-sm">📥
               Descargar CSV</button>
           </div>
         </div>
@@ -864,19 +864,19 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-6">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x� Registrar Gasto</h2>
+            <h2 class="text-xl font-bold mb-5">💰 Registrar Gasto</h2>
             <select id="expenseCategory" class="input">
-              <option value="Ingredientes">�x� Ingredientes</option>
-              <option value="Servicios">�x� Servicios</option>
-              <option value="Personal">�x� Personal</option>
-              <option value="Arriendo">�x�� Arriendo</option>
-              <option value="Transporte">�xaa Transporte</option>
-              <option value="Otro">�x� Otro</option>
+              <option value="Ingredientes">🧂 Ingredientes</option>
+              <option value="Servicios">💡 Servicios</option>
+              <option value="Personal">👤 Personal</option>
+              <option value="Arriendo">🏠 Arriendo</option>
+              <option value="Transporte">🚚 Transporte</option>
+              <option value="Otro">📦 Otro</option>
             </select>
             <input type="text" id="expenseDescription" class="input" placeholder="Descripción del gasto">
             <input type="number" id="expenseAmount" class="input" placeholder="Monto ($)" min="0">
             <input type="date" id="expenseDate" class="input">
-            <button class="btn btn-primary mt-4" onclick="addExpense(event)">�~" Registrar Gasto</button>
+            <button class="btn btn-primary mt-4" onclick="addExpense(event)">➕ Registrar Gasto</button>
           </div>
           <div class="card bg-red-50 border-red-100">
             <p class="text-xs font-black text-red-600 uppercase tracking-widest">Gastos del Mes</p>
@@ -886,7 +886,7 @@
         <div class="lg:col-span-8">
           <div class="card">
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-black">�x9 Historial de Gastos</h2>
+              <h2 class="text-2xl font-black">📋 Historial de Gastos</h2>
               <select id="expenseTimeFilter" onchange="loadExpenses()" class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold">
                 <option value="month">Este Mes</option>
                 <option value="week">Esta Semana</option>
@@ -906,12 +906,12 @@
       <div class="card mt-8">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
           <div>
-            <h2 class="text-2xl font-black">�x� Movimientos de Efectivo</h2>
+            <h2 class="text-2xl font-black">💵 Movimientos de Efectivo</h2>
             <p class="text-sm text-gray-500">Registra entradas o salidas de dinero que NO son ventas ni gastos (Ej: Cambio, Devoluciones, Retiros de dueño).</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="openCashMovementModal('deposit')" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-4">�x� Ingreso de Efectivo</button>
-            <button onclick="openCashMovementModal('withdrawal')" class="btn bg-orange-500 hover:bg-orange-600 text-white !w-auto !px-4">�x� Salida de Efectivo</button>
+            <button onclick="openCashMovementModal('deposit')" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-4">📥 Ingreso de Efectivo</button>
+            <button onclick="openCashMovementModal('withdrawal')" class="btn bg-orange-500 hover:bg-orange-600 text-white !w-auto !px-4">📤 Salida de Efectivo</button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -924,10 +924,10 @@
       <!-- Gestión de Caja -->
       <div class="card mt-8">
         <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
-          <h2 class="text-2xl font-black">�x` Gestión de Caja</h2>
+          <h2 class="text-2xl font-black">📊 Gestión de Caja</h2>
           <div class="flex gap-2">
-            <button onclick="openCashOpeningModal()" id="btnOpenCash" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-6">�x Abrir Caja</button>
-            <button onclick="startCashClosing()" id="btnCloseCash" class="btn btn-primary !w-auto !px-6 hidden">�x Iniciar Cierre</button>
+            <button onclick="openCashOpeningModal()" id="btnOpenCash" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-6">🔓 Abrir Caja</button>
+            <button onclick="startCashClosing()" id="btnCloseCash" class="btn btn-primary !w-auto !px-6 hidden">🔒 Iniciar Cierre</button>
           </div>
         </div>
         <div id="cashClosingResult" class="hidden"></div>
@@ -944,7 +944,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-6">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x� Agregar Empleado</h2>
+            <h2 class="text-xl font-bold mb-5">👥 Agregar Empleado</h2>
             <input type="text" id="staffName" class="input" placeholder="Nombre completo">
             <select id="staffRole" class="input">
               <option value="Administrador">Administrador</option>
@@ -973,12 +973,12 @@
                 <input type="text" id="staffWorkDays" class="input !text-sm" placeholder="Ej: Lun-Sáb" value="Lun-Sáb">
               </div>
             </div>
-            <button class="btn btn-primary mt-4" onclick="addStaff(event)">�~" Agregar Empleado</button>
+            <button class="btn btn-primary mt-4" onclick="addStaff(event)">➕ Agregar Empleado</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Equipo de Trabajo</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Equipo de Trabajo</h2>
             <div id="staffList" class="space-y-4"></div>
           </div>
           <div class="card mt-8">
@@ -988,8 +988,8 @@
                 <select id="shiftStaffSelect" class="input !w-auto !text-sm !py-2">
                   <option value="">-- Seleccionar Empleado --</option>
                 </select>
-                <button onclick="registerEntry()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">�xx� Marcar Entrada</button>
-                <button onclick="registerExit()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">�x� Marcar Salida</button>
+                <button onclick="registerEntry()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">🟢 Marcar Entrada</button>
+                <button onclick="registerExit()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all">🔴 Marcar Salida</button>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -1007,7 +1007,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x}� Crear Cupón</h2>
+            <h2 class="text-xl font-bold mb-5">🎫 Crear Cupón</h2>
             <input type="text" id="couponCode" class="input" placeholder="Código (ej: DESCUENTO20)" oninput="this.value=this.value.toUpperCase()">
             <select id="couponType" class="input">
               <option value="percentage">% Porcentaje</option>
@@ -1017,25 +1017,25 @@
             <input type="number" id="couponMinOrder" class="input" placeholder="Pedido mínimo ($) - Opcional" min="0">
             <input type="number" id="couponMaxUses" class="input" placeholder="Máximo usos (vacío = ilimitado)" min="1">
             <input type="date" id="couponValidUntil" class="input">
-            <button class="btn btn-primary mt-4" onclick="createCoupon(event)">�x}� Crear Cupón</button>
+            <button class="btn btn-primary mt-4" onclick="createCoupon(event)">🎫 Crear Cupón</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Cupones Activos</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Cupones Activos</h2>
             <div id="couponsList" class="space-y-4"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- SECTION: CR�0DITOS -->
+    <!-- SECTION: CRÉDITOS -->
     <div id="section-credits" class="section-content">
       <!-- Deudas Summary -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div class="card !p-5 border-l-4 border-orange-500">
           <div class="flex items-center gap-3">
-            <div class="dash-icon bg-orange-50 text-orange-600">�x�</div>
+            <div class="dash-icon bg-orange-50 text-orange-600">💸</div>
             <div>
               <p class="text-xs font-bold text-gray-400 uppercase">Total Pendiente por Cobrar</p>
               <h3 id="creditsTotalReceivable" class="text-xl font-black text-orange-600">$0</h3>
@@ -1044,7 +1044,7 @@
         </div>
         <div class="card !p-5 border-l-4 border-green-500">
           <div class="flex items-center gap-3">
-            <div class="dash-icon bg-green-50 text-green-600">�S&</div>
+            <div class="dash-icon bg-green-50 text-green-600">✅</div>
             <div>
               <p class="text-xs font-bold text-gray-400 uppercase">Cuentas Activas</p>
               <h3 id="creditsTotalAccounts" class="text-xl font-black text-green-600">0</h3>
@@ -1055,16 +1055,16 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x� Nueva Cuenta de Crédito</h2>
+            <h2 class="text-xl font-bold mb-5">💳 Nueva Cuenta de Crédito</h2>
             <input type="text" id="creditName" class="input" placeholder="Nombre del cliente">
             <input type="tel" id="creditPhone" class="input" placeholder="Teléfono">
             <input type="number" id="creditLimit" class="input" placeholder="Límite de crédito ($)" min="0">
-            <button class="btn btn-primary mt-4" onclick="createCreditAccount(event)">�x� Crear Cuenta</button>
+            <button class="btn btn-primary mt-4" onclick="createCreditAccount(event)">💳 Crear Cuenta</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Cuentas de Crédito</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Cuentas de Crédito</h2>
             <div id="creditsList" class="space-y-4"></div>
           </div>
         </div>
@@ -1076,7 +1076,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-6">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x� Registrar Compra</h2>
+            <h2 class="text-xl font-bold mb-5">📦 Registrar Compra</h2>
             <select id="purchaseSupplier" class="input">
               <option value="">-- Seleccionar Proveedor --</option>
             </select>
@@ -1094,7 +1094,7 @@
               <option value="Crédito Proveedor">Crédito Proveedor</option>
             </select>
             <textarea id="purchaseNotes" class="input" placeholder="Notas (opcional)" rows="2"></textarea>
-            <button class="btn btn-primary mt-4" onclick="savePurchase(event)">�x� Registrar Compra</button>
+            <button class="btn btn-primary mt-4" onclick="savePurchase(event)">📦 Registrar Compra</button>
           </div>
           <div class="card bg-green-50 border-green-100">
             <p class="text-xs font-black text-green-600 uppercase tracking-widest">Compras del Mes</p>
@@ -1104,7 +1104,7 @@
         <div class="lg:col-span-8">
           <div class="card">
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-black">�x9 Historial de Compras</h2>
+              <h2 class="text-2xl font-black">📋 Historial de Compras</h2>
               <select id="purchaseTimeFilter" onchange="loadPurchases()" class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold">
                 <option value="month">Este Mes</option>
                 <option value="week">Esta Semana</option>
@@ -1126,18 +1126,18 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x�� Nuevo Proveedor</h2>
+            <h2 class="text-xl font-bold mb-5">🏭 Nuevo Proveedor</h2>
             <input type="text" id="supplierName" class="input" placeholder="Nombre del proveedor">
             <input type="tel" id="supplierPhone" class="input" placeholder="Teléfono">
             <input type="email" id="supplierEmail" class="input" placeholder="Email (opcional)">
             <input type="text" id="supplierAddress" class="input" placeholder="Dirección (opcional)">
             <textarea id="supplierNotes" class="input" placeholder="Notas (productos que vende, etc.)" rows="2"></textarea>
-            <button class="btn btn-primary mt-4" onclick="saveSupplier(event)">�x�� Guardar Proveedor</button>
+            <button class="btn btn-primary mt-4" onclick="saveSupplier(event)">🏭 Guardar Proveedor</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Mis Proveedores</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Mis Proveedores</h2>
             <div class="overflow-x-auto">
               <table class="admin-table"><thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Notas</th><th>Acciones</th></tr></thead>
                 <tbody id="suppliersList"></tbody>
@@ -1153,7 +1153,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x Nueva Receta</h2>
+            <h2 class="text-xl font-bold mb-5">📖 Nueva Receta</h2>
             <input type="text" id="recipeName" class="input" placeholder="Nombre de la receta">
             <select id="recipeProduct" class="input"><option value="">Vincular a producto (opcional)</option></select>
             <textarea id="recipeInstructions" class="input" placeholder="Instrucciones de preparación..." rows="3"></textarea>
@@ -1169,12 +1169,12 @@
               </div>
               <button onclick="addIngredientRow()" class="text-sm text-orange-600 font-bold mt-2">+ Agregar ingrediente</button>
             </div>
-            <button class="btn btn-primary mt-4" onclick="saveRecipe(event)">�x Guardar Receta</button>
+            <button class="btn btn-primary mt-4" onclick="saveRecipe(event)">📖 Guardar Receta</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Recetas Guardadas</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Recetas Guardadas</h2>
             <div id="recipesList" class="space-y-4"></div>
           </div>
         </div>
@@ -1186,18 +1186,18 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">�x�� Nueva Sucursal</h2>
+            <h2 class="text-xl font-bold mb-5">🏪 Nueva Sucursal</h2>
             <p class="text-xs text-gray-500 mb-4">Crea un nuevo local. Tendrá su propio enlace, inventario y ventas.</p>
             <input type="text" id="branchName" class="input" placeholder="Nombre (Ej: Goloso Sur)">
             <input type="text" id="branchSlug" class="input" placeholder="Enlace corto (Ej: goloso-sur)">
             <input type="email" id="branchEmail" class="input" placeholder="Correo de administrador">
             <input type="password" id="branchPassword" class="input" placeholder="Contraseña">
-            <button class="btn btn-primary mt-4" onclick="createBranch(event)">�x�� Crear Sucursal</button>
+            <button class="btn btn-primary mt-4" onclick="createBranch(event)">🏪 Crear Sucursal</button>
           </div>
         </div>
         <div class="lg:col-span-8">
           <div class="card">
-            <h2 class="text-2xl font-black mb-6">�x9 Mis Sucursales</h2>
+            <h2 class="text-2xl font-black mb-6">📋 Mis Sucursales</h2>
             <div id="branchesList" class="space-y-4"></div>
           </div>
         </div>
@@ -1209,56 +1209,56 @@
       <!-- Top Cards -->
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-3 cursor-pointer hover:bg-gray-50 transition-all" onclick="showSection('staff')">
-          <div class="text-2xl mt-1">�x�</div>
+          <div class="text-2xl mt-1">👤</div>
           <div>
-            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar empleado <span class="text-gray-400 md:hidden">⬺</span></div>
+            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar empleado <span class="text-gray-400 md:hidden">›</span></div>
             <div class="text-xs text-gray-500 mt-1 leading-tight">Empleado actual:<br><span id="moreCurrentEmployee" class="font-semibold text-gray-700">Administrador</span></div>
           </div>
-          <div class="hidden md:flex ml-auto items-center text-gray-400">⬺</div>
+          <div class="hidden md:flex ml-auto items-center text-gray-400">›</div>
         </div>
         <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-3 cursor-pointer hover:bg-gray-50 transition-all" onclick="showSection('branches')">
-          <div class="text-2xl mt-1">�x��</div>
+          <div class="text-2xl mt-1">🏪</div>
           <div>
-            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar punto <span class="text-gray-400 md:hidden">⬺</span></div>
+            <div class="font-bold text-gray-800 flex items-center justify-between">Cambiar punto <span class="text-gray-400 md:hidden">›</span></div>
             <div class="text-xs text-gray-500 mt-1 leading-tight">Punto de venta:<br><span id="moreCurrentBranch" class="font-semibold text-gray-700">Principal</span></div>
           </div>
-          <div class="hidden md:flex ml-auto items-center text-gray-400">⬺</div>
+          <div class="hidden md:flex ml-auto items-center text-gray-400">›</div>
         </div>
       </div>
 
       <!-- Menu List -->
       <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden mb-20">
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('purchases')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x:�️</span><span class="font-semibold text-gray-800 text-[15px]">Compras</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🛍️</span><span class="font-semibold text-gray-800 text-[15px]">Compras</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('products')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x�</span><span class="font-semibold text-gray-800 text-[15px]">Productos</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🍔</span><span class="font-semibold text-gray-800 text-[15px]">Productos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('supplies')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x�`</span><span class="font-semibold text-gray-800 text-[15px]">Insumos</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🧊</span><span class="font-semibold text-gray-800 text-[15px]">Insumos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('products')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x️</span><span class="font-semibold text-gray-800 text-[15px]">Categorías</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🗂️</span><span class="font-semibold text-gray-800 text-[15px]">Categorías</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('customers')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x�</span><span class="font-semibold text-gray-800 text-[15px]">Clientes/Proveedores</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">👥</span><span class="font-semibold text-gray-800 text-[15px]">Clientes/Proveedores</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('settings')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�a"️</span><span class="font-semibold text-gray-800 text-[15px]">Ajustes</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">⚙️</span><span class="font-semibold text-gray-800 text-[15px]">Ajustes</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all" onclick="showSection('features')">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x:�️</span><span class="font-semibold text-gray-800 text-[15px]">Configuración adicional</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🛠️</span><span class="font-semibold text-gray-800 text-[15px]">Configuración adicional</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
         <button class="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-all" onclick="window.location.reload(true)">
-          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">�x</span><span class="font-semibold text-gray-800 text-[15px]">Actualizar base de datos</span></div>
-          <span class="text-gray-400 text-xl">⬺</span>
+          <div class="flex items-center gap-4"><span class="text-2xl text-gray-500">🔄</span><span class="font-semibold text-gray-800 text-[15px]">Actualizar base de datos</span></div>
+          <span class="text-gray-400 text-xl">›</span>
         </button>
       </div>
     </div>
@@ -1267,7 +1267,7 @@
     <div id="section-settings" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-white min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('more')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800">Ajustes</h2>
       </div>
@@ -1278,12 +1278,12 @@
           <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Configuración del Negocio</h3>
           <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
             <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-general')">
-              <span class="text-2xl text-gray-400 mr-4">�x��</span>
+              <span class="text-2xl text-gray-400 mr-4">🏪</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">Configuración General</div>
                 <div class="text-sm text-gray-500">Información del Negocio</div>
               </div>
-              <span class="text-gray-400 text-xl ml-2">⬺</span>
+              <span class="text-gray-400 text-xl ml-2">›</span>
             </button>
           </div>
         </div>
@@ -1293,21 +1293,21 @@
           <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Dispositivos y Hardware</h3>
           <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
             <button class="w-full flex items-center p-4 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-printers')">
-              <span class="text-2xl text-gray-400 mr-4">�x�️</span>
+              <span class="text-2xl text-gray-400 mr-4">🖨️</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">Configurar impresoras</div>
                 <div class="text-sm text-gray-500">Opciones para configurar la impresora</div>
               </div>
-              <span class="text-gray-400 text-xl ml-2">⬺</span>
+              <span class="text-gray-400 text-xl ml-2">›</span>
             </button>
             <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left">
-              <span class="text-2xl text-gray-400 mr-4">�a️</span>
+              <span class="text-2xl text-gray-400 mr-4">⚖️</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">Configurar Básculas</div>
                 <div class="text-sm text-gray-500">Opciones para configurar las básculas</div>
               </div>
-              <span class="text-yellow-500 text-xl ml-2">�a�</span>
-              <span class="text-gray-400 text-xl ml-1">⬺</span>
+              <span class="text-yellow-500 text-xl ml-2">⚡</span>
+              <span class="text-gray-400 text-xl ml-1">›</span>
             </button>
           </div>
         </div>
@@ -1317,20 +1317,20 @@
           <h3 class="text-sm font-bold text-gray-800 mb-3 px-1">Configuración de Negocio</h3>
           <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
             <button class="w-full flex items-center p-4 border-b border-gray-50 hover:bg-gray-50 transition-all text-left">
-              <span class="text-2xl text-gray-400 mr-4">�x�</span>
+              <span class="text-2xl text-gray-400 mr-4">🔧</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">Más opciones</div>
                 <div class="text-sm text-gray-500">Más opciones para configurar el negocio y la App</div>
               </div>
-              <span class="text-gray-400 text-xl ml-2">⬺</span>
+              <span class="text-gray-400 text-xl ml-2">›</span>
             </button>
             <button class="w-full flex items-center p-4 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipts')">
-              <span class="text-2xl text-gray-400 mr-4">�x��</span>
+              <span class="text-2xl text-gray-400 mr-4">🧾</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">Recibos de caja y rangos de numeración</div>
                 <div class="text-sm text-gray-500">Personaliza el recibo de caja y resoluciones de facturación</div>
               </div>
-              <span class="text-gray-400 text-xl ml-2">⬺</span>
+              <span class="text-gray-400 text-xl ml-2">›</span>
             </button>
           </div>
         </div>
@@ -1343,10 +1343,10 @@
     <div id="section-settings-printers" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800">Configurar impresoras</h2>
-        <span class="ml-auto text-yellow-500 text-2xl">�a�</span>
+        <span class="ml-auto text-yellow-500 text-2xl">⚡</span>
       </div>
 
       <div class="space-y-6 pb-24">
@@ -1389,7 +1389,7 @@
               </label>
               <button class="flex flex-col items-center justify-center text-[10px] text-gray-500 font-bold" onclick="openCashDrawer()">
                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mb-1"><div class="w-3 h-3 rounded-full bg-orange-500 border-[3px] border-white outline-orange-500"></div></div>
-                ABRIR CAJ�N
+                ABRIR CAJÓN
               </button>
             </div>
           </div>
@@ -1415,12 +1415,12 @@
             </div>
 
             <button id="btnLanPos" class="w-full flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all text-left hidden" onclick="showSection('settings-lan')">
-              <span class="text-2xl text-gray-400 mr-4">�x�</span>
+              <span class="text-2xl text-gray-400 mr-4">🖧</span>
               <div class="flex-1">
                 <div class="font-semibold text-gray-800">POS conectados (LAN)</div>
                 <div class="text-sm text-gray-500">Ver y gestionar los POS de meseros conectados por red local</div>
               </div>
-              <span class="text-gray-400 text-xl ml-2">⬺</span>
+              <span class="text-gray-400 text-xl ml-2">›</span>
             </button>
 
             <div>
@@ -1440,7 +1440,7 @@
       <!-- Sticky Bottom Button -->
       <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
         <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors" onclick="showSection('new-printer')">
-          <span>�x�️</span> Nueva Impresora <span class="text-xl">+</span>
+          <span>🖨️</span> Nueva Impresora <span class="text-xl">+</span>
         </button>
       </div>
     </div>
@@ -1450,18 +1450,18 @@
       <div class="flex items-center justify-between p-4 bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
         <div class="flex items-center gap-4">
           <button onclick="showSection('settings-printers')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-            <i class="text-xl">⬹</i>
+            <i class="text-xl">‹</i>
           </button>
           <h2 class="text-xl font-bold text-gray-800">Nueva Impresora</h2>
         </div>
-        <button class="text-green-600 text-2xl font-bold">� �</button>
+        <button class="text-green-600 text-2xl font-bold">↻</button>
       </div>
 
       <div class="p-4 md:px-8 max-w-2xl mx-auto space-y-6">
         
         <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5">
           <div class="flex items-center gap-3 border-b border-gray-100 pb-2 mb-4">
-            <span class="text-gray-400 text-xl">�x�️</span>
+            <span class="text-gray-400 text-xl">🖨️</span>
             <input type="text" id="newPrinterName" placeholder="Nombre de la impresora" class="w-full text-lg outline-none text-gray-800 font-medium bg-transparent placeholder-gray-400">
           </div>
 
@@ -1488,7 +1488,7 @@
                   <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00c875]"></div>
                 </label>
                 <button class="flex flex-col items-center justify-center text-[10px] text-gray-500 font-bold hover:text-yellow-600 transition-colors">
-                  <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center mb-1 text-orange-400 text-lg">�x️</div>
+                  <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center mb-1 text-orange-400 text-lg">🗂️</div>
                   ZONAS
                 </button>
               </div>
@@ -1511,27 +1511,27 @@
             <div>
               <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Marca</label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�x�</div>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📺</div>
                 <select id="npBrand" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
                   <option>Otra</option>
                   <option>Epson</option>
                   <option>Star</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">��</div>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Tipo de impresora</label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�x�️</div>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">🖨️</div>
                 <select id="npType" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
                   <option>Seleccionar</option>
                   <option>Red (LAN/WiFi)</option>
                   <option>Bluetooth</option>
                   <option>USB</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">��</div>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
               </div>
             </div>
           </div>
@@ -1547,31 +1547,31 @@
             <div>
               <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Tipo de impresión</label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�x</div>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📄</div>
                 <select class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none">
                   <option>Texto</option>
                   <option>Imagen (Raster)</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">��</div>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Codificación de caracteres</label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�x�</div>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">🔤</div>
                 <select class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 appearance-none font-bold text-gray-800 focus:outline-none">
                   <option>CP1252 default</option>
                   <option>UTF-8</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">��</div>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">▼</div>
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Commands ESC/POS apertura de cajon</label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�xx</div>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📟</div>
                 <input type="text" value="27,112,00,30,255,00" class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 font-bold text-gray-800 focus:outline-none">
               </div>
             </div>
@@ -1584,7 +1584,7 @@
           
           <div class="space-y-4 mb-4">
             <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">�x�</div>
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">📡</div>
               <input type="text" id="npIp" placeholder="Dirección IP" class="w-full bg-white border border-gray-200 rounded-xl py-4 pl-10 pr-4 text-gray-800 focus:outline-none focus:border-[#00c875] focus:ring-1 focus:ring-[#00c875]">
             </div>
             <div class="relative">
@@ -1594,7 +1594,7 @@
           </div>
 
           <button class="w-full bg-white border border-[#00c875] text-[#00c875] font-bold rounded-[16px] py-4 flex items-center justify-center gap-2 hover:bg-green-50 transition-colors" onclick="testPrinterConnection()">
-            Imprimir prueba <span class="bg-[#00c875] text-white p-1 rounded">�x�️</span>
+            Imprimir prueba <span class="bg-[#00c875] text-white p-1 rounded">🖨️</span>
           </button>
         </div>
       </div>
@@ -1610,7 +1610,7 @@
     <div id="section-settings-lan" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('settings-printers')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800">POS conectados (LAN)</h2>
       </div>
@@ -1619,19 +1619,19 @@
         <h3 class="font-bold text-gray-800 text-lg mb-8">POS conectados (<span id="lanCount">0/0</span>)</h3>
         
         <div id="lanDevicesList" class="flex flex-col items-center justify-center text-center py-8">
-          <div class="text-6xl text-gray-300 mb-4">�x�</div>
+          <div class="text-6xl text-gray-300 mb-4">🖧</div>
           <div class="font-semibold text-gray-600 text-lg mb-2">Aún no hay POS conectados</div>
           <div class="text-sm text-gray-400 max-w-[250px]">Asegúrate de que los meseros tengan activado el servidor LAN KDS y estén en la misma red WiFi.</div>
         </div>
       </div>
 
       <button class="w-full bg-[#00c875] text-white font-bold rounded-[16px] py-4 shadow flex items-center justify-center gap-2 hover:bg-[#00b065] transition-colors mb-6" onclick="scanLanDevices()">
-        <span class="text-xl">�x�</span> Buscar POS meseros en la red
+        <span class="text-xl">🔍</span> Buscar POS meseros en la red
       </button>
 
       <div class="bg-blue-50 rounded-[16px] border border-blue-100 p-5">
         <div class="flex items-center gap-2 text-blue-700 font-bold mb-2">
-          <span>��️</span> Cómo funciona
+          <span>ℹ️</span> Cómo funciona
         </div>
         <p class="text-sm text-blue-800 leading-relaxed">Este central descubre automáticamente los equipos POS cada minuto y se conecta para recibir las órdenes y disparar la impresión de comandas.</p>
       </div>
@@ -1642,19 +1642,19 @@
         <!-- Top bar -->
         <div class="flex items-center justify-between p-4 gap-3">
           <button onclick="showSection('more')" class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm flex-shrink-0">
-            <i class="text-xl">⬹</i>
+            <i class="text-xl">‹</i>
           </button>
           
           <div class="flex-1 relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              �x�
+              🔍
             </div>
             <input type="text" id="searchSupplies" placeholder="Buscar insumos" class="w-full bg-white border border-gray-100 rounded-full py-2.5 pl-10 pr-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00c875] shadow-sm">
           </div>
           
           <div class="flex items-center gap-3 text-gray-500 flex-shrink-0">
-            <button onclick="renderSupplies()" class="text-xl hover:text-gray-800 transition-colors">� �</button>
-            <button class="text-xl hover:text-gray-800 transition-colors">�x�</button>
+            <button onclick="renderSupplies()" class="text-xl hover:text-gray-800 transition-colors">↻</button>
+            <button class="text-xl hover:text-gray-800 transition-colors">📱</button>
             <button class="text-xl hover:text-gray-800 transition-colors">Y</button>
           </div>
         </div>
@@ -1706,7 +1706,7 @@
       <div class="bg-white rounded-[24px] w-full max-w-md overflow-hidden transform transition-all shadow-xl">
         <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 class="text-xl font-bold text-gray-800" id="supplyModalTitle">Nuevo Insumo</h3>
-          <button onclick="closeSupplyModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 flex items-center justify-center font-bold">�</button>
+          <button onclick="closeSupplyModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 flex items-center justify-center font-bold">×</button>
         </div>
         <div class="p-5 space-y-4">
           <input type="hidden" id="supplyId">
@@ -1752,36 +1752,36 @@
     <div id="section-settings-receipts" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800">Recibos de caja y...</h2>
       </div>
 
       <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
         <button class="w-full flex items-center p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipt-cash')">
-          <span class="text-2xl text-gray-400 mr-4">�x��</span>
+          <span class="text-2xl text-gray-400 mr-4">🧾</span>
           <div class="flex-1">
             <div class="font-semibold text-gray-800 text-[15px]">Recibo de caja</div>
             <div class="text-sm text-gray-500">Personaliza el recibo de caja</div>
           </div>
-          <span class="text-gray-400 text-xl ml-2">⬺</span>
+          <span class="text-gray-400 text-xl ml-2">›</span>
         </button>
         <button class="w-full flex items-center p-4 md:p-5 border-b border-gray-50 hover:bg-gray-50 transition-all text-left" onclick="showSection('settings-receipt-kds')">
-          <span class="text-2xl text-gray-400 mr-4">�x��</span>
+          <span class="text-2xl text-gray-400 mr-4">🧾</span>
           <div class="flex-1">
             <div class="font-semibold text-gray-800 text-[15px]">Recibo de comanda</div>
             <div class="text-sm text-gray-500">Personaliza el recibo de comanda</div>
           </div>
-          <span class="text-gray-400 text-xl ml-2">⬺</span>
+          <span class="text-gray-400 text-xl ml-2">›</span>
         </button>
         <button class="w-full flex items-center p-4 md:p-5 hover:bg-gray-50 transition-all text-left">
-          <span class="text-2xl text-gray-400 mr-4">�x️</span>
+          <span class="text-2xl text-gray-400 mr-4">🗂️</span>
           <div class="flex-1">
             <div class="font-semibold text-gray-800 text-[15px]">Rangos de numeración</div>
             <div class="text-sm text-gray-500">Asigna rangos de numeración a tus recibos de caja</div>
           </div>
-          <span class="text-yellow-500 text-xl ml-2">�a�</span>
-          <span class="text-gray-400 text-xl ml-1">⬺</span>
+          <span class="text-yellow-500 text-xl ml-2">⚡</span>
+          <span class="text-gray-400 text-xl ml-1">›</span>
         </button>
       </div>
     </div>
@@ -1790,7 +1790,7 @@
     <div id="section-settings-receipt-cash" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('settings-receipts')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800 truncate">Personaliza el recibo de caja</h2>
       </div>
@@ -1855,7 +1855,7 @@
 
       <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:relative md:bg-transparent md:border-none md:p-0">
         <button class="w-full bg-[#00c875] text-white font-bold text-lg rounded-[16px] py-4 shadow flex items-center justify-center hover:bg-[#00b065] transition-colors" onclick="saveReceiptConfig('cash')">
-          ACTUALIZAR <span class="ml-2">�x�</span>
+          ACTUALIZAR <span class="ml-2">💾</span>
         </button>
       </div>
     </div>
@@ -1864,7 +1864,7 @@
     <div id="section-settings-receipt-kds" class="section-content px-4 py-6 md:px-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <div class="flex items-center gap-4 mb-6">
         <button onclick="showSection('settings-receipts')" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-2xl font-black text-gray-800 truncate">Personaliza el recibo de com...</h2>
       </div>
@@ -1910,7 +1910,7 @@
     <div id="section-settings-general" class="section-content bg-white min-h-screen">
       <div class="flex items-center gap-4 p-4 border-b border-gray-100 md:px-8">
         <button onclick="showSection('settings')" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <i class="text-xl">⬹</i>
+          <i class="text-xl">‹</i>
         </button>
         <h2 class="text-xl font-bold text-gray-800">Tipo de negocio</h2>
       </div>
@@ -1937,11 +1937,11 @@
   <!-- MODAL: APERTURA DE CAJA -->
   <div id="cashOpeningModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-2">�x Apertura de Caja</h2>
+      <h2 class="text-2xl font-black mb-2">🔓 Apertura de Caja</h2>
       <p class="text-sm text-gray-500 mb-6">Ingresa el monto inicial con el que empiezas tu turno en la caja.</p>
       <input type="number" id="openingAmount" class="input" placeholder="Monto base ($)" min="0">
       <div class="grid grid-cols-2 gap-4 mt-6">
-        <button class="btn btn-primary bg-green-500 hover:bg-green-600 border-none text-white" onclick="confirmCashOpening()">�S& Abrir Caja</button>
+        <button class="btn btn-primary bg-green-500 hover:bg-green-600 border-none text-white" onclick="confirmCashOpening()">✅ Abrir Caja</button>
         <button class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 border-none" onclick="document.getElementById('cashOpeningModal').style.display='none'">Cancelar</button>
       </div>
     </div>
@@ -1950,13 +1950,13 @@
   <!-- MODAL: MOVIMIENTO DE CAJA -->
   <div id="cashMovementModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 id="cmModalTitle" class="text-2xl font-black mb-2">�x� Movimiento de Caja</h2>
+      <h2 id="cmModalTitle" class="text-2xl font-black mb-2">💵 Movimiento de Caja</h2>
       <p id="cmModalDesc" class="text-sm text-gray-500 mb-6">Registra el movimiento.</p>
       <input type="hidden" id="cmType">
       <input type="number" id="cmAmount" class="input" placeholder="Monto ($)" min="0">
       <input type="text" id="cmReason" class="input" placeholder="Motivo (Ej: Cambio para base)">
       <div class="grid grid-cols-2 gap-4 mt-6">
-        <button id="cmConfirmBtn" class="btn btn-primary bg-blue-500 border-none text-white" onclick="confirmCashMovement()">�S& Confirmar</button>
+        <button id="cmConfirmBtn" class="btn btn-primary bg-blue-500 border-none text-white" onclick="confirmCashMovement()">✅ Confirmar</button>
         <button class="btn bg-gray-200 text-gray-700 border-none" onclick="document.getElementById('cashMovementModal').style.display='none'">Cancelar</button>
       </div>
     </div>
@@ -1965,27 +1965,27 @@
   <!-- MODAL: CIERRE DE CAJA -->
   <div id="cashClosingModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-2">�x Cierre de Caja Ciego</h2>
+      <h2 class="text-2xl font-black mb-2">🔒 Cierre de Caja Ciego</h2>
       <p class="text-sm text-gray-500 mb-6">Ingresa el monto total que tienes en caja. El sistema comparará con las ventas del día.</p>
       <input type="number" id="declaredCashAmount" class="input" placeholder="Monto declarado ($)" min="0">
       <textarea id="cashClosingNotes" class="input" placeholder="Notas (opcional)" rows="2"></textarea>
       <div class="grid grid-cols-2 gap-4 mt-6">
-        <button class="btn btn-primary" onclick="submitCashClosing()">�S& Confirmar Cierre</button>
+        <button class="btn btn-primary" onclick="submitCashClosing()">✅ Confirmar Cierre</button>
         <button class="btn btn-danger" onclick="document.getElementById('cashClosingModal').style.display='none'">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: REGISTRAR PAGO CR�0DITO -->
+  <!-- MODAL: REGISTRAR PAGO CRÉDITO -->
   <div id="creditPaymentModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-4">�x� Registrar Abono</h2>
+      <h2 class="text-2xl font-black mb-4">💵 Registrar Abono</h2>
       <input type="hidden" id="paymentCreditAccountId">
       <p id="paymentCreditInfo" class="text-sm text-gray-600 mb-4"></p>
       <input type="number" id="paymentAmount" class="input" placeholder="Monto del abono ($)" min="0">
       <input type="text" id="paymentNotes" class="input" placeholder="Notas (opcional)">
       <div class="grid grid-cols-2 gap-4 mt-6">
-        <button class="btn btn-primary" onclick="submitCreditPayment()">�x� Registrar Abono</button>
+        <button class="btn btn-primary" onclick="submitCreditPayment()">💵 Registrar Abono</button>
         <button class="btn btn-danger" onclick="document.getElementById('creditPaymentModal').style.display='none'">Cancelar</button>
       </div>
     </div>
@@ -1994,7 +1994,7 @@
   <!-- MODAL: NUEVO CLIENTE -->
   <div id="newCustomerModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-4">�~" Nuevo Cliente</h2>
+      <h2 class="text-2xl font-black mb-4">➕ Nuevo Cliente</h2>
       <div class="space-y-4">
         <div>
           <label class="font-bold text-xs text-gray-500 uppercase tracking-widest">Nombre del Cliente</label>
@@ -2023,7 +2023,7 @@
   <!-- MODAL: DIVIDIR CUENTA -->
   <div id="splitBillModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[300] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-4">�S️ Dividir Cuenta</h2>
+      <h2 class="text-2xl font-black mb-4">✂️ Dividir Cuenta</h2>
       <input type="hidden" id="splitOrderId">
       <p id="splitTotal" class="text-lg font-bold text-red-600 mb-4"></p>
       <div class="flex gap-3 mb-6">
@@ -2043,24 +2043,24 @@
   <!-- MODAL: IMPORTAR CSV -->
   <div id="importModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
-      <h2 class="text-2xl font-black mb-2" id="importModalTitle">�x� Importar</h2>
+      <h2 class="text-2xl font-black mb-2" id="importModalTitle">📤 Importar</h2>
       <p class="text-sm text-gray-500 mb-4" id="importModalDesc"></p>
       <input type="file" id="importFile" accept=".csv" class="input">
       <div id="importPreview" class="mt-4 max-h-40 overflow-y-auto text-xs"></div>
       <div class="grid grid-cols-2 gap-4 mt-6">
-        <button id="btnImportConfirm" class="btn btn-primary" onclick="confirmImport()">�S& Importar</button>
+        <button id="btnImportConfirm" class="btn btn-primary" onclick="confirmImport()">✅ Importar</button>
         <button class="btn btn-danger" onclick="document.getElementById('importModal').style.display='none'">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE EDICI�N -->
+  <!-- MODAL DE EDICIÓN -->
   <div id="editModal"
     class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm"
     style="display:none">
     <div class="bg-white w-full max-w-lg rounded-[32px] p-8 my-10 shadow-2xl transform transition-all relative">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-3xl font-black tracking-tight">�S�️ Editar Producto</h2>
+        <h2 class="text-3xl font-black tracking-tight">✏️ Editar Producto</h2>
         <button onclick="closeModal()"
           class="text-gray-400 hover:text-black transition-colors text-2xl">&times;</button>
       </div>
@@ -2073,14 +2073,14 @@
           <input type="text" id="editAccompaniments" class="input" placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">
           <div class="flex items-center gap-2">
             <select id="editCopyAccompanimentsFrom" class="input !py-2 text-xs text-gray-400">
-              <option value="">�x9 Copiar acompañamientos de otro producto...</option>
+              <option value="">📋 Copiar acompañamientos de otro producto...</option>
             </select>
             <button type="button" onclick="editCopyAccompaniments()" class="bg-[#333] hover:bg-[#444] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all border border-[#555] shrink-0">Copiar</button>
           </div>
         </div>
         <input type="number" id="editAccompanimentsLimit" class="input"
           placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
-        <label class="font-bold text-sm text-gray-500 uppercase mt-4 block">�x Categoría</label>
+        <label class="font-bold text-sm text-gray-500 uppercase mt-4 block">📂 Categoría</label>
         <select id="editCategory" class="input mt-1">
           <option value="">Seleccionar</option>
         </select>
@@ -2091,15 +2091,15 @@
           </div>
           <div class="flex items-center gap-2">
             <input type="checkbox" id="editPosOnly" class="w-5 h-5 accent-red-600 rounded cursor-pointer">
-            <label for="editPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">�x�� Solo para el local (ocultar del menú online)</label>
+            <label for="editPosOnly" class="font-bold text-sm text-gray-700 cursor-pointer">🏪 Solo para el local (ocultar del menú online)</label>
           </div>
         </div>
         <input type="file" id="editImage" class="input">
         <img id="editPreview" class="preview">
       </div>
       <div class="grid grid-cols-2 gap-4 mt-10">
-        <button class="btn btn-primary" onclick="saveEdit()">�x� Guardar</button>
-        <button class="btn btn-danger" onclick="closeModal()">�R Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEdit()">💾 Guardar</button>
+        <button class="btn btn-danger" onclick="closeModal()">❌ Cancelar</button>
       </div>
     </div>
   </div>
@@ -2110,10 +2110,10 @@
     style="display:none">
     <div class="bg-white w-full max-w-lg rounded-[32px] p-8 my-10 shadow-2xl transform transition-all relative">
       <div class="flex items-start sm:items-center justify-between mb-6 gap-4">
-        <h2 class="text-2xl sm:text-3xl font-black tracking-tight" id="detailOrderTitle">�x9 Detalle</h2>
+        <h2 class="text-2xl sm:text-3xl font-black tracking-tight" id="detailOrderTitle">📋 Detalle</h2>
         <div class="flex gap-3 items-center">
           <button onclick="printOrderTicket()" class="bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 hover:bg-black transition-colors shadow">
-            �x�️ Imprimir
+            🖨️ Imprimir
           </button>
           <button onclick="closeOrderDetailModal()"
             class="text-gray-400 hover:text-black transition-colors text-2xl leading-none">&times;</button>
@@ -2155,18 +2155,18 @@
           <p id="detailTotal" class="font-black text-2xl text-red-600"></p>
         </div>
         <div class="flex gap-2 mt-4">
-          <button onclick="openSplitBillModal()" class="btn bg-purple-100 text-purple-700 !text-sm flex-1">�S️ Dividir Cuenta</button>
-          <button onclick="assignDriver()" class="btn bg-blue-100 text-blue-700 !text-sm flex-1">�x:� Asignar Repartidor</button>
+          <button onclick="openSplitBillModal()" class="btn bg-purple-100 text-purple-700 !text-sm flex-1">✂️ Dividir Cuenta</button>
+          <button onclick="assignDriver()" class="btn bg-blue-100 text-blue-700 !text-sm flex-1">🛵 Asignar Repartidor</button>
         </div>
 
         <div class="border-t pt-4" id="detailTrackingContainer">
-          <p class="font-bold text-gray-500 uppercase text-xs mb-1">�x Enlace de Seguimiento Temporal</p>
+          <p class="font-bold text-gray-500 uppercase text-xs mb-1">🔗 Enlace de Seguimiento Temporal</p>
           <div class="flex flex-col sm:flex-row gap-2 mt-2">
             <input type="text" id="detailTrackingUrl"
               class="input !mt-0 !py-2 !px-3 !text-xs font-mono bg-gray-50 flex-1" readonly>
             <button onclick="sendTrackingLinkWhatsApp()"
               class="bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-1 shrink-0 transition-all">
-              �x� Enviar WhatsApp
+              📲 Enviar WhatsApp
             </button>
           </div>
         </div>
@@ -2186,7 +2186,7 @@
     <div class="bg-white w-full max-w-2xl rounded-[32px] p-8 my-10 shadow-2xl transform transition-all relative">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-3xl font-black tracking-tight flex items-center gap-2">�S� Gestor de Extras</h2>
+          <h2 class="text-3xl font-black tracking-tight flex items-center gap-2">✨ Gestor de Extras</h2>
           <p class="text-sm text-gray-500 font-medium mt-1">Configura sabores y modificadores visuales para este
             producto.</p>
         </div>
@@ -2216,16 +2216,16 @@
             </div>
             <button id="btnSaveVisualExtra" onclick="saveVisualExtra()"
               class="w-full bg-black text-white font-bold py-3 rounded-xl active:scale-95 transition-all shadow-md mt-4 flex justify-center items-center gap-2">
-              �~" Agregar Extra
+              ➕ Agregar Extra
             </button>
             <button id="btnCancelEditVe" onclick="cancelEditVisualExtra()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-xl active:scale-95 transition-all shadow-md mt-2 flex justify-center items-center gap-2 hidden">
-              �R Cancelar Edición
+              ❌ Cancelar Edición
             </button>
           </div>
 
           <!-- Clonar Extras -->
           <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="font-bold text-lg mb-2">�x Clonar a otros productos</h3>
+            <h3 class="font-bold text-lg mb-2">🔄 Clonar a otros productos</h3>
             <p class="text-xs text-gray-500 mb-3">Copia todos los extras de este producto a otro.</p>
             <select id="cloneTargetProduct" class="input !mt-0">
               <option value="">Selecciona un producto destino...</option>
@@ -2273,7 +2273,7 @@
         <div class="flex justify-between items-start z-10">
           <div class="bg-white p-3 rounded-2xl shadow-lg">
             <img id="postLogo" src="" class="w-12 h-12 object-contain hidden">
-            <span id="postLogoEmoji" class="text-3xl">�x�</span>
+            <span id="postLogoEmoji" class="text-3xl">🍔</span>
           </div>
           <div class="text-right">
             <p class="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Ordena por WhatsApp</p>
@@ -2309,7 +2309,7 @@
         <!-- Footer -->
         <div class="mt-auto text-center z-10 pb-4">
           <div class="inline-block bg-black/20 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-            <p class="text-sm font-black">�S� PIDE EL TUYO AHORA �S�</p>
+            <p class="text-sm font-black">✨ PIDE EL TUYO AHORA ✨</p>
           </div>
         </div>
       </div>
@@ -2317,7 +2317,7 @@
       <!-- Controles del Modal -->
       <div class="flex gap-4 mt-8 w-full">
         <button onclick="downloadPost(event)" class="btn btn-primary flex-1 !rounded-full">
-          �x� Descargar Post
+          📥 Descargar Post
         </button>
         <button onclick="closePostModal()"
           class="bg-white/20 text-white px-6 py-4 rounded-full font-bold hover:bg-white/30 transition-all backdrop-blur-md">
@@ -2331,7 +2331,7 @@
   <div id="qrModal" class="fixed inset-0 bg-white z-[400] overflow-y-auto hidden">
     <div class="max-w-4xl mx-auto p-8">
       <div class="flex items-center justify-between mb-8 pb-4 border-b">
-        <h2 class="text-3xl font-black">�x�️ Códigos QR</h2>
+        <h2 class="text-3xl font-black">🖨️ Códigos QR</h2>
         <div class="flex gap-4">
           <button onclick="window.print()" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">Imprimir
             (Ctrl+P)</button>
@@ -2395,39 +2395,39 @@
   <!-- BOTTOM NAV (Mobile) -->
   <nav class="bottom-nav" id="bottomNav">
     <button class="bottom-nav-item active" data-section="home" onclick="bottomNavClick('home',this)">
-      <span class="nav-icon">�x��</span>
+      <span class="nav-icon">🏠</span>
       <span>INICIO</span>
     </button>
     <button class="bottom-nav-item" data-section="orders" onclick="bottomNavClick('orders',this)">
-      <span class="nav-icon">�x�</span>
-      <span>�RDENES</span>
+      <span class="nav-icon">📝</span>
+      <span>ÓRDENES</span>
     </button>
     <button class="bottom-nav-item" onclick="window.open('pos.html','_blank')">
-      <span class="nav-icon">�x:</span>
+      <span class="nav-icon">🛒</span>
       <span>VENTAS</span>
     </button>
     <button class="bottom-nav-item" data-section="expenses" onclick="bottomNavClick('expenses',this)">
-      <span class="nav-icon">�x��</span>
+      <span class="nav-icon">🏧</span>
       <span>CAJA</span>
     </button>
     <button class="bottom-nav-item" data-section="more" onclick="bottomNavClick('more',this)">
-      <span class="nav-icon">�a"️</span>
+      <span class="nav-icon">⚙️</span>
       <span>OPCIONES</span>
     </button>
   </nav>
 
   <!-- MORE MENU (Mobile) -->
   <div class="more-menu" id="moreMenu">
-    <button class="more-menu-item" onclick="bottomNavClick('products',this)">�x� Productos</button>
-    <button class="more-menu-item" onclick="bottomNavClick('customers',this)">�x� Clientes</button>
-    <button class="more-menu-item" onclick="bottomNavClick('reports',this)">�x` Reportes</button>
-    <button class="more-menu-item" onclick="bottomNavClick('purchases',this)">�x� Compras</button>
-    <button class="more-menu-item" onclick="bottomNavClick('suppliers',this)">�x�� Proveedores</button>
-    <button class="more-menu-item" onclick="bottomNavClick('staff',this)">�x� Personal</button>
-    <button class="more-menu-item" onclick="bottomNavClick('coupons',this)">�x}x️ Cupones</button>
-    <button class="more-menu-item" onclick="bottomNavClick('credits',this)">�x� Créditos</button>
-    <button class="more-menu-item" onclick="bottomNavClick('recipes',this)">�x Recetas</button>
-    <button class="more-menu-item" onclick="bottomNavClick('supplies',this)">�x: Insumos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('products',this)">🍔 Productos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('customers',this)">👤 Clientes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('reports',this)">📊 Reportes</button>
+    <button class="more-menu-item" onclick="bottomNavClick('purchases',this)">📦 Compras</button>
+    <button class="more-menu-item" onclick="bottomNavClick('suppliers',this)">🏭 Proveedores</button>
+    <button class="more-menu-item" onclick="bottomNavClick('staff',this)">👥 Personal</button>
+    <button class="more-menu-item" onclick="bottomNavClick('coupons',this)">🎟️ Cupones</button>
+    <button class="more-menu-item" onclick="bottomNavClick('credits',this)">💳 Créditos</button>
+    <button class="more-menu-item" onclick="bottomNavClick('recipes',this)">📖 Recetas</button>
+    <button class="more-menu-item" onclick="bottomNavClick('supplies',this)">🛒 Insumos</button>
   </div>
 
 
