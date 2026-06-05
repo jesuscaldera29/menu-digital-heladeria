@@ -790,8 +790,7 @@ async function confirmSale() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Venta cobrada (Mesa cerrada)');
-      const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
-      if (updatedOrder && updatedOrder.length > 0 && shouldPrint) printPOSTicket(updatedOrder[0]);
+      if (updatedOrder && updatedOrder.length > 0) showTicketPreview(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -809,8 +808,7 @@ async function confirmSale() {
       }]).select();
       if (error) throw error;
       showToast('✅ Venta registrada');
-      const shouldPrint = localStorage.getItem('printer_auto_print') === 'true' || localStorage.getItem('printer_auto_print') === null;
-      if (insertedOrder && insertedOrder.length > 0 && shouldPrint) printPOSTicket(insertedOrder[0]);
+      if (insertedOrder && insertedOrder.length > 0) showTicketPreview(insertedOrder[0]);
     }
 
     closeCheckoutModal();
@@ -903,6 +901,100 @@ async function logout() {
 
 document.addEventListener('DOMContentLoaded', initPOS);
 
+function showTicketPreview(o) {
+  const container = document.getElementById('ticketPreviewContent');
+  if (!container) return;
+
+  const itemsHtml = o.items.map(item => `
+      <div style="display:flex;justify-content:space-between;padding:6px 0; border-bottom:1px dashed #ddd;">
+          <span style="flex:1;font-size:13px;">${item.qty || item.quantity}x ${item.name}</span>
+          <span style="font-weight:bold;font-size:13px;">$${Number((item.price) * (item.qty || item.quantity)).toLocaleString()}</span>
+      </div>`
+  ).join('');
+
+  const useLogo = localStorage.getItem('receipt_cash_logo') !== 'false';
+  const customHeader = localStorage.getItem('receipt_cash_header') || '';
+  const customFooter = localStorage.getItem('receipt_cash_footer') || '¡Gracias por su compra!';
+  
+  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 55mm; max-height: 35mm; object-fit: contain; margin-bottom: 8px;">` : '';
+  const headerHtml = customHeader ? `<div style="text-align:center;margin-bottom:6px;font-size:11px;white-space:pre-wrap;">${customHeader}</div>` : '';
+
+  const ticketId = String(o.id).split('-')[0];
+  const discount = Number(o.discount || 0);
+  const tip = Number(o.tip || 0);
+  const deliveryFee = Number(o.delivery_fee || 0);
+
+  let extraRows = '';
+  if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
+  if (deliveryFee > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Domicilio:</span><span>+$${deliveryFee.toLocaleString()}</span></div>`;
+  if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
+
+  container.innerHTML = `
+    <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:14px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+      <div style="text-align:center;margin-bottom:8px;">${logoUrl}</div>
+      <div style="text-align:center;font-weight:bold;font-size:22px;margin-bottom:6px;">${posSettings.business_name || 'MI NEGOCIO'}</div>
+      ${headerHtml}
+      <div style="text-align:center;border-bottom:1px dashed #000;padding-bottom:8px;margin-bottom:8px;font-weight:bold;font-size:16px;">
+        TICKET DE VENTA<br>#${ticketId}
+      </div>
+      <div style="margin-bottom:8px;font-size:11px;">
+        <strong>Fecha:</strong> ${new Date(o.created_at || Date.now()).toLocaleString()}<br>
+        <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
+        <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
+        <strong>Dirección:</strong> ${o.address || 'N/A'}<br>
+        <strong>Tipo:</strong> ${o.delivery_method || o.delivery_type || 'N/A'}<br>
+        <strong>Pago:</strong> ${o.payment_method || 'N/A'}
+      </div>
+      <div style="border-top:1px dashed #000;border-bottom:1px dashed #000;margin-bottom:8px;padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;font-weight:bold;padding-bottom:4px;font-size:12px;"><span>CANT DESCRIPCIÓN</span><span>TOTAL</span></div>
+        ${itemsHtml}
+      </div>
+      ${extraRows}
+      <div style="display:flex;justify-content:space-between;border-top:1px dashed #000;font-weight:bold;font-size:20px;margin-top:8px;padding-top:8px;">
+        <span>TOTAL:</span>
+        <span>$${Number(o.total).toLocaleString()}</span>
+      </div>
+      <div style="text-align:center;border-top:1px dashed #000;font-size:12px;margin-top:16px;padding-top:8px;white-space:pre-wrap;">
+        ${customFooter}
+      </div>
+    </div>
+  `;
+
+  // Store order data for printing
+  window._lastTicketOrder = o;
+
+  document.getElementById('ticketPreviewModal').classList.remove('hidden');
+}
+
+function closeTicketPreview() {
+  document.getElementById('ticketPreviewModal').classList.add('hidden');
+}
+
+function printTicketFromPreview() {
+  const o = window._lastTicketOrder;
+  if (!o) return;
+  printPOSTicket(o);
+}
+
+function downloadTicketFromPreview() {
+  const el = document.getElementById('ticketPrintArea');
+  if (!el || typeof html2canvas === 'undefined') {
+    showToast('⚠️ Error al descargar', 'error');
+    return;
+  }
+  html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+    const link = document.createElement('a');
+    const ticketId = window._lastTicketOrder ? String(window._lastTicketOrder.id).split('-')[0] : 'ticket';
+    link.download = `ticket_${ticketId}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ Ticket descargado');
+  }).catch(err => {
+    console.error(err);
+    showToast('❌ Error al descargar', 'error');
+  });
+}
+
 function printPOSTicket(o) {
   const itemsHtml = o.items.map(item => `
       <div style="display:flex;justify-content:space-between;padding:4px 0; border-bottom:1px dashed #eee;">
@@ -974,7 +1066,7 @@ function printPOSTicket(o) {
       </div>
       <script>
         setTimeout(() => { window.print(); window.close(); }, 500);
-      </script>
+      <\/script>
     </body>
   </html>`;
 
