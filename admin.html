@@ -226,7 +226,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    /* BOTTOM NAV - All Devices */
+    /* BOTTOM NAV - Mobile Only */
     .bottom-nav {
       display: flex;
       position: fixed;
@@ -242,8 +242,17 @@
       box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
       border-radius: 24px 24px 0 0;
     }
-    main.max-w-7xl { padding-bottom: 90px; }
-    header nav#adminNavTabs { display: none !important; }
+
+    @media (min-width: 768px) {
+      .bottom-nav { display: none !important; }
+      main.max-w-7xl { padding-bottom: 24px !important; }
+      header nav#adminNavTabs { display: flex !important; }
+    }
+    
+    @media (max-width: 767px) {
+      main.max-w-7xl { padding-bottom: 90px !important; }
+      header nav#adminNavTabs { display: none !important; }
+    }
 
     /* Mobile Sidebar Menu */
     .mobile-sidebar {
