@@ -688,6 +688,13 @@ async function loadProducts() {
 }
 
 // Render products grouped by category
+let activeAdminCategory = 'Todos';
+
+window.setAdminCategory = function(cat) {
+    activeAdminCategory = cat;
+    renderProducts();
+}
+
 function renderProducts() {
     const container = document.getElementById('productsList');
     const totalEl = document.getElementById('totalProducts');
@@ -714,15 +721,40 @@ function renderProducts() {
 
     if (!allProducts.length) {
         container.innerHTML = '<div class="col-span-full py-20 text-center text-gray-400 font-bold">No hay productos aún. Empieza agregando uno. 🍟</div>';
+        const tabsContainer = document.getElementById('adminCategoryTabsContainer');
+        if (tabsContainer) tabsContainer.innerHTML = '';
         return;
     }
 
-    // Group by category
+    // Render Tabs
     const categories = [...new Set(allProducts.map(p => p.category))];
+    const tabsContainer = document.getElementById('adminCategoryTabsContainer');
+    if (tabsContainer) {
+        const tabsHtml = ['Todos', ...categories].map(cat => `
+            <button onclick="setAdminCategory('${cat}')" class="px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeAdminCategory === cat ? 'bg-orange-500 text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                ${cat.toUpperCase()}
+            </button>
+        `).join('');
+        tabsContainer.innerHTML = tabsHtml;
+    }
+
+    let filteredProducts = allProducts;
+    if (activeAdminCategory !== 'Todos') {
+        filteredProducts = allProducts.filter(p => p.category === activeAdminCategory);
+    }
+
+    if (!filteredProducts.length) {
+        container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-400 font-bold">No hay productos en esta categoría</div>';
+        return;
+    }
 
     let html = '';
-    categories.forEach(cat => {
-        const catProducts = allProducts.filter(p => p.category === cat);
+    const categoriesToRender = activeAdminCategory === 'Todos' ? categories : [activeAdminCategory];
+
+    categoriesToRender.forEach(cat => {
+        const catProducts = filteredProducts.filter(p => p.category === cat);
+        if (catProducts.length === 0) return;
+
         const emoji = { 'Desayunos': '🍳', 'Almuerzos': '🍛', 'Comidas Rápidas': '🍔', 'Acompañantes': '🍟', 'Bebidas': '🥤', 'Postres': '🍰' }[cat] || '📂';
 
         // Add Category Header

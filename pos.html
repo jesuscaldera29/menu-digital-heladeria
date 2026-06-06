@@ -63,6 +63,91 @@
         padding-bottom: 90px; /* space for collapsed cart bar */
       }
     }
+
+    /* Light Mode Variables & Overrides */
+    body.light-mode { background-color: #f3f4f6 !important; color: #111827 !important; }
+    
+    .light-mode header,
+    .light-mode #cartPanel,
+    .light-mode #posReportModal > div:nth-child(2),
+    .light-mode #tablesModal > div:nth-child(2),
+    .light-mode #extrasModal > div:nth-child(2),
+    .light-mode #checkoutModal > div:nth-child(2),
+    .light-mode .bg-\[\#111\],
+    .light-mode .bg-\[\#1a1a1a\],
+    .light-mode .bg-\[\#0a0a0a\] {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+    }
+    
+    .light-mode #productsSection { background-color: #f3f4f6 !important; }
+    
+    .light-mode .bg-\[\#222\] {
+      background-color: #f9fafb !important;
+      border-color: #e5e7eb !important;
+      color: #111827 !important;
+    }
+    
+    .light-mode .bg-\[\#333\] {
+      background-color: #f3f4f6 !important;
+      border-color: #d1d5db !important;
+      color: #111827 !important;
+    }
+    
+    .light-mode .border-\[\#222\],
+    .light-mode .border-\[\#333\],
+    .light-mode .border-\[\#444\] {
+      border-color: #e5e7eb !important;
+    }
+    
+    .light-mode .text-white { color: #111827 !important; }
+    
+    /* Preserve white text on colored buttons/badges */
+    .light-mode .bg-orange-500.text-white,
+    .light-mode .bg-orange-500 .text-white,
+    .light-mode .from-orange-500.text-white,
+    .light-mode .from-orange-500 .text-white,
+    .light-mode .bg-green-500.text-white,
+    .light-mode .bg-red-500.text-white,
+    .light-mode .bg-blue-500.text-white {
+      color: #ffffff !important;
+    }
+    
+    .light-mode .text-gray-300 { color: #4b5563 !important; }
+    .light-mode .text-gray-400 { color: #6b7280 !important; }
+    .light-mode .text-gray-500 { color: #374151 !important; }
+    
+    .light-mode input.bg-\[\#222\],
+    .light-mode select.bg-\[\#222\],
+    .light-mode textarea.bg-\[\#222\] {
+      background-color: #ffffff !important;
+      color: #111827 !important;
+      border-color: #d1d5db !important;
+    }
+    
+    .light-mode input.bg-\[\#222\]:focus,
+    .light-mode select.bg-\[\#222\]:focus {
+      border-color: #f97316 !important;
+      box-shadow: 0 0 0 1px #f97316 !important;
+    }
+    
+    .light-mode input::placeholder { color: #9ca3af !important; }
+    
+    .light-mode .hover\:bg-\[\#222\]:hover { background-color: #f3f4f6 !important; }
+    .light-mode .hover\:bg-\[\#333\]:hover { background-color: #e5e7eb !important; }
+    .light-mode .hover\:text-white:hover { color: #111827 !important; }
+    
+    .light-mode .category-tab { border-color: #d1d5db !important; color: #4b5563 !important; }
+    .light-mode .category-tab.active { background-color: #f97316 !important; color: #ffffff !important; border-color: #f97316 !important; }
+    
+    .light-mode .order-type-btn.active,
+    .light-mode .payment-btn.active {
+      color: #ffffff !important;
+    }
+    
+    .light-mode .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1 !important; }
+    
+    .light-mode .bg-\[\#1f1f1f\] { background-color: #fffbeb !important; border-color: #f59e0b !important; }
   </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -77,6 +162,9 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" title="Cambiar Tema">
+        <span id="themeIcon">☀️</span> <span class="hidden md:inline">Tema</span>
+      </button>
       <button onclick="openTablesModal()" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
         <span>🗺️</span> <span class="hidden sm:inline">Mesas</span>
       </button>
@@ -448,6 +536,22 @@
   <script src="js/sounds.js?v=1780612854430"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/pos.js?v=1780612854430"></script>
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      const isLight = body.classList.toggle('light-mode');
+      localStorage.setItem('pos_theme', isLight ? 'light' : 'dark');
+      document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('pos_theme') === 'light') {
+        document.body.classList.add('light-mode');
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.textContent = '🌙';
+      }
+    });
+  </script>
 </body>
 </html>
 
