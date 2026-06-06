@@ -251,12 +251,40 @@ async function deleteCashClosing(id) {
   }
   
   try {
-    const { error } = await supabaseClient.from('cash_closings').delete().eq('id', id);
+    const { data, error } = await supabaseClient.from('cash_closings').delete().eq('id', id).select();
     if (error) throw error;
+    if (!data || data.length === 0) {
+      alert('⚠️ ERROR DE PERMISOS EN SUPABASE:\n\nSupabase bloqueó la acción porque falta la política (RLS) de DELETE para la tabla "cash_closings".\n\nVe a Supabase -> SQL Editor y ejecuta esto:\n\nCREATE POLICY "Enable delete for users" ON "public"."cash_closings" FOR DELETE USING (true);');
+      return;
+    }
     showToast('🗑️ Sesión de caja eliminada');
     loadCashClosings();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
+  }
+}
+
+async function deleteAllZeroCash() {
+  const code = prompt('Escribe ELIMINAR para borrar TODAS las cajas vacías (Base $0 y ABIERTAS):');
+  if (code !== 'ELIMINAR') return;
+  
+  try {
+    const { data, error } = await supabaseClient.from('cash_closings')
+      .delete()
+      .eq('business_id', businessId)
+      .eq('opening_amount', 0)
+      .eq('is_open', true)
+      .select();
+      
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      alert('⚠️ ERROR DE PERMISOS EN SUPABASE:\n\nSupabase bloqueó la acción porque falta la política (RLS) de DELETE para la tabla "cash_closings".\n\nVe a Supabase -> SQL Editor y ejecuta esto:\n\nCREATE POLICY "Enable delete for users" ON "public"."cash_closings" FOR DELETE USING (true);');
+      return;
+    }
+    showToast('✅ Cajas vacías eliminadas (' + data.length + ')');
+    loadCashClosings();
+  } catch (err) {
+    showToast('❌ Error: ' + err.message, 'error');
   }
 }
 
