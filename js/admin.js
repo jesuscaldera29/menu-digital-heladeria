@@ -2159,6 +2159,12 @@ window.cloneVisualExtras = async function() {
         const { error: errInsert } = await supabaseClient.from('product_extras').insert(newExtras);
         if (errInsert) throw errInsert;
 
+        // Also copy the limit
+        const { data: sourceProd } = await supabaseClient.from('products').select('visual_extras_limit').eq('id', currentVeProductId).single();
+        if (sourceProd && sourceProd.visual_extras_limit !== null) {
+            await supabaseClient.from('products').update({ visual_extras_limit: sourceProd.visual_extras_limit }).eq('id', targetId);
+        }
+
         showToast('✅ Extras copiados exitosamente');
         document.getElementById('cloneTargetProduct').value = '';
     } catch(e) {

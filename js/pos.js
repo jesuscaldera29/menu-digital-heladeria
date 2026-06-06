@@ -910,7 +910,18 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
-document.addEventListener('DOMContentLoaded', initPOS);
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  await initPOS();
+});
+
+// Reload data when tab gains focus to prevent stale data from admin changes
+window.addEventListener('focus', () => {
+  if (businessId) {
+    loadProducts();
+    loadVisualExtras();
+  }
+});
 
 function showTicketPreview(o) {
   const container = document.getElementById('ticketPreviewContent');
