@@ -237,7 +237,7 @@ async function loadCashClosings() {
         <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.expected_total).toLocaleString()}</td>
         <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.declared_total).toLocaleString()}</td>
         <td class="font-black ${diffColor}">${c.is_open ? '-' : (c.difference >= 0 ? '+' : '') + '$' + Number(c.difference).toLocaleString()}</td>
-        <td class="text-center">${statusBadge}</td>
+        <td class="text-center">${statusBadge}</td><td class="text-center"><button onclick="deleteCashClosing('${c.id}')" class="text-red-500 hover:text-red-700 font-bold text-lg p-1" title="Eliminar sesi√≥n de caja">üóëÔ∏è</button></td>
       </tr>`;
     }).join('');
   } catch (err) { console.error(err); }
@@ -347,5 +347,21 @@ async function deleteCashMovement(id) {
     loadCashMovements();
   } catch (err) {
     showToast('‚ùå ' + err.message, 'error');
+  }
+}
+async function deleteCashClosing(id) {
+  const code = prompt('Escribe la palabra ELIMINAR en may˙sculas para confirmar la eliminaciÛn de esta sesiÛn de caja:');
+  if (code !== 'ELIMINAR') {
+    if (code !== null) showToast('?? Cancelado: La palabra no coincide', 'error');
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient.from('cash_closings').delete().eq('id', id);
+    if (error) throw error;
+    showToast('??? SesiÛn de caja eliminada');
+    loadCashClosings();
+  } catch (err) {
+    showToast('? ' + err.message, 'error');
   }
 }
