@@ -1962,8 +1962,30 @@ window.openVisualExtrasModal = function(productId) {
 
         const cloneSelect = document.getElementById('cloneTargetProduct');
         if (cloneSelect) {
-            cloneSelect.innerHTML = '<option value="">Selecciona un producto destino...</option>' + 
-                allProducts.filter(x => String(x.id) !== String(productId)).map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+            const otherProducts = allProducts.filter(x => String(x.id) !== String(productId));
+            const grouped = {};
+            otherProducts.forEach(prod => {
+                const cat = prod.category || 'Sin Categoría';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(prod);
+            });
+            
+            const sortedCategories = Object.keys(grouped).sort();
+            let optionsHtml = '<option value="">Selecciona el producto origen...</option>';
+            
+            sortedCategories.forEach(cat => {
+                grouped[cat].sort((a, b) => a.name.localeCompare(b.name));
+                const isCurrentCategory = (cat === (p ? p.category : ''));
+                const style = isCurrentCategory ? 'style="color: red; font-weight: bold;"' : 'style="font-weight: bold; color: #ea580c;"';
+                
+                optionsHtml += `<optgroup label="=== ${cat.toUpperCase()} ===" ${style}>`;
+                grouped[cat].forEach(prod => {
+                    optionsHtml += `<option value="${prod.id}" style="color: black; font-weight: normal;">${prod.name}</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            });
+            
+            cloneSelect.innerHTML = optionsHtml;
         }
 
         modal.style.display = 'flex';
