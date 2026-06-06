@@ -2137,20 +2137,22 @@ window.cancelEditVisualExtra = function() {
 };
 
 window.cloneVisualExtras = async function() {
-    const targetId = document.getElementById('cloneTargetProduct').value;
-    if (!targetId || !currentVeProductId) return showToast('⚠️ Selecciona un producto destino', 'error');
+    const sourceId = document.getElementById('cloneTargetProduct').value;
+    if (!sourceId || !currentVeProductId) return showToast('⚠️ Selecciona un producto origen', 'error');
 
-    if (!confirm('¿Copiar todos los extras actuales al producto seleccionado?')) return;
+    if (!confirm('¿Importar todos los extras del producto seleccionado a este producto?')) return;
 
     try {
-        const { data: sourceExtras, error: errLoad } = await supabaseClient.from('product_extras').select('*').eq('product_id', currentVeProductId);
+        // Load extras from the SOURCE product
+        const { data: sourceExtras, error: errLoad } = await supabaseClient.from('product_extras').select('*').eq('product_id', sourceId);
         if (errLoad) throw errLoad;
         
-        if (!sourceExtras || sourceExtras.length === 0) return showToast('⚠️ No hay extras para copiar', 'error');
+        if (!sourceExtras || sourceExtras.length === 0) return showToast('⚠️ El producto seleccionado no tiene extras para importar', 'error');
 
+        // We insert them pointing to the CURRENT product
         const newExtras = sourceExtras.map(e => ({
             business_id: e.business_id,
-            product_id: targetId,
+            product_id: currentVeProductId, // <--- changed from targetId to currentVeProductId
             name: e.name,
             price: e.price,
             image_url: e.image_url
@@ -2159,17 +2161,26 @@ window.cloneVisualExtras = async function() {
         const { error: errInsert } = await supabaseClient.from('product_extras').insert(newExtras);
         if (errInsert) throw errInsert;
 
-        // Also copy the limit
-        const { data: sourceProd } = await supabaseClient.from('products').select('visual_extras_limit').eq('id', currentVeProductId).single();
+        // Also copy the limit from the SOURCE product
+        const { data: sourceProd } = await supabaseClient.from('products').select('visual_extras_limit').eq('id', sourceId).single();
         if (sourceProd && sourceProd.visual_extras_limit !== null) {
-            await supabaseClient.from('products').update({ visual_extras_limit: sourceProd.visual_extras_limit }).eq('id', targetId);
+            await supabaseClient.from('products').update({ visual_extras_limit: sourceProd.visual_extras_limit }).eq('id', currentVeProductId);
         }
 
-        showToast('✅ Extras copiados exitosamente');
+        showToast('✅ Extras importados exitosamente');
         document.getElementById('cloneTargetProduct').value = '';
+        
+        // Reload extras for the current product to show them in the UI!
+        loadVisualExtras(currentVeProductId);
+        
+        // Update limit UI
+        if (document.getElementById('veLimit')) {
+             document.getElementById('veLimit').value = sourceProd && sourceProd.visual_extras_limit ? sourceProd.visual_extras_limit : '';
+        }
+
     } catch(e) {
         console.error(e);
-        showToast('❌ Error al copiar extras', 'error');
+        showToast('❌ Error al importar extras', 'error');
     }
 };
 
