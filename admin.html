@@ -628,25 +628,83 @@
       </div>
     </div>
 
-    <!-- SECTION: AJUSTES DE TIENDA -->
+    <!-- SECTION: MENU AJUSTES DE TIENDA -->
     <div id="section-settings" class="section-content">
+      <div class="max-w-3xl mx-auto p-4 sm:p-0">
+        <h2 class="text-3xl font-black mb-8 text-gray-800 flex items-center gap-3">
+          <span>⚙️</span> Ajustes
+        </h2>
+        
+        <h3 class="font-bold text-gray-800 mb-3 ml-2 text-sm uppercase tracking-wider">Configuración del Negocio</h3>
+        <div class="card mb-8 !p-2 shadow-sm border border-gray-100">
+          <div class="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-all" onclick="showSection('settings-general', event)">
+            <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm">
+              🏪
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-gray-900 text-[15px]">Configuración General</h4>
+              <p class="text-xs text-gray-500">Información del Negocio, Logo, WhatsApp</p>
+            </div>
+            <div class="text-gray-400 font-bold">❯</div>
+          </div>
+        </div>
+
+        <h3 class="font-bold text-gray-800 mb-3 ml-2 text-sm uppercase tracking-wider">Dispositivos y Hardware</h3>
+        <div class="card mb-8 !p-2 shadow-sm border border-gray-100">
+          <div class="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-all border-b border-gray-50" onclick="showSection('settings-hardware', event)">
+            <div class="bg-gray-100 text-gray-700 w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm">
+              🖨️
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-gray-900 text-[15px]">Configurar Impresoras</h4>
+              <p class="text-xs text-gray-500">Opciones para configurar la impresión</p>
+            </div>
+            <div class="text-gray-400 font-bold">❯</div>
+          </div>
+          <div class="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-all opacity-60">
+            <div class="bg-gray-100 text-gray-700 w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm">
+              ⚖️
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-gray-900 text-[15px]">Configurar Básculas</h4>
+              <p class="text-xs text-gray-500">Próximamente...</p>
+            </div>
+            <div class="text-yellow-500 mr-2 text-xl">⚡</div>
+            <div class="text-gray-400 font-bold">❯</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-SECTION: CONFIGURACIÓN GENERAL -->
+    <div id="section-settings-general" class="section-content">
       <div class="max-w-4xl mx-auto space-y-8">
+        
+        <div class="flex items-center gap-4 mb-6 cursor-pointer" onclick="showSection('settings', event)">
+          <button class="bg-white border border-gray-200 p-2 rounded-full hover:bg-gray-50 transition-all shadow-sm">
+            <span class="text-lg leading-none flex items-center justify-center w-6 h-6">🔙</span>
+          </button>
+          <h2 class="text-2xl font-black text-gray-800">Configuración General</h2>
+        </div>
+
         <!-- LOGO -->
         <div class="card">
           <h2 class="text-xl font-bold mb-4">🖼️ Logo del negocio</h2>
-          <div class="mb-4 flex flex-col items-center">
-            <img id="logoPreview" class="w-32 h-32 object-contain rounded-xl border border-gray-100 bg-gray-50 mb-3 hidden">
+          <div class="mb-4 flex flex-col items-center bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-300">
+            <img id="logoPreview" class="w-32 h-32 object-contain rounded-xl border border-gray-100 bg-white mb-3 hidden shadow-sm">
             <p id="logoPlaceholder" class="text-gray-400 text-sm italic">Sin logo configurado</p>
+            <input type="file" id="logoFile" accept="image/*" class="w-full text-sm text-slate-500 mt-4
+              file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold
+              file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer">
           </div>
-          <input type="file" id="logoFile" accept="image/*" class="input">
-          <button class="btn btn-primary mt-4" onclick="uploadLogo(event)">Subir Logo</button>
+          <button class="btn btn-primary mt-2 w-full sm:w-auto" onclick="uploadLogo(event)">Subir Logo</button>
         </div>
 
         <!-- WHATSAPP -->
         <div class="card">
           <h2 class="text-xl font-bold mb-4">📲 WhatsApp</h2>
           <input type="text" id="whatsappInput" class="input" placeholder="573001112233">
-          <button class="btn btn-primary mt-4" onclick="saveWhatsApp(event)">Guardar WhatsApp</button>
+          <button class="btn btn-primary mt-4 w-full sm:w-auto" onclick="saveWhatsApp(event)">Guardar WhatsApp</button>
         </div>
 
         <!-- CONFIGURACIÓN DE MESAS Y URL -->
@@ -691,22 +749,35 @@
 
           <div class="mt-6 pt-6 border-t border-gray-100">
             <h3 class="font-bold text-sm mb-3">🖨️ Generar Códigos QR</h3>
-            <button class="btn bg-black text-white hover:bg-gray-800" onclick="generateQRs()">Generar QRs para Mesas</button>
+            <button class="btn bg-black text-white hover:bg-gray-800 w-full sm:w-auto" onclick="generateQRs()">Generar QRs para Mesas</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-SECTION: HARDWARE & IMPRESORAS -->
+    <div id="section-settings-hardware" class="section-content">
+      <div class="max-w-4xl mx-auto space-y-8">
+        
+        <div class="flex items-center gap-4 mb-6 cursor-pointer" onclick="showSection('settings', event)">
+          <button class="bg-white border border-gray-200 p-2 rounded-full hover:bg-gray-50 transition-all shadow-sm">
+            <span class="text-lg leading-none flex items-center justify-center w-6 h-6">🔙</span>
+          </button>
+          <h2 class="text-2xl font-black text-gray-800">Impresoras y Hardware</h2>
         </div>
 
         <!-- IMPRESIÓN AUTOMÁTICA -->
         <div class="card">
-          <h2 class="text-xl font-bold mb-4">🖨️ Impresión Automática</h2>
-          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+          <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🖨️ Impresión Automática</h2>
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 shadow-inner">
             <p class="font-bold mb-2">¿Cómo activar la impresión automática en tu Cajero/POS?</p>
             <ol class="list-decimal pl-4 space-y-2">
               <li>Ve a tu sistema de Cajero (POS) usando Google Chrome.</li>
               <li>Activa el botón <strong>"🖨️ Auto-Print"</strong> en la barra superior del POS.</li>
-              <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200">--kiosk-printing</code>.</li>
+              <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200 shadow-sm">--kiosk-printing</code>.</li>
             </ol>
-            <div class="mt-3 text-xs bg-white p-3 rounded-lg border border-blue-100">
-              <strong>En Windows:</strong> Haz clic derecho en el acceso directo de Chrome > Propiedades > Destino. Al final del texto, agrega un espacio y pega: <br> <code class="text-gray-800 font-mono font-bold">--kiosk-printing</code> <br>
+            <div class="mt-4 text-xs bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+              <strong>En Windows:</strong> Haz clic derecho en el acceso directo de Chrome > Propiedades > Destino. Al final del texto, agrega un espacio y pega: <br> <code class="text-gray-800 font-mono font-bold mt-1 block">--kiosk-printing</code> <br>
               (Ejemplo: <code class="text-gray-600">"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing</code>)
             </div>
           </div>
