@@ -35,8 +35,8 @@ async function initPOS() {
       staffId = staffMember.id;
       staffName = staffMember.name;
     } else {
-      const { data: biz } = await supabaseClient.from('businesses').select('id, business_name').eq('owner_id', session.user.id).single();
-      if (biz) { businessId = biz.id; staffName = "Administrador"; }
+      const { data: bizList } = await supabaseClient.from('businesses').select('id, business_name').eq('owner_id', session.user.id).limit(1);
+      if (bizList && bizList.length > 0) { businessId = localStorage.getItem('business_id') || bizList[0].id; staffName = "Administrador"; }
       else { window.location.href = 'login.html'; return; }
     }
   }
