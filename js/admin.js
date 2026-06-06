@@ -266,8 +266,18 @@ async function loadSettings() {
             const logoPlaceholder = document.getElementById('logoPlaceholder');
             if (logoPreview && data.logo_url) {
                 logoPreview.src = data.logo_url;
-                logoPreview.style.display = 'block';
+                logoPreview.classList.remove('hidden');
                 if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+            }
+
+            if (data.logo_url) {
+                let link = document.querySelector("link[rel~='icon']");
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = 'icon';
+                    document.head.appendChild(link);
+                }
+                link.href = data.logo_url;
             }
         }
     } catch (err) {

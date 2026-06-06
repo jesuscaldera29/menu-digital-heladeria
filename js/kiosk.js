@@ -148,6 +148,14 @@ async function loadKioskSettings() {
         const headerIcon = document.getElementById('kioskHeaderIcon');
         if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-cover">`;
         if (headerIcon) headerIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-12 h-12 object-cover rounded-full">`;
+
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = data.logo_url;
       }
 
       // Populate table dropdown

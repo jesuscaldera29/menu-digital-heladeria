@@ -64,6 +64,14 @@ function setBusinessContext(biz) {
   // Set business logo if available
   if (biz.logo_url) {
     document.getElementById('bizLogoContainer').innerHTML = `<img src="${biz.logo_url}" class="w-10 h-10 object-contain rounded-2xl">`;
+
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = biz.logo_url;
   }
 }
 

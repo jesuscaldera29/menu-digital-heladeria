@@ -123,6 +123,14 @@ async function loadSettings() {
     if (data.logo_url) {
       const logo = document.getElementById('headerLogo');
       if (logo) { logo.innerHTML = `<img src="${data.logo_url}" class="w-full h-full rounded-xl object-cover">`; }
+
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = data.logo_url;
     }
 
     // Populate table selector

@@ -129,6 +129,16 @@ async function loadSettings() {
         if (logoPlaceholder) logoPlaceholder.style.display = 'none';
       }
 
+      if (data.logo_url) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = data.logo_url;
+      }
+
       const bankInfoDisplay = document.getElementById('bankInfoDisplay');
       if (bankInfoDisplay) {
         try {
