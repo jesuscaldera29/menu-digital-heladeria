@@ -243,6 +243,23 @@ async function loadCashClosings() {
   } catch (err) { console.error(err); }
 }
 
+async function deleteCashClosing(id) {
+  const code = prompt('Escribe la palabra ELIMINAR en mayúsculas para confirmar la eliminación de esta sesión de caja:');
+  if (code !== 'ELIMINAR') {
+    if (code !== null) showToast('⚠️ Cancelado: La palabra no coincide', 'error');
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient.from('cash_closings').delete().eq('id', id);
+    if (error) throw error;
+    showToast('🗑️ Sesión de caja eliminada');
+    loadCashClosings();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+}
+
 // ==========================================
 // MOVIMIENTOS DE CAJA (DEPÓSITOS / SALIDAS)
 // ==========================================
@@ -347,21 +364,5 @@ async function deleteCashMovement(id) {
     loadCashMovements();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
-  }
-}
-async function deleteCashClosing(id) {
-  const code = prompt('Escribe la palabra ELIMINAR en may�sculas para confirmar la eliminaci�n de esta sesi�n de caja:');
-  if (code !== 'ELIMINAR') {
-    if (code !== null) showToast('?? Cancelado: La palabra no coincide', 'error');
-    return;
-  }
-  
-  try {
-    const { error } = await supabaseClient.from('cash_closings').delete().eq('id', id);
-    if (error) throw error;
-    showToast('??? Sesi�n de caja eliminada');
-    loadCashClosings();
-  } catch (err) {
-    showToast('? ' + err.message, 'error');
   }
 }
