@@ -2162,9 +2162,9 @@ window.cloneVisualExtras = async function() {
         if (errInsert) throw errInsert;
 
         // Also copy the limit from the SOURCE product
-        const { data: sourceProd } = await supabaseClient.from('products').select('visual_extras_limit').eq('id', sourceId).single();
-        if (sourceProd && sourceProd.visual_extras_limit !== null) {
-            await supabaseClient.from('products').update({ visual_extras_limit: sourceProd.visual_extras_limit }).eq('id', currentVeProductId);
+        const { data: sourceProd } = await supabaseClient.from('products').select('accompaniments_limit').eq('id', sourceId).single();
+        if (sourceProd && sourceProd.accompaniments_limit !== null) {
+            await supabaseClient.from('products').update({ accompaniments_limit: sourceProd.accompaniments_limit }).eq('id', currentVeProductId);
         }
 
         showToast('✅ Extras importados exitosamente');
@@ -2175,7 +2175,7 @@ window.cloneVisualExtras = async function() {
         
         // Update limit UI
         if (document.getElementById('veLimit')) {
-             document.getElementById('veLimit').value = sourceProd && sourceProd.visual_extras_limit ? sourceProd.visual_extras_limit : '';
+             document.getElementById('veLimit').value = sourceProd && sourceProd.accompaniments_limit ? sourceProd.accompaniments_limit : '';
         }
 
     } catch(e) {

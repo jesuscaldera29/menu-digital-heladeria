@@ -43,9 +43,8 @@ async function initPOS() {
 
   document.getElementById('cashierName').textContent = '👤 ' + (staffName || 'Cajero').toUpperCase();
   await loadSettings();
-  await loadProducts();
-  await loadVisualExtras();
   await loadCustomers();
+  await reloadAllDataAndRender();
 
   // Init Auto-Print
   autoPrintEnabled = localStorage.getItem('pos_auto_print') === 'true';
@@ -224,8 +223,6 @@ async function loadProducts() {
   if (error) { showToast('Error cargando productos', 'error'); return; }
   products = data || [];
   categories = ['Todos', ...new Set(products.map(p => p.category).filter(c => c && c !== 'Acompañantes' && c !== 'Acompañantes del dia'))];
-  renderCategories();
-  renderProducts();
 }
 
 async function loadVisualExtras() {
@@ -233,6 +230,13 @@ async function loadVisualExtras() {
     const { data } = await supabaseClient.from('product_extras').select('*').eq('business_id', businessId);
     allVisualExtras = data || [];
   } catch (e) { allVisualExtras = []; }
+}
+
+async function reloadAllDataAndRender() {
+  if (!businessId) return;
+  await Promise.all([loadProducts(), loadVisualExtras()]);
+  renderCategories();
+  renderProducts();
 }
 
 // === RENDERING ===
@@ -918,8 +922,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Reload data when tab gains focus to prevent stale data from admin changes
 window.addEventListener('focus', () => {
   if (businessId) {
-    loadProducts();
-    loadVisualExtras();
+    reloadAllDataAndRender();
   }
 });
 
