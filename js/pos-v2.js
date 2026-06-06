@@ -227,8 +227,22 @@ async function loadProducts() {
 
 async function loadVisualExtras() {
   try {
-    const { data } = await supabaseClient.from('product_extras').select('*').eq('business_id', businessId);
-    allVisualExtras = data || [];
+    let allData = [];
+    let from = 0;
+    const limit = 1000;
+    while (true) {
+      const { data, error } = await supabaseClient
+        .from('product_extras')
+        .select('*')
+        .eq('business_id', businessId)
+        .range(from, from + limit - 1);
+        
+      if (error) break;
+      if (data) allData = allData.concat(data);
+      if (!data || data.length < limit) break;
+      from += limit;
+    }
+    allVisualExtras = allData;
   } catch (e) { allVisualExtras = []; }
 }
 

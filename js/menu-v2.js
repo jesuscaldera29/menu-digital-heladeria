@@ -244,11 +244,22 @@ async function loadProducts() {
   products = (data || []).filter(p => !p.pos_only);
   
   try {
-      const { data: extrasData } = await supabaseClient
-        .from('product_extras')
-        .select('*')
-        .eq('business_id', currentBusinessId);
-      window.allVisualExtras = extrasData || [];
+      let allExtras = [];
+      let from = 0;
+      const limit = 1000;
+      while (true) {
+        const { data: extrasData, error } = await supabaseClient
+          .from('product_extras')
+          .select('*')
+          .eq('business_id', currentBusinessId)
+          .range(from, from + limit - 1);
+        
+        if (error) break;
+        if (extrasData) allExtras = allExtras.concat(extrasData);
+        if (!extrasData || extrasData.length < limit) break;
+        from += limit;
+      }
+      window.allVisualExtras = allExtras;
   } catch (err) {
       window.allVisualExtras = [];
   }
