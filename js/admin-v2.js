@@ -1212,7 +1212,7 @@ window.printOrderTicket = function(id) {
       <head>
         <title>Ticket #${o.id}</title>
         <style>
-          body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+          body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
           .mb-2 { margin-bottom: 8px; }

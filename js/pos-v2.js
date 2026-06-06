@@ -1073,11 +1073,11 @@ function printPOSTicket(o) {
     <head>
       <title>Ticket #${ticketId}</title>
       <style>
-        body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-        .text-xl { font-size: 18px; }
-        .text-2xl { font-size: 24px; }
+        .text-xl { font-size: 20px; }
+        .text-2xl { font-size: 26px; }
         .mb-2 { margin-bottom: 8px; }
         .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
@@ -1225,7 +1225,7 @@ function executePrintComanda(o) {
     <head>
       <title>Comanda #${ticketId}</title>
       <style>
-        body { font-family: 'Courier New', Courier, monospace; font-size: 16px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; margin: 0; padding: 10px; width: 80mm; color: #000; }
         @media print { body { width: 100%; margin:0; padding:0; } }
       </style>
     </head>
@@ -1633,7 +1633,7 @@ window.printPOSReport = function() {
     <head>
       <title>Corte de Caja</title>
       <style>
-        body { font-family: 'Courier New', Courier, monospace; font-size: 14px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
         .mb-2 { margin-bottom: 8px; }
