@@ -262,6 +262,21 @@ async function loadSettings() {
                 deliveryFeeInput.value = data.delivery_fee || 0;
             }
 
+            if (data.ticket_data) {
+                const ticketData = typeof data.ticket_data === 'string' ? JSON.parse(data.ticket_data) : data.ticket_data;
+                const ticketNitInput = document.getElementById('ticketNitInput');
+                const ticketSedeInput = document.getElementById('ticketSedeInput');
+                const ticketDireccionInput = document.getElementById('ticketDireccionInput');
+                const ticketTelInput = document.getElementById('ticketTelInput');
+                const ticketEmailInput = document.getElementById('ticketEmailInput');
+                
+                if (ticketNitInput) ticketNitInput.value = ticketData.nit || '';
+                if (ticketSedeInput) ticketSedeInput.value = ticketData.sede || '';
+                if (ticketDireccionInput) ticketDireccionInput.value = ticketData.direccion || '';
+                if (ticketTelInput) ticketTelInput.value = ticketData.telefono || '';
+                if (ticketEmailInput) ticketEmailInput.value = ticketData.email || '';
+            }
+
             const logoPreview = document.getElementById('logoPreview');
             const logoPlaceholder = document.getElementById('logoPlaceholder');
             if (logoPreview && data.logo_url) {
@@ -354,6 +369,14 @@ async function saveMenuConfig(event) {
     const nequiInfo = document.getElementById('nequiInfoInput')?.value || '';
     const bankInfo = document.getElementById('bankInfoInput')?.value || '';
     const deliveryFee = parseFloat(document.getElementById('deliveryFeeInput')?.value) || 0;
+    
+    const ticketData = {
+        nit: document.getElementById('ticketNitInput')?.value.trim() || '',
+        sede: document.getElementById('ticketSedeInput')?.value.trim() || '',
+        direccion: document.getElementById('ticketDireccionInput')?.value.trim() || '',
+        telefono: document.getElementById('ticketTelInput')?.value.trim() || '',
+        email: document.getElementById('ticketEmailInput')?.value.trim() || ''
+    };
 
     const btn = event.target;
     const originalText = btn.innerText;
@@ -367,7 +390,8 @@ async function saveMenuConfig(event) {
             brand_color: brandColor,
             nequi_info: nequiInfo,
             bank_info: bankInfo,
-            delivery_fee: deliveryFee
+            delivery_fee: deliveryFee,
+            ticket_data: ticketData
         }).eq('business_id', businessId);
 
         if (error) throw error;

@@ -100,8 +100,13 @@ function subscribeToOnlineOrders() {
 
         // Auto print if enabled
         if (autoPrintEnabled) {
-          showToast('🖨️ Imprimiendo nuevo pedido online...');
-          printPOSTicket(payload.new);
+          if (payload.new.notes && payload.new.notes.includes('[ORIGIN:KIOSKO]')) {
+            showToast('🖨️ Imprimiendo comanda de Kiosko...');
+            executePrintComanda(payload.new);
+          } else {
+            showToast('🖨️ Imprimiendo nuevo pedido online...');
+            printPOSTicket(payload.new);
+          }
         } else {
           showToast('🛎️ Nuevo pedido online recibido');
         }
@@ -767,6 +772,12 @@ async function confirmSale() {
       return;
     }
     splitPaymentsJSON = { cash: c, card: t, transfer: f };
+  } else if (paymentMethod === 'Efectivo') {
+    const received = parseFloat(document.getElementById('cashReceived').value) || 0;
+    const total = getCheckoutTotal();
+    if (received >= total) {
+      splitPaymentsJSON = { cash_received: received, change: received - total };
+    }
   }
 
   // Build address
@@ -893,6 +904,7 @@ async function saveTableOrder() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
+      if (updatedOrder && updatedOrder.length > 0) showComandaPreview(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -908,6 +920,7 @@ async function saveTableOrder() {
       }]).select();
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
+      if (insertedOrder && insertedOrder.length > 0) showComandaPreview(insertedOrder[0]);
     }
     
     closeCheckoutModal();
@@ -960,6 +973,17 @@ function showTicketPreview(o) {
   const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 55mm; max-height: 35mm; object-fit: contain; margin-bottom: 8px;">` : '';
   const headerHtml = customHeader ? `<div style="text-align:center;margin-bottom:6px;font-size:11px;white-space:pre-wrap;">${customHeader}</div>` : '';
 
+  let ticketDataHtml = '';
+  if (posSettings.ticket_data) {
+      const td = typeof posSettings.ticket_data === 'string' ? JSON.parse(posSettings.ticket_data) : posSettings.ticket_data;
+      if (td.nit) ticketDataHtml += `<div style="text-align:center; font-size:13px;">NIT: ${td.nit}</div>`;
+      if (td.sede) ticketDataHtml += `<div style="text-align:center; font-size:13px;">Sede: ${td.sede}</div>`;
+      if (td.direccion) ticketDataHtml += `<div style="text-align:center; font-size:13px;">${td.direccion}</div>`;
+      if (td.telefono) ticketDataHtml += `<div style="text-align:center; font-size:13px;">Tel: ${td.telefono}</div>`;
+      if (td.email) ticketDataHtml += `<div style="text-align:center; font-size:13px;">${td.email}</div>`;
+      if (ticketDataHtml) ticketDataHtml = `<div style="margin-bottom:8px; line-height:1.2;">${ticketDataHtml}</div>`;
+  }
+
   const ticketId = String(o.id).split('-')[0];
   const discount = Number(o.discount || 0);
   const tip = Number(o.tip || 0);
@@ -969,17 +993,24 @@ function showTicketPreview(o) {
   if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
   if (deliveryFee > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Domicilio:</span><span>+$${deliveryFee.toLocaleString()}</span></div>`;
   if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
+  
+  let paymentDetailsHtml = '';
+  if (o.payment_method === 'Efectivo' && o.split_payments && o.split_payments.cash_received) {
+      paymentDetailsHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;margin-top:4px;"><span>Efectivo Recibido:</span><span>$${Number(o.split_payments.cash_received).toLocaleString()}</span></div>`;
+      paymentDetailsHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>Cambio:</span><span>$${Number(o.split_payments.change).toLocaleString()}</span></div>`;
+  }
 
   container.innerHTML = `
     <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:14px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center;margin-bottom:8px;">${logoUrl}</div>
-      <div style="text-align:center;font-weight:bold;font-size:22px;margin-bottom:6px;">${posSettings.business_name || 'MI NEGOCIO'}</div>
+      <div style="text-align:center;font-weight:bold;font-size:22px;margin-bottom:4px;">${posSettings.business_name || 'MI NEGOCIO'}</div>
+      ${ticketDataHtml}
       ${headerHtml}
       <div style="text-align:center;border-bottom:1px dashed #000;padding-bottom:8px;margin-bottom:8px;font-weight:bold;font-size:16px;">
         TICKET DE VENTA<br>#${ticketId}
       </div>
       <div style="margin-bottom:8px;font-size:11px;">
-        <strong>Fecha:</strong> ${new Date(o.created_at || Date.now()).toLocaleString()}<br>
+        <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
         <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
         <strong>Dirección:</strong> ${o.address || 'N/A'}<br>
@@ -995,6 +1026,7 @@ function showTicketPreview(o) {
         <span>TOTAL:</span>
         <span>$${Number(o.total).toLocaleString()}</span>
       </div>
+      ${paymentDetailsHtml}
       <div style="text-align:center;border-top:1px dashed #000;font-size:12px;margin-top:16px;padding-top:8px;white-space:pre-wrap;">
         ${customFooter}
       </div>
@@ -1058,6 +1090,17 @@ function printPOSTicket(o) {
   const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
   const headerHtml = customHeader ? `<div class="text-center mb-2" style="font-size: 12px; white-space: pre-wrap;">${customHeader}</div>` : '';
 
+  let ticketDataHtml = '';
+  if (posSettings.ticket_data) {
+      const td = typeof posSettings.ticket_data === 'string' ? JSON.parse(posSettings.ticket_data) : posSettings.ticket_data;
+      if (td.nit) ticketDataHtml += `<div class="text-center" style="font-size:14px;">NIT: ${td.nit}</div>`;
+      if (td.sede) ticketDataHtml += `<div class="text-center" style="font-size:14px;">Sede: ${td.sede}</div>`;
+      if (td.direccion) ticketDataHtml += `<div class="text-center" style="font-size:14px;">${td.direccion}</div>`;
+      if (td.telefono) ticketDataHtml += `<div class="text-center" style="font-size:14px;">Tel: ${td.telefono}</div>`;
+      if (td.email) ticketDataHtml += `<div class="text-center" style="font-size:14px;">${td.email}</div>`;
+      if (ticketDataHtml) ticketDataHtml = `<div class="mb-2" style="line-height:1.2;">${ticketDataHtml}</div>`;
+  }
+
   const ticketId = String(o.id).split('-')[0];
   const discount = Number(o.discount || 0);
   const tip = Number(o.tip || 0);
@@ -1067,6 +1110,12 @@ function printPOSTicket(o) {
   if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
   if (deliveryFee > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Domicilio:</span><span>+$${deliveryFee.toLocaleString()}</span></div>`;
   if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
+
+  let paymentDetailsHtml = '';
+  if (o.payment_method === 'Efectivo' && o.split_payments && o.split_payments.cash_received) {
+      paymentDetailsHtml += `<div class="flex" style="margin-top:4px;"><span>Efectivo Recibido:</span><span>$${Number(o.split_payments.cash_received).toLocaleString()}</span></div>`;
+      paymentDetailsHtml += `<div class="flex"><span>Cambio:</span><span>$${Number(o.split_payments.change).toLocaleString()}</span></div>`;
+  }
 
   const html = `
   <html>
@@ -1087,13 +1136,14 @@ function printPOSTicket(o) {
     </head>
     <body>
       <div class="text-center mb-2">${logoUrl}</div>
-      <div class="text-center font-bold text-2xl mb-2">${posSettings.business_name || 'MI NEGOCIO'}</div>
+      <div class="text-center font-bold text-2xl mb-1">${posSettings.business_name || 'MI NEGOCIO'}</div>
+      ${ticketDataHtml}
       ${headerHtml}
       <div class="text-center border-b font-bold text-lg mb-2">
         TICKET DE VENTA<br>#${ticketId}
       </div>
       <div class="mb-2" style="font-size: 12px;">
-        <strong>Fecha:</strong> ${new Date(o.created_at || Date.now()).toLocaleString()}<br>
+        <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
         <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
         <strong>Dirección:</strong> ${o.address || 'N/A'}<br>
@@ -1109,6 +1159,7 @@ function printPOSTicket(o) {
         <span>TOTAL:</span>
         <span>$${Number(o.total).toLocaleString()}</span>
       </div>
+      ${paymentDetailsHtml}
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px; white-space: pre-wrap;">
         ${customFooter}
       </div>
@@ -1130,8 +1181,12 @@ function showComandaPreview(o) {
   window._previewType = 'comanda';
 
   const ticketId = String(o.id).split('-')[0].toUpperCase();
-  const timeStr = new Date(o.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  const deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  let deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  if (deliveryType === 'A LA MESA') {
+      const mesaNum = o.address ? o.address.replace(/Mesa\s*/i, '').trim() : '';
+      deliveryType = mesaNum ? `MESA #${mesaNum}` : 'MESA';
+  }
   const customerName = o.customer_name || 'Mostrador';
   const customerPhone = o.customer_phone && o.customer_phone !== 'N/A' ? `<div style="font-weight:bold; font-size:20px; text-align:center;">${o.customer_phone}</div>` : '';
 
@@ -1188,8 +1243,12 @@ function showComandaPreview(o) {
 
 function executePrintComanda(o) {
   const ticketId = String(o.id).split('-')[0].toUpperCase();
-  const timeStr = new Date(o.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  const deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  let deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
+  if (deliveryType === 'A LA MESA') {
+      const mesaNum = o.address ? o.address.replace(/Mesa\s*/i, '').trim() : '';
+      deliveryType = mesaNum ? `MESA #${mesaNum}` : 'MESA';
+  }
   const customerName = o.customer_name || 'Mostrador';
   const customerPhone = o.customer_phone && o.customer_phone !== 'N/A' ? `<div style="font-weight:bold; font-size:20px; text-align:center;">${o.customer_phone}</div>` : '';
 

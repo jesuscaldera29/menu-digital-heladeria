@@ -174,6 +174,16 @@ async function submitCashClosing() {
       
     if (error) throw error;
     
+    // Lanza limpieza de cajas fantasmas que hayan quedado abiertas por error en el pasado
+    try {
+      await supabaseClient.from('cash_closings')
+        .update({ is_open: false })
+        .eq('business_id', businessId)
+        .eq('is_open', true);
+    } catch (e) {
+      console.warn('Error al limpiar cajas fantasma', e);
+    }
+    
     document.getElementById('cashClosingModal').style.display = 'none';
     const color = diff >= 0 ? 'green' : 'red';
     const resultDiv = document.getElementById('cashClosingResult');
@@ -202,7 +212,7 @@ async function loadCashClosings() {
       .from('cash_closings')
       .select('*')
       .eq('business_id', businessId)
-      .order('id', { ascending: false })
+      .order('opened_at', { ascending: false })
       .limit(20);
       
     const tbody = document.getElementById('cashClosingsList');
