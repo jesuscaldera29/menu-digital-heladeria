@@ -407,7 +407,7 @@
         <!-- CLIENTE -->
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Nombre</label>
-          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Cliente Mostrador" value="Mostrador" autocomplete="off">
+          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Anónimo" value="Anónimo" autocomplete="off">
           <datalist id="customersDataList"></datalist>
         </div>
 
@@ -429,14 +429,21 @@
           <input type="tel" id="customerPhone" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: 3001234567">
         </div>
 
+        <!-- REPARTIDOR -->
+        <div id="driverField" class="hidden">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Repartidor (Driver)</label>
+          <input type="text" id="deliveryDriver" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Nombre del repartidor">
+        </div>
+
         <!-- MÉTODO DE PAGO -->
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de Pago</label>
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
             <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">💵 Efectivo</button>
             <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Tarjeta', this)">💳 Tarjeta</button>
             <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">📱 Transf.</button>
             <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">✂️ Dividir</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Contra Entrega', this)">🚚 Contra Entr.</button>
           </div>
           <input type="hidden" id="paymentMethod" value="Efectivo">
         </div>

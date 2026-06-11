@@ -666,6 +666,8 @@ function selectOrderType(type, el) {
   const neighborhoodField = document.getElementById('neighborhoodField');
   if (neighborhoodField) neighborhoodField.classList.toggle('hidden', type !== 'Domicilio');
   document.getElementById('phoneField').classList.toggle('hidden', type !== 'Domicilio');
+  const driverField = document.getElementById('driverField');
+  if (driverField) driverField.classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
   if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
   
@@ -747,7 +749,12 @@ async function confirmSale() {
 
   const paymentMethod = document.getElementById('paymentMethod').value;
   const orderType = document.getElementById('orderType').value;
-  const customerName = document.getElementById('customerName').value.trim() || 'Mostrador';
+  let customerName = document.getElementById('customerName').value.trim();
+  
+  if (!customerName) {
+    showToast('⚠️ Ingresa el nombre del cliente o deja Anónimo', 'error');
+    return;
+  }
 
   // Validate cash payment
   if (paymentMethod === 'Efectivo') {
@@ -780,15 +787,36 @@ async function confirmSale() {
     }
   }
 
-  // Build address
+  // Build address and validate
   let address = 'POS - Local';
+  let deliveryDriver = '';
+  
   if (orderType === 'A la mesa') {
     const mesa = document.getElementById('tableNumber').value;
+    if (!mesa) {
+      showToast('⚠️ Debes seleccionar una mesa', 'error');
+      return;
+    }
     address = mesa ? 'Mesa ' + mesa : 'Mesa (sin especificar)';
   } else if (orderType === 'Domicilio') {
-    const addrVal = document.getElementById('deliveryAddress').value.trim() || 'Sin dirección';
+    const addrVal = document.getElementById('deliveryAddress').value.trim();
+    if (!addrVal) {
+      showToast('⚠️ La dirección de entrega es obligatoria', 'error');
+      return;
+    }
+    const phoneVal = document.getElementById('customerPhone')?.value?.trim();
+    if (!phoneVal) {
+      showToast('⚠️ El teléfono del cliente es obligatorio para domicilio', 'error');
+      return;
+    }
+    
     const nbVal = document.getElementById('deliveryNeighborhood')?.value.trim();
     address = addrVal + (nbVal ? ` (Barrio: ${nbVal})` : '');
+    
+    deliveryDriver = document.getElementById('deliveryDriver')?.value?.trim() || '';
+    if (deliveryDriver) {
+      address += ` | Repartidor: ${deliveryDriver}`;
+    }
   } else if (orderType === 'Para Llevar') {
     address = 'Para llevar';
   }
@@ -876,7 +904,11 @@ async function saveTableOrder() {
   }
   
   const address = 'Mesa ' + mesa;
-  const customerName = document.getElementById('customerName').value.trim() || 'Mostrador';
+  let customerName = document.getElementById('customerName').value.trim();
+  if (!customerName) {
+    showToast('⚠️ Ingresa el nombre del cliente o deja Anónimo', 'error');
+    return;
+  }
 
   const btn = document.getElementById('btnSaveTable');
   const originalText = btn.innerHTML;
@@ -1001,7 +1033,7 @@ function showTicketPreview(o) {
   }
 
   container.innerHTML = `
-    <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:14px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:14px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center;margin-bottom:8px;">${logoUrl}</div>
       <div style="text-align:center;font-weight:bold;font-size:22px;margin-bottom:4px;">${posSettings.business_name || 'MI NEGOCIO'}</div>
       ${ticketDataHtml}
@@ -1218,7 +1250,7 @@ function showComandaPreview(o) {
   }
 
   container.innerHTML = `
-    <div id="ticketPrintArea" style="font-family:'Courier New',Courier,monospace;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
       <div style="font-weight:bold; font-size:20px; text-align:center;">PEDIDO #${ticketId}</div>
       ${customerPhone}
@@ -1330,7 +1362,11 @@ window.manualPrintComanda = async function() {
       return { id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty };
     });
     const orderType = document.getElementById('orderType').value;
-    const customerName = document.getElementById('customerName').value.trim() || 'Mostrador';
+    const customerName = document.getElementById('customerName').value.trim();
+    if (!customerName) {
+      showToast('⚠️ Ingresa el nombre del cliente o deja Anónimo', 'error');
+      return;
+    }
     
     let fakeId = 'PENDIENTE';
     if (orderType === 'A la mesa') {
