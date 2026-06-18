@@ -291,25 +291,27 @@ async function saveNewPrinter() {
     btn.disabled = true;
 
     try {
+    try {
         let printers = [];
+        printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+
         if (typeof supabaseClient !== 'undefined' && typeof businessId !== 'undefined' && businessId) {
-            const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
-            if (data && data.printers) {
-                printers = data.printers;
-            } else {
-                printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
-            }
+            try {
+                const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
+                if (data && data.printers) printers = data.printers;
+            } catch (e) {}
             
             printers.push(newPrinter);
             
-            const { error } = await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
-            if (error) throw error;
+            try {
+                await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
+            } catch (err) { console.error('Cloud update failed', err); }
         } else {
-            // Fallback for local testing without DB
-            printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
             printers.push(newPrinter);
-            localStorage.setItem('printers_list', JSON.stringify(printers));
         }
+
+        // Always save to local storage as fallback
+        localStorage.setItem('printers_list', JSON.stringify(printers));
 
         showToast('✅ Impresora guardada con éxito');
         
@@ -397,24 +399,24 @@ async function deletePrinter(id) {
     
     try {
         let printers = [];
+        printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+
         if (typeof supabaseClient !== 'undefined' && typeof businessId !== 'undefined' && businessId) {
-            const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
-            if (data && data.printers) {
-                printers = data.printers;
-            } else {
-                printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
-            }
+            try {
+                const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
+                if (data && data.printers) printers = data.printers;
+            } catch(e) {}
             
             printers = printers.filter(p => String(p.id) !== String(id));
             
-            const { error } = await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
-            if (error) throw error;
+            try {
+                await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
+            } catch(err) {}
         } else {
-            // Fallback for local testing without DB
-            printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
             printers = printers.filter(p => String(p.id) !== String(id));
-            localStorage.setItem('printers_list', JSON.stringify(printers));
         }
+
+        localStorage.setItem('printers_list', JSON.stringify(printers));
 
         renderPrintersList();
         showToast('🗑️ Impresora eliminada');

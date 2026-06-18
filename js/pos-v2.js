@@ -120,6 +120,7 @@ async function loadSettings() {
   const { data } = await supabaseClient.from('settings').select('*').eq('business_id', businessId).single();
   if (data) {
     posSettings = data;
+    if (!posSettings.printers) posSettings.printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
     currency = data.currency || 'COP';
     document.getElementById('headerBizName').textContent = (data.business_name || 'POS').toUpperCase();
 

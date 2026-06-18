@@ -74,7 +74,10 @@ async function initKDS() {
   
   try {
     const { data: sData } = await supabaseClient.from('settings').select('*').eq('business_id', businessId).single();
-    if (sData) kdsSettings = sData;
+    if (sData) {
+        kdsSettings = sData;
+        if (!kdsSettings.printers) kdsSettings.printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+    }
   } catch(e) {}
   
   document.getElementById('businessName').textContent = businessName;
