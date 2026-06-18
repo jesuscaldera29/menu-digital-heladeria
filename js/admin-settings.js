@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPrintersList();
 });
 
-function saveNewPrinter() {
+async function saveNewPrinter() {
     const name = document.getElementById('newPrinterName').value.trim();
     const ip = document.getElementById('npIp').value.trim();
     if (!name || !ip) return;
@@ -285,18 +285,32 @@ function saveNewPrinter() {
         brand
     };
     
-    // Save to localStorage
-    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
-    printers.push(newPrinter);
-    localStorage.setItem('printers_list', JSON.stringify(printers));
-
     const btn = document.getElementById('npSaveBtn');
     const originalText = btn.innerHTML;
     btn.innerHTML = 'GUARDANDO...';
     btn.disabled = true;
-    
-    setTimeout(() => {
-        btn.innerHTML = originalText;
+
+    try {
+        let printers = [];
+        if (typeof supabaseClient !== 'undefined' && typeof businessId !== 'undefined' && businessId) {
+            const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
+            if (data && data.printers) {
+                printers = data.printers;
+            } else {
+                printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+            }
+            
+            printers.push(newPrinter);
+            
+            const { error } = await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
+            if (error) throw error;
+        } else {
+            // Fallback for local testing without DB
+            printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+            printers.push(newPrinter);
+            localStorage.setItem('printers_list', JSON.stringify(printers));
+        }
+
         showToast('✅ Impresora guardada con éxito');
         
         // Reset form
@@ -311,16 +325,44 @@ function saveNewPrinter() {
         if (typeof showSection === 'function') {
             showSection('settings-printers');
         }
-    }, 500);
+    } catch (err) {
+        showToast('❌ Error al guardar impresora: ' + err.message, 'error');
+        console.error(err);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
 
-function renderPrintersList() {
+async function renderPrintersList() {
     const container = document.getElementById('addedPrintersList');
     if (!container) return;
     
-    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
-    if (printers.length === 0) {
-        container.innerHTML = '';
+    container.innerHTML = '<div class="text-center text-gray-500 py-4">Cargando impresoras...</div>';
+
+    let printers = [];
+    try {
+        if (typeof supabaseClient !== 'undefined' && typeof businessId !== 'undefined' && businessId) {
+            const { data, error } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
+            if (!error && data && data.printers) {
+                printers = data.printers;
+            }
+        }
+    } catch (err) {
+        console.error('Error loading printers from cloud:', err);
+    }
+    
+    // Fallback or migrate from localStorage if cloud is empty
+    if (!printers || printers.length === 0) {
+        const localPrinters = JSON.parse(localStorage.getItem('printers_list') || '[]');
+        if (localPrinters.length > 0) {
+            printers = localPrinters;
+            // Optionally, we could save these to the cloud now
+        }
+    }
+
+    if (!printers || printers.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">No hay impresoras configuradas</div>';
         return;
     }
     
@@ -350,13 +392,36 @@ function renderPrintersList() {
     container.innerHTML = html;
 }
 
-function deletePrinter(id) {
+async function deletePrinter(id) {
     if (!confirm('¿Seguro que deseas eliminar esta impresora?')) return;
-    let printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
-    printers = printers.filter(p => p.id !== id);
-    localStorage.setItem('printers_list', JSON.stringify(printers));
-    renderPrintersList();
-    showToast('🗑️ Impresora eliminada');
+    
+    try {
+        let printers = [];
+        if (typeof supabaseClient !== 'undefined' && typeof businessId !== 'undefined' && businessId) {
+            const { data } = await supabaseClient.from('settings').select('printers').eq('business_id', businessId).single();
+            if (data && data.printers) {
+                printers = data.printers;
+            } else {
+                printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+            }
+            
+            printers = printers.filter(p => String(p.id) !== String(id));
+            
+            const { error } = await supabaseClient.from('settings').update({ printers }).eq('business_id', businessId);
+            if (error) throw error;
+        } else {
+            // Fallback for local testing without DB
+            printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
+            printers = printers.filter(p => String(p.id) !== String(id));
+            localStorage.setItem('printers_list', JSON.stringify(printers));
+        }
+
+        renderPrintersList();
+        showToast('🗑️ Impresora eliminada');
+    } catch (err) {
+        showToast('❌ Error al eliminar impresora: ' + err.message, 'error');
+        console.error(err);
+    }
 }
 
 // --- GENERAL CONFIG (Business Type) ---

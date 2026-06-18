@@ -87,6 +87,17 @@ async function printViaBridge(endpoint, data) {
 
 // Print a ticket/receipt via PrintBridge
 async function bridgePrintTicket(order, settings) {
+  let target_ip = null;
+  let target_port = null;
+  
+  if (settings && settings.printers && Array.isArray(settings.printers)) {
+    const receiptPrinter = settings.printers.find(p => p.printReceipts === true || p.printReceipts === 'true');
+    if (receiptPrinter) {
+      target_ip = receiptPrinter.ip;
+      target_port = parseInt(receiptPrinter.port) || 9100;
+    }
+  }
+
   const data = {
     business_name: settings?.business_name || 'MI NEGOCIO',
     ticket_id: String(order.id).split('-')[0],
@@ -103,13 +114,26 @@ async function bridgePrintTicket(order, settings) {
     delivery_fee: order.delivery_fee || 0,
     tip: order.tip || 0,
     cash_received: order.split_payments?.cash_received || 0,
-    footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!'
+    footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!',
+    target_ip: target_ip,
+    target_port: target_port
   };
   return await printViaBridge('/print/ticket', data);
 }
 
 // Print a comanda (kitchen order) via PrintBridge
 async function bridgePrintComanda(order, settings) {
+  let target_ip = null;
+  let target_port = null;
+  
+  if (settings && settings.printers && Array.isArray(settings.printers)) {
+    const comandaPrinter = settings.printers.find(p => p.printOrders === true || p.printOrders === 'true');
+    if (comandaPrinter) {
+      target_ip = comandaPrinter.ip;
+      target_port = parseInt(comandaPrinter.port) || 9100;
+    }
+  }
+
   const data = {
     ticket_id: String(order.id).split('-')[0].toUpperCase(),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -118,7 +142,9 @@ async function bridgePrintComanda(order, settings) {
     delivery_method: order.delivery_method || order.delivery_type || 'Local',
     address: order.address || '',
     items: order.items || [],
-    delivery_fee: order.delivery_fee || 0
+    delivery_fee: order.delivery_fee || 0,
+    target_ip: target_ip,
+    target_port: target_port
   };
   return await printViaBridge('/print/comanda', data);
 }

@@ -22,29 +22,43 @@ try {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: 'GET,POST,OPTIONS',
+  allowedHeaders: 'Content-Type,Authorization'
+}));
+
+// Chrome Private Network Access (PNA) bypass
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Private-Network', 'true');
+  next();
+});
+
 app.use(express.json({ limit: '1mb' }));
 
 // ===== SEND RAW BYTES TO PRINTER VIA TCP =====
-function sendToPrinter(data) {
+function sendToPrinter(data, targetIp = null, targetPort = null) {
+  const ip = targetIp || config.printer_ip;
+  const port = targetPort || config.printer_port;
+
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
     const timeout = setTimeout(() => {
       client.destroy();
-      reject(new Error('Timeout: No se pudo conectar a la impresora en ' + config.printer_ip));
+      reject(new Error('Timeout: No se pudo conectar a la impresora en ' + ip));
     }, 5000);
 
-    client.connect(config.printer_port, config.printer_ip, () => {
+    client.connect(port, ip, () => {
       clearTimeout(timeout);
       client.write(data, () => {
         client.end();
-        resolve({ success: true, message: 'Impreso correctamente' });
+        resolve({ success: true, message: 'Impreso correctamente en ' + ip });
       });
     });
 
     client.on('error', (err) => {
       clearTimeout(timeout);
-      reject(new Error('Error de impresora: ' + err.message));
+      reject(new Error('Error de impresora (' + ip + '): ' + err.message));
     });
   });
 }
@@ -103,9 +117,12 @@ app.post('/config', (req, res) => {
 // Print Ticket (receipt for customer)
 app.post('/print/ticket', async (req, res) => {
   try {
-    console.log('[TICKET] Imprimiendo ticket para:', req.body.customer_name || 'Cliente');
+    const targetIp = req.body.target_ip || null;
+    const targetPort = req.body.target_port || null;
+    const printerInfo = targetIp ? `(${targetIp})` : '(default)';
+    console.log(`[TICKET] Imprimiendo ticket para:`, req.body.customer_name || 'Cliente', printerInfo);
     const data = buildTicket(req.body, config);
-    const result = await sendToPrinter(data);
+    const result = await sendToPrinter(data, targetIp, targetPort);
     console.log('[TICKET] OK');
     res.json(result);
   } catch (err) {
@@ -117,9 +134,12 @@ app.post('/print/ticket', async (req, res) => {
 // Print Comanda (kitchen order - no prices)
 app.post('/print/comanda', async (req, res) => {
   try {
-    console.log('[COMANDA] Imprimiendo comanda para:', req.body.customer_name || 'Cliente');
+    const targetIp = req.body.target_ip || null;
+    const targetPort = req.body.target_port || null;
+    const printerInfo = targetIp ? `(${targetIp})` : '(default)';
+    console.log(`[COMANDA] Imprimiendo comanda para:`, req.body.customer_name || 'Cliente', printerInfo);
     const data = buildComanda(req.body, config);
-    const result = await sendToPrinter(data);
+    const result = await sendToPrinter(data, targetIp, targetPort);
     console.log('[COMANDA] OK');
     res.json(result);
   } catch (err) {
@@ -131,9 +151,12 @@ app.post('/print/comanda', async (req, res) => {
 // Print Report (cash register Z report)
 app.post('/print/report', async (req, res) => {
   try {
-    console.log('[REPORT] Imprimiendo corte de caja');
+    const targetIp = req.body.target_ip || null;
+    const targetPort = req.body.target_port || null;
+    const printerInfo = targetIp ? `(${targetIp})` : '(default)';
+    console.log('[REPORT] Imprimiendo corte de caja', printerInfo);
     const data = buildReport(req.body, config);
-    const result = await sendToPrinter(data);
+    const result = await sendToPrinter(data, targetIp, targetPort);
     console.log('[REPORT] OK');
     res.json(result);
   } catch (err) {
