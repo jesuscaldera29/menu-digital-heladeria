@@ -964,6 +964,7 @@ function showSection(sectionId, event) {
     if (sectionId === 'recipes') { if (typeof loadRecipes === 'function') loadRecipes(); }
     if (sectionId === 'purchases') { if (typeof loadPurchases === 'function') loadPurchases(); if (typeof loadSuppliersDropdown === 'function') loadSuppliersDropdown(); }
     if (sectionId === 'suppliers') { if (typeof loadSuppliers === 'function') loadSuppliers(); }
+    if (sectionId === 'settings-printers') { if (typeof renderPrintersList === 'function') renderPrintersList(); }
 
     // Sync bottom nav active state
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
