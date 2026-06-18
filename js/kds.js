@@ -4,6 +4,7 @@ let businessName = '';
 let activeOrders = [];
 let soundEnabled = true;
 let kdsSubscription = null;
+let kdsSettings = null;
 
 // Timer interval to update elapsed times
 setInterval(updateTimes, 10000); // Every 10 seconds
@@ -70,6 +71,11 @@ async function initKDS() {
 
   businessId = biz.id;
   businessName = biz.business_name;
+  
+  try {
+    const { data: sData } = await supabaseClient.from('settings').select('*').eq('business_id', businessId).single();
+    if (sData) kdsSettings = sData;
+  } catch(e) {}
   
   document.getElementById('businessName').textContent = businessName;
 
@@ -246,83 +252,15 @@ async function updateOrderStatus(orderId, newStatus) {
   }
 }
 
-// Imprimir Ticket
 function printOrderTicket(id) {
   const o = activeOrders.find(x => x.id == id);
   if (!o) return showToast('Error: No se encontró el pedido', 'error');
   
-  const showTable = localStorage.getItem('receipt_kds_table') !== 'false';
-  const showClient = localStorage.getItem('receipt_kds_client') !== 'false';
-  
-  const itemsHtml = o.items.map(item => `
-      <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:4px 0;">
-          <span>${item.qty}x ${item.name}</span>
-          <span>$${Number(item.price * item.qty).toLocaleString()}</span>
-      </div>
-  `).join('');
-
-  const discount = Number(o.discount || 0);
-  const tip = Number(o.tip || 0);
-  let extraRows = '';
-  if (discount > 0) extraRows += `<div style="display:flex;justify-content:space-between;color:#2563eb;padding:4px 0;"><span>Descuento:</span><span>-$${discount.toLocaleString()}</span></div>`;
-  if (tip > 0) extraRows += `<div style="display:flex;justify-content:space-between;color:#16a34a;padding:4px 0;"><span>Propina:</span><span>+$${tip.toLocaleString()}</span></div>`;
-
-  const html = `
-  <html>
-    <head>
-      <title>Ticket #${o.id}</title>
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .mb-2 { margin-bottom: 8px; }
-        .mb-4 { margin-bottom: 16px; }
-        .text-lg { font-size: 18px; }
-        .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
-        .flex { display: flex; justify-content: space-between; }
-        @media print { body { width: 100%; margin:0; padding:0; } }
-      </style>
-    </head>
-    <body>
-      <div class="text-center border-b font-bold text-lg">
-        TICKET DE PEDIDO
-        <br>#${String(o.id).padStart(4, '0')}
-      </div>
-      
-      <div class="mb-2" style="margin-top:10px;">
-        <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
-        ${showClient ? `<strong>Cliente:</strong> ${o.customer_name}<br><strong>Tel:</strong> ${o.customer_phone}<br>` : ''}
-        <strong>Tipo:</strong> ${o.delivery_method}<br>
-        ${showTable && o.address ? `<strong>Dir / Mesa:</strong> ${o.address}<br>` : ''}
-        <strong>Pago:</strong> ${o.payment_method}<br>
-        <strong>Notas:</strong> ${o.notes || 'Ninguna'}
-      </div>
-      
-      <div class="border-t border-b mb-2" style="margin-top:10px;">
-        ${itemsHtml}
-      </div>
-      
-      ${extraRows}
-      
-      <div class="flex border-t" style="margin-top:10px; font-size: 18px; font-weight: bold;">
-        <span>TOTAL:</span>
-        <span>$${Number(o.total).toLocaleString()}</span>
-      </div>
-      
-      <div class="text-center" style="margin-top: 20px; font-size: 12px; color: #666;">
-        ${businessName}
-      </div>
-      <script>
-        window.onload = function() { window.print(); window.close(); }
-      </script>
-    </body>
-  </html>
-  `;
-
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(html);
-  printWindow.document.close();
+  if (typeof window.bridgePrintComanda === 'function') {
+    window.bridgePrintComanda(o, kdsSettings);
+  } else {
+    showToast('PrintBridge no está inicializado.', 'error');
+  }
 }
 
 // REALTIME SUBSCRIPTION

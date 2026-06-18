@@ -1,0 +1,30 @@
+{
+  "name": "menu-digital-pro",
+  "productName": "Menu Digital Pro",
+  "version": "1.0.0",
+  "description": "Sistema de Punto de Venta para Heladería",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.heladeria.pos",
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "author": "Jesus Caldera",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
+    "electron-packager": "^17.1.2"
+  }
+}

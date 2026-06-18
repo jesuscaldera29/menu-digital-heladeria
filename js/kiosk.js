@@ -161,11 +161,33 @@ async function loadKioskSettings() {
       // Populate table dropdown
       const tableSelect = document.getElementById('kCustomerTable');
       if (tableSelect && data.table_count) {
-        let options = '<option value="">Selecciona tu Mesa</option>';
-        for (let i = 1; i <= data.table_count; i++) {
-          options += `<option value="${i}">Mesa ${i}</option>`;
+        tableSelect.innerHTML = '<option value="">Cargando mesas...</option>';
+        try {
+          const { data: activeOrders } = await supabaseClient
+            .from('orders')
+            .select('id, address')
+            .eq('business_id', currentBusinessId)
+            .eq('delivery_method', 'A la mesa')
+            .in('status', ['Pendiente', 'En preparación']);
+          
+          let options = '<option value="">Selecciona tu Mesa</option>';
+          for (let i = 1; i <= data.table_count; i++) {
+            const order = (activeOrders || []).find(o => String(o.address) === `Mesa ${i}`);
+            if (order) {
+              options += `<option value="${i}" data-order-id="${order.id}">Mesa ${i} (Ocupada)</option>`;
+            } else {
+              options += `<option value="${i}">Mesa ${i} (Libre)</option>`;
+            }
+          }
+          tableSelect.innerHTML = options;
+        } catch (e) {
+          console.error(e);
+          let options = '<option value="">Selecciona tu Mesa</option>';
+          for (let i = 1; i <= data.table_count; i++) {
+            options += `<option value="${i}">Mesa ${i}</option>`;
+          }
+          tableSelect.innerHTML = options;
         }
-        tableSelect.innerHTML = options;
       }
     }
   } catch (err) {
@@ -777,16 +799,23 @@ async function kProcessOrder() {
   const keys = Object.keys(cart);
   if (!keys.length) return showToast('Agrega productos al carrito', 'error');
 
-  const name = document.getElementById('kCustomerName').value.trim();
+  let name = document.getElementById('kCustomerName').value.trim();
   const phone = document.getElementById('kCustomerPhone').value.trim() || 'N/A';
   const delivery = kioskDeliveryMethodSelected;
   let finalAddress = '';
   let mesaSelectValue = '';
+  let existingOrderIdToAppend = null;
 
   if (delivery === 'A la mesa') {
-    mesaSelectValue = document.getElementById('kCustomerTable').value;
+    const tableSelect = document.getElementById('kCustomerTable');
+    mesaSelectValue = tableSelect.value;
     if (!mesaSelectValue) return showToast('⚠️ Selecciona tu mesa', 'error');
     finalAddress = 'Mesa ' + mesaSelectValue;
+    
+    // Check if table is occupied to append
+    if (tableSelect.selectedOptions && tableSelect.selectedOptions.length > 0) {
+      existingOrderIdToAppend = tableSelect.selectedOptions[0].getAttribute('data-order-id');
+    }
   } else if (delivery === 'Domicilio') {
     finalAddress = document.getElementById('kCustomerAddress').value.trim();
     if (!finalAddress) return showToast('⚠️ Ingresa la dirección de entrega', 'error');
@@ -794,7 +823,7 @@ async function kProcessOrder() {
     finalAddress = 'Llevar / Kiosko';
   }
 
-  if (!name) return showToast('⚠️ Ingresa tu nombre', 'error');
+  if (!name) name = 'Venta Rápida';
 
   const btn = document.getElementById('btnKProcess');
   const origText = btn.innerHTML;
@@ -840,30 +869,67 @@ async function kProcessOrder() {
     let total = subtotal - discount + appliedDeliveryFee;
     if (total < 0) total = 0;
 
-    // Insert order in DB (payment defaults to 'Efectivo' since kiosk users pay at register)
-    const { data: order, error } = await supabaseClient
-      .from('orders')
-      .insert([{
-        customer_name: name,
-        customer_phone: phone,
-        items: orderItems,
-        total,
-        delivery_fee: appliedDeliveryFee,
-        delivery_method: delivery,
-        payment_method: 'Efectivo', // Default cashier payment
-        address: finalAddress,
-        notes: '[ORIGIN:KIOSKO] Pedido realizado desde Kiosko Auto-Servicio',
-        business_id: currentBusinessId,
-        discount,
-        coupon_code: currentCoupon ? currentCoupon.code : ''
-      }])
-      .select()
-      .single();
+    let orderToPrint = null;
 
-    if (error) throw error;
+    if (existingOrderIdToAppend) {
+      // Append to existing order
+      const { data: exData } = await supabaseClient.from('orders').select('items, total, discount').eq('id', existingOrderIdToAppend).single();
+      if (exData) {
+        orderItems.unshift(...(exData.items || []));
+        total += Number(exData.total || 0);
+        discount += Number(exData.discount || 0);
+      }
+      
+      const { data: order, error } = await supabaseClient
+        .from('orders')
+        .update({
+          items: orderItems,
+          total,
+          discount,
+          coupon_code: currentCoupon ? currentCoupon.code : ''
+        })
+        .eq('id', existingOrderIdToAppend)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      orderToPrint = order;
+      // Also print comanda automatically to kitchen since table was updated via Kiosk
+      if (typeof window.bridgePrintComanda === 'function') {
+        window.bridgePrintComanda(order);
+      }
+    } else {
+      // Insert new order in DB (payment defaults to 'Pendiente' since kiosk users pay at register)
+      const { data: order, error } = await supabaseClient
+        .from('orders')
+        .insert([{
+          customer_name: name,
+          customer_phone: phone,
+          items: orderItems,
+          total,
+          delivery_fee: appliedDeliveryFee,
+          delivery_method: delivery,
+          payment_method: 'Pendiente', // Not Paid yet
+          address: finalAddress,
+          notes: '[ORIGIN:KIOSKO] Pedido realizado desde Kiosko Auto-Servicio',
+          business_id: currentBusinessId,
+          discount,
+          coupon_code: currentCoupon ? currentCoupon.code : '',
+          status: 'Pendiente' // Ensure it's pending so kitchen sees it
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      orderToPrint = order;
+      // Also print comanda automatically to kitchen since new order was created via Kiosk
+      if (typeof window.bridgePrintComanda === 'function') {
+        window.bridgePrintComanda(order);
+      }
+    }
 
     // Imprimir ticket de cliente en Kiosko
-    printKioskTicket(order);
+    printKioskTicket(orderToPrint);
 
     // Increment coupon uses
     if (currentCoupon) {

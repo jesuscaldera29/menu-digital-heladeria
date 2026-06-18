@@ -406,8 +406,11 @@
 
         <!-- CLIENTE -->
         <div>
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Nombre</label>
-          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Anónimo" value="Anónimo" autocomplete="off">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest flex justify-between items-end mb-2">
+            <span>Nombre (Opcional)</span>
+            <button class="bg-[#333] hover:bg-[#444] text-white px-2 py-1 rounded text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95" onclick="setVentaRapida()">⚡ RÁPIDA</button>
+          </label>
+          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Juan Pérez" autocomplete="off">
           <datalist id="customersDataList"></datalist>
         </div>
 

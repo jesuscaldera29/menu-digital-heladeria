@@ -608,14 +608,50 @@ function toggleMobileCart() {
 }
 
 // === CHECKOUT MODAL ===
-function openCheckoutModal() {
+window.setVentaRapida = function() {
+  const cn = document.getElementById('customerName');
+  if(cn) cn.value = 'Venta Rápida';
+};
+
+async function openCheckoutModal() {
   if (!Object.keys(posCart).length) return;
   document.getElementById('cashReceived').value = '';
   document.getElementById('changeDisplay').classList.add('hidden');
   document.getElementById('insufficientDisplay').classList.add('hidden');
   document.getElementById('checkoutModal').classList.remove('hidden');
   
-  // Ensure btnSaveTable visibility and total is correct
+  // Update table dropdown with active states
+  const tableSelector = document.getElementById('tableNumber');
+  if (tableSelector && posSettings && posSettings.table_count) {
+    tableSelector.innerHTML = '<option value="">Cargando mesas...</option>';
+    try {
+      const { data: activeOrders } = await supabaseClient
+        .from('orders')
+        .select('id, address, status, items, created_at')
+        .eq('business_id', businessId)
+        .eq('delivery_method', 'A la mesa')
+        .in('status', ['Pendiente', 'En preparación']);
+      
+      window.currentActiveOrders = activeOrders || [];
+      
+      let opts = '<option value="">Seleccionar mesa</option>';
+      for (let i = 1; i <= posSettings.table_count; i++) {
+        const order = window.currentActiveOrders.find(o => String(o.address) === `Mesa ${i}`);
+        if (order) {
+          opts += `<option value="${i}" data-order-id="${order.id}">Mesa ${i} (Ocupada)</option>`;
+        } else {
+          opts += `<option value="${i}">Mesa ${i} (Libre)</option>`;
+        }
+      }
+      tableSelector.innerHTML = opts;
+    } catch (e) {
+      console.error(e);
+      let opts = '<option value="">Seleccionar mesa</option>';
+      for (let i = 1; i <= posSettings.table_count; i++) opts += `<option value="${i}">Mesa ${i}</option>`;
+      tableSelector.innerHTML = opts;
+    }
+  }
+
   const orderType = document.getElementById('orderType').value;
   const activeBtn = Array.from(document.querySelectorAll('.order-type-btn')).find(b => b.classList.contains('active'));
   if (activeBtn) {
@@ -750,10 +786,8 @@ async function confirmSale() {
   const paymentMethod = document.getElementById('paymentMethod').value;
   const orderType = document.getElementById('orderType').value;
   let customerName = document.getElementById('customerName').value.trim();
-  
   if (!customerName) {
-    showToast('⚠️ Ingresa el nombre del cliente o deja Anónimo', 'error');
-    return;
+    customerName = 'Venta Rápida';
   }
 
   // Validate cash payment
@@ -841,6 +875,21 @@ async function confirmSale() {
         appliedDeliveryFee = Number(posSettings.delivery_fee);
     }
 
+    if (orderType === 'A la mesa' && !currentOpenOrderId) {
+      const mesaSelect = document.getElementById('tableNumber');
+      if (mesaSelect && mesaSelect.selectedOptions && mesaSelect.selectedOptions.length > 0) {
+        const oId = mesaSelect.selectedOptions[0].getAttribute('data-order-id');
+        if (oId) {
+          const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', oId).single();
+          if (exData) {
+            currentOpenOrderId = oId;
+            items = [...(exData.items || []), ...items];
+            total = Number(exData.total || 0) + total;
+          }
+        }
+      }
+    }
+
     if (currentOpenOrderId) {
       const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
         customer_name: customerName,
@@ -906,8 +955,7 @@ async function saveTableOrder() {
   const address = 'Mesa ' + mesa;
   let customerName = document.getElementById('customerName').value.trim();
   if (!customerName) {
-    showToast('⚠️ Ingresa el nombre del cliente o deja Anónimo', 'error');
-    return;
+    customerName = 'Venta Rápida';
   }
 
   const btn = document.getElementById('btnSaveTable');
@@ -925,6 +973,21 @@ async function saveTableOrder() {
 
     const customerPhone = document.getElementById('customerPhone')?.value?.trim() || 'N/A';
 
+    if (!currentOpenOrderId) {
+      const mesaSelect = document.getElementById('tableNumber');
+      if (mesaSelect && mesaSelect.selectedOptions && mesaSelect.selectedOptions.length > 0) {
+        const oId = mesaSelect.selectedOptions[0].getAttribute('data-order-id');
+        if (oId) {
+          const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', oId).single();
+          if (exData) {
+            currentOpenOrderId = oId;
+            items = [...(exData.items || []), ...items];
+            total = Number(exData.total || 0) + total;
+          }
+        }
+      }
+    }
+
     if (currentOpenOrderId) {
       const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
         customer_name: customerName,
@@ -936,7 +999,11 @@ async function saveTableOrder() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
-      if (updatedOrder && updatedOrder.length > 0) showComandaPreview(updatedOrder[0]);
+      if (updatedOrder && updatedOrder.length > 0) {
+        // ALWAYS auto-print comanda for the KITCHEN when table is saved/appended
+        executePrintComanda(updatedOrder[0]);
+        showComandaPreview(updatedOrder[0]);
+      }
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -952,7 +1019,11 @@ async function saveTableOrder() {
       }]).select();
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
-      if (insertedOrder && insertedOrder.length > 0) showComandaPreview(insertedOrder[0]);
+      if (insertedOrder && insertedOrder.length > 0) {
+        // ALWAYS auto-print comanda for the KITCHEN when a new table is saved
+        executePrintComanda(insertedOrder[0]);
+        showComandaPreview(insertedOrder[0]);
+      }
     }
     
     closeCheckoutModal();
