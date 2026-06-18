@@ -1107,7 +1107,13 @@ function downloadTicketFromPreview() {
   });
 }
 
-function printPOSTicket(o) {
+async function printPOSTicket(o) {
+  // Try PrintBridge first (silent network print)
+  if (typeof bridgePrintTicket === 'function') {
+    const ok = await bridgePrintTicket(o, posSettings);
+    if (ok) { showToast('🖨️ Ticket impreso (PrintBridge)'); return; }
+  }
+  // Fallback: browser print
   const itemsHtml = o.items.map(item => `
       <div style="display:flex;justify-content:space-between;padding:4px 0; border-bottom:1px dashed #eee;">
           <span style="flex:1;">${item.qty || item.quantity}x ${item.name}</span>
@@ -1273,7 +1279,13 @@ function showComandaPreview(o) {
   }
 }
 
-function executePrintComanda(o) {
+async function executePrintComanda(o) {
+  // Try PrintBridge first (silent network print)
+  if (typeof bridgePrintComanda === 'function') {
+    const ok = await bridgePrintComanda(o, posSettings);
+    if (ok) { showToast('🖨️ Comanda impresa (PrintBridge)'); return; }
+  }
+  // Fallback: browser print
   const ticketId = String(o.id).split('-')[0].toUpperCase();
   const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   let deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
@@ -1716,9 +1728,15 @@ window.closePOSReport = function() {
   document.getElementById('posReportModal').classList.add('hidden');
 };
 
-window.printPOSReport = function() {
+window.printPOSReport = async function() {
   if (!window.currentPOSReport) return;
   
+  // Try PrintBridge first
+  if (typeof bridgePrintReport === 'function') {
+    const ok = await bridgePrintReport(window.currentPOSReport, posSettings);
+    if (ok) { showToast('🖨️ Reporte impreso (PrintBridge)'); return; }
+  }
+  // Fallback: browser print
   const r = window.currentPOSReport;
   const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:50px;height:50px;border-radius:25px;margin-bottom:10px;">` : '';
   const businessName = posSettings?.name || 'Mi Negocio';

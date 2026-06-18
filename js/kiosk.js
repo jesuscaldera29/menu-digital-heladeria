@@ -934,7 +934,13 @@ resetKiosk = function() {
   originalResetKiosk();
 };
 
-function printKioskTicket(o) {
+async function printKioskTicket(o) {
+  // Try PrintBridge first (silent network print - works from Android!)
+  if (typeof bridgePrintComanda === 'function') {
+    const ok = await bridgePrintComanda(o, window.kioskSettings || {});
+    if (ok) { console.log('[Kiosk] Comanda impresa via PrintBridge'); return; }
+  }
+  // Fallback: browser iframe print
   const ticketId = String(o.id).split('-')[0].toUpperCase();
   const logoUrl = window.kioskSettings?.logo_url ? `<img src="${window.kioskSettings.logo_url}" style="max-width: 50mm; max-height: 30mm; object-fit: contain; margin-bottom: 8px;">` : '';
   const businessName = window.kioskSettings?.business_name || 'MI NEGOCIO';
