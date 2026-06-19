@@ -794,38 +794,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- SUB-SECTION: HARDWARE & IMPRESORAS -->
-    <div id="section-settings-hardware" class="section-content">
-      <div class="max-w-4xl mx-auto space-y-8">
-        
-        <div class="flex items-center gap-4 mb-6 cursor-pointer" onclick="showSection('settings', event)">
-          <button class="bg-white border border-gray-200 p-2 rounded-full hover:bg-gray-50 transition-all shadow-sm">
-            <span class="text-lg leading-none flex items-center justify-center w-6 h-6">🔙</span>
-          </button>
-          <h2 class="text-2xl font-black text-gray-800">Impresoras y Hardware</h2>
-        </div>
-
-        <!-- IMPRESIÓN AUTOMÁTICA -->
-        <div class="card">
-          <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🖨️ Impresión Automática</h2>
-          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 shadow-inner">
-            <p class="font-bold mb-2">¿Cómo activar la impresión automática en tu Cajero/POS?</p>
-            <ol class="list-decimal pl-4 space-y-2">
-              <li>Ve a tu sistema de Cajero (POS) usando Google Chrome.</li>
-              <li>Activa el botón <strong>"🖨️ Auto-Print"</strong> en la barra superior del POS.</li>
-              <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200 shadow-sm">--kiosk-printing</code>.</li>
-            </ol>
-            <div class="mt-4 text-xs bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
-              <strong>En Windows:</strong> Haz clic derecho en el acceso directo de Chrome > Propiedades > Destino. Al final del texto, agrega un espacio y pega: <br> <code class="text-gray-800 font-mono font-bold mt-1 block">--kiosk-printing</code> <br>
-              (Ejemplo: <code class="text-gray-600">"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing</code>)
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- SECTION: PRODUCTOS -->
     <div id="section-products" class="section-content">
       <div class="max-w-6xl mx-auto space-y-6">
@@ -1525,6 +1493,21 @@
       <div class="space-y-6 pb-24">
         <!-- Lista de impresoras agregadas funcional -->
         <div id="addedPrintersList" class="space-y-4"></div>
+
+        <!-- Instrucciones de Impresión Automática -->
+        <div class="bg-blue-50 border border-blue-200 rounded-[24px] p-5 text-sm text-blue-800 shadow-sm">
+          <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🖨️ Modo Kiosko Chrome</h2>
+          <p class="font-bold mb-2">¿Cómo activar la impresión automática directa?</p>
+          <ol class="list-decimal pl-4 space-y-2">
+            <li>Ve a tu sistema de Cajero (POS) usando Google Chrome.</li>
+            <li>Activa el botón <strong>"🖨️ Auto-Print"</strong> en la barra superior del POS.</li>
+            <li>Para que Chrome no te pida confirmación al imprimir, debes iniciar Chrome con el comando <code class="bg-white px-1 py-0.5 rounded border border-blue-200 shadow-sm">--kiosk-printing</code>.</li>
+          </ol>
+          <div class="mt-4 text-xs bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+            <strong>En Windows:</strong> Haz clic derecho en el acceso directo de Chrome > Propiedades > Destino. Al final del texto, agrega un espacio y pega: <br> <code class="text-gray-800 font-mono font-bold mt-1 block">--kiosk-printing</code> <br>
+            (Ejemplo: <code class="text-gray-600">"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing</code>)
+          </div>
+        </div>
 
         <!-- Basic Print Settings -->
         <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-5 space-y-6">
