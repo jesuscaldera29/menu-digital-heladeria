@@ -10,6 +10,16 @@
   },
   "build": {
     "appId": "com.heladeria.pos",
+    "extraResources": [
+      {
+        "from": "../print-server/PrintBridge.exe",
+        "to": "PrintBridge.exe"
+      },
+      {
+        "from": "../print-server/config.json",
+        "to": "config.json"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "build/icon.png"
