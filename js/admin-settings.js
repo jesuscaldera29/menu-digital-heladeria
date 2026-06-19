@@ -243,12 +243,14 @@ function checkNewPrinterForm() {
         btn.disabled = false;
         btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
         btn.classList.add('bg-[#00c875]', 'text-white', 'hover:bg-[#00b065]');
-        btn.querySelector('span').classList.replace('bg-gray-400', 'bg-white');
+        const span = btn.querySelector('span');
+        if (span) span.classList.replace('bg-gray-400', 'bg-white');
     } else {
         btn.disabled = true;
         btn.classList.remove('bg-[#00c875]', 'text-white', 'hover:bg-[#00b065]');
         btn.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
-        btn.querySelector('span').classList.replace('bg-white', 'bg-gray-400');
+        const span = btn.querySelector('span');
+        if (span) span.classList.replace('bg-white', 'bg-gray-400');
     }
 }
 
