@@ -291,7 +291,6 @@ async function saveNewPrinter() {
     btn.disabled = true;
 
     try {
-    try {
         let printers = [];
         printers = JSON.parse(localStorage.getItem('printers_list') || '[]');
 
