@@ -99,8 +99,9 @@ async function bridgePrintTicket(order, settings) {
   }
 
   const data = {
+    logo_url: settings?.logo_url || null,
     business_name: settings?.business_name || 'MI NEGOCIO',
-    ticket_id: String(order.id).split('-')[0],
+    ticket_id: String(order.id).includes('MESA-') ? String(order.id).toUpperCase() : String(order.id).split('-')[0],
     ticket_data: settings?.ticket_data || null,
     date: new Date().toLocaleString(),
     customer_name: order.customer_name || 'Mostrador',
@@ -135,7 +136,7 @@ async function bridgePrintComanda(order, settings) {
   }
 
   const data = {
-    ticket_id: String(order.id).split('-')[0].toUpperCase(),
+    ticket_id: String(order.id).includes('MESA-') ? String(order.id).toUpperCase() : String(order.id).split('-')[0].toUpperCase(),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     customer_name: order.customer_name || 'Mostrador',
     customer_phone: order.customer_phone || 'N/A',

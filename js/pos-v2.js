@@ -672,6 +672,7 @@ async function openCheckoutModal() {
   // Update table dropdown with active states
   const tableSelector = document.getElementById('tableNumber');
   if (tableSelector && posSettings && posSettings.table_count) {
+    const prevValue = tableSelector.value;
     tableSelector.innerHTML = '<option value="">Cargando mesas...</option>';
     try {
       const { data: activeOrders } = await supabaseClient
@@ -693,11 +694,13 @@ async function openCheckoutModal() {
         }
       }
       tableSelector.innerHTML = opts;
+      if (prevValue) tableSelector.value = prevValue;
     } catch (e) {
       console.error(e);
       let opts = '<option value="">Seleccionar mesa</option>';
       for (let i = 1; i <= posSettings.table_count; i++) opts += `<option value="${i}">Mesa ${i}</option>`;
       tableSelector.innerHTML = opts;
+      if (prevValue) tableSelector.value = prevValue;
     }
   }
 
@@ -1211,7 +1214,7 @@ function showTicketPreview(o) {
   }
 
   container.innerHTML = `
-    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:14px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center;margin-bottom:8px;">${logoUrl}</div>
       <div style="text-align:center;font-weight:bold;font-size:22px;margin-bottom:4px;">${posSettings.business_name || 'MI NEGOCIO'}</div>
       ${ticketDataHtml}
@@ -1338,11 +1341,11 @@ async function printPOSTicket(o) {
     <head>
       <title>Ticket #${ticketId}</title>
       <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-        .text-xl { font-size: 22px; }
-        .text-2xl { font-size: 28px; }
+        .text-xl { font-size: 24px; }
+        .text-2xl { font-size: 30px; }
         .mb-2 { margin-bottom: 8px; }
         .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
@@ -1358,7 +1361,7 @@ async function printPOSTicket(o) {
       <div class="text-center border-b font-bold mb-2" style="font-size: 20px;">
         TICKET DE VENTA<br>#${ticketId}
       </div>
-      <div class="mb-2" style="font-size: 15px;">
+      <div class="mb-2" style="font-size: 17px;">
         <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
         <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
@@ -1403,7 +1406,7 @@ function showComandaPreview(o) {
 
   window._previewType = 'comanda';
 
-  const ticketId = String(o.id).split('-')[0].toUpperCase();
+  const ticketId = String(o.id).includes('MESA-') ? String(o.id).toUpperCase() : String(o.id).split('-')[0].toUpperCase();
   const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   let deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
   if (deliveryType === 'A LA MESA') {
@@ -1441,7 +1444,7 @@ function showComandaPreview(o) {
   }
 
   container.innerHTML = `
-    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:18px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:20px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
       <div style="text-align:center; font-weight:bold; font-size:24px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
       <div style="font-weight:bold; font-size:22px; text-align:center;">PEDIDO #${ticketId}</div>
       ${customerPhone}
@@ -1471,7 +1474,7 @@ async function executePrintComanda(o) {
     if (ok) { showToast('🖨️ Comanda impresa (PrintBridge)'); return; }
   }
   // Fallback: browser print
-  const ticketId = String(o.id).split('-')[0].toUpperCase();
+  const ticketId = String(o.id).includes('MESA-') ? String(o.id).toUpperCase() : String(o.id).split('-')[0].toUpperCase();
   const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   let deliveryType = (o.delivery_method || o.delivery_type || 'LOCAL').toUpperCase();
   if (deliveryType === 'A LA MESA') {
@@ -1493,7 +1496,7 @@ async function executePrintComanda(o) {
     
     return `
       <div style="padding:6px 0;">
-          <div style="font-weight:bold; font-size:20px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
+          <div style="font-weight:bold; font-size:22px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
           ${extrasHtml}
       </div>`
   }).join('');
@@ -1513,7 +1516,7 @@ async function executePrintComanda(o) {
     <head>
       <title>Comanda #${ticketId}</title>
       <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: bold; margin: 0; padding: 10px; width: 80mm; color: #000; }
         @media print { body { width: 100%; margin:0; padding:0; } }
       </style>
     </head>
@@ -1584,6 +1587,7 @@ window.manualPrintComanda = async function() {
       delivery_method: orderType,
       customer_name: customerName,
       customer_phone: document.getElementById('customerPhone')?.value?.trim() || 'N/A',
+      address: (orderType === 'A la mesa' && mesa) ? 'Mesa ' + mesa : '',
       items: items,
       delivery_fee: (orderType === 'Domicilio' && posSettings.delivery_fee) ? Number(posSettings.delivery_fee) : 0
     };

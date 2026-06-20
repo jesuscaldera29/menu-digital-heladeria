@@ -9,12 +9,15 @@
     "build": "pkg . --targets node18-win-x64 --output PrintBridge.exe"
   },
   "pkg": {
-    "assets": ["config.json"],
+    "assets": [
+      "config.json"
+    ],
     "outputPath": "dist"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.0",
-    "cors": "^2.8.5"
+    "jimp": "^0.16.13"
   },
   "devDependencies": {
     "pkg": "^5.8.1"

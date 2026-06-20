@@ -5,6 +5,7 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const Jimp = require('jimp');
 const { buildTicket, buildComanda, buildReport } = require('./escpos-builder');
 
 // Load config
@@ -121,7 +122,20 @@ app.post('/print/ticket', async (req, res) => {
     const targetPort = req.body.target_port || null;
     const printerInfo = targetIp ? `(${targetIp})` : '(default)';
     console.log(`[TICKET] Imprimiendo ticket para:`, req.body.customer_name || 'Cliente', printerInfo);
-    const data = buildTicket(req.body, config);
+    let logoImage = null;
+    if (req.body.logo_url) {
+      try {
+        logoImage = await Jimp.read(req.body.logo_url);
+        // Resize to max 384px width for 58mm or keep original if smaller. 200px is safe.
+        logoImage.resize(200, Jimp.AUTO);
+        // Process image to ensure sharp edges for thermal printing
+        logoImage.greyscale().contrast(0.5);
+      } catch (e) {
+        console.error('[TICKET] No se pudo cargar el logo:', e.message);
+      }
+    }
+
+    const data = buildTicket(req.body, config, logoImage);
     const result = await sendToPrinter(data, targetIp, targetPort);
     console.log('[TICKET] OK');
     res.json(result);

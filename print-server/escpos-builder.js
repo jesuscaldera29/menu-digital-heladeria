@@ -37,6 +37,43 @@ class EscPosBuilder {
   }
   beep(n = 1, d = 3) { return this._p(ESC, 0x42, n, d); }
   cut() { this.newline(3); return this._p(GS, 0x56, 0); }
+  image(img) {
+    if (!img || !img.bitmap) return this;
+    const width = Math.ceil(img.bitmap.width / 8) * 8;
+    const height = img.bitmap.height;
+    const xL = (width / 8) & 0xFF;
+    const xH = ((width / 8) >> 8) & 0xFF;
+    const yL = height & 0xFF;
+    const yH = (height >> 8) & 0xFF;
+
+    this.alignCenter();
+    this._p(GS, 0x76, 0x30, 0);
+    this._p(xL, xH, yL, yH);
+
+    const bytes = width / 8;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < bytes; x++) {
+        let byte = 0;
+        for (let b = 0; b < 8; b++) {
+          const pixelX = x * 8 + b;
+          if (pixelX < img.bitmap.width) {
+            const idx = (img.bitmap.width * y + pixelX) << 2;
+            const r = img.bitmap.data[idx + 0];
+            const g = img.bitmap.data[idx + 1];
+            const b_col = img.bitmap.data[idx + 2];
+            const a = img.bitmap.data[idx + 3];
+            const luma = (r * 0.299 + g * 0.587 + b_col * 0.114);
+            if (luma < 128 && a > 128) {
+              byte |= (1 << (7 - b));
+            }
+          }
+        }
+        this._p(byte);
+      }
+    }
+    this.newline();
+    return this;
+  }
   build() { return Buffer.from(this.buf); }
 }
 
@@ -49,9 +86,11 @@ function san(t) {
 }
 function fmt(n) { return '$' + Number(n||0).toLocaleString('es-CO'); }
 
-function buildTicket(d, cfg) {
+function buildTicket(d, cfg, logoImage = null) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
-  b.init().alignCenter().textLine(san(d.business_name || 'MI NEGOCIO'));
+  b.init().alignCenter();
+  if (logoImage) b.image(logoImage);
+  b.textLine(san(d.business_name || 'MI NEGOCIO'));
   if (d.ticket_data) {
     const td = typeof d.ticket_data === 'string' ? JSON.parse(d.ticket_data) : d.ticket_data;
     if (td.sede) b.textLine('Sede: ' + san(td.sede));
@@ -76,10 +115,11 @@ function buildTicket(d, cfg) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q));
+      b.doubleHeight(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q));
       extras.forEach(e => {
         b.leftRight('- ' + san(e) + ' x ' + q, fmt(0));
       });
+      b.normalSize();
     });
   }
   
@@ -105,10 +145,12 @@ function buildTicket(d, cfg) {
 function buildComanda(d, cfg) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
   b.init().alignCenter().textLine('Comanda');
-  b.textLine('Orden # ' + san(d.ticket_id || '0000'));
+  if (d.ticket_id && d.ticket_id !== 'MESA') {
+    b.textLine('Orden # ' + san(d.ticket_id));
+  }
   let dt = (d.delivery_method || 'LOCAL').toUpperCase();
   if (dt === 'A LA MESA') { const m = d.address ? d.address.replace(/Mesa\s*/i,'').trim() : ''; dt = m ? 'MESA '+m : 'MESA'; }
-  b.textLine(dt);
+  b.doubleSize(true).textLine(dt).normalSize();
   
   b.newline();
   b.alignLeft().textLine(d.time || d.date || new Date().toLocaleString());
@@ -121,8 +163,9 @@ function buildComanda(d, cfg) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.textLine('* ' + san(mn).toUpperCase() + ' x ' + q);
-      extras.forEach(e => b.textLine(san(e).toUpperCase() + ' x ' + q));
+      b.doubleHeight(true).textLine('* ' + san(mn).toUpperCase() + ' x ' + q);
+      extras.forEach(e => b.textLine('  ' + san(e).toUpperCase() + ' x ' + q));
+      b.normalSize();
     });
   }
   
