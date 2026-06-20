@@ -300,25 +300,51 @@
 
   <!-- TICKET / CONFIRMATION MODAL -->
   <div id="kTicketModal" class="fixed inset-0 bg-black/80 z-[300] hidden items-center justify-center p-4 backdrop-blur-md">
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
+    <div class="max-w-md w-full bg-white rounded-[32px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden text-center flex flex-col items-center border border-orange-100">
       
-      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mb-4 text-green-600 animate-bounce">
-        ✅
+      <!-- Decorative Top Gradient bar -->
+      <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-orange-500 via-pink-500 to-red-500"></div>
+      
+      <!-- Big animated 3D-like checkmark with dessert emoji -->
+      <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-5xl mb-6 text-white shadow-lg shadow-green-200 animate-bounce relative">
+        ✓
+        <span class="absolute -top-2 -right-2 text-2xl animate-pulse">🍦</span>
       </div>
       
-      <h2 class="text-3xl font-black mb-1">¡PEDIDO EN COCINA!</h2>
-      <p class="text-lg font-bold text-orange-600 uppercase tracking-wider mb-6" id="kTModalOrderId">#0000</p>
+      <h2 class="text-3xl font-black text-gray-900 mb-2">¡Gracias por tu compra!</h2>
+      <p class="text-gray-500 text-sm font-semibold max-w-xs mb-6">Tu orden ha sido enviada con éxito y ya se está preparando con mucho amor. 🍧✨</p>
       
-      <div class="space-y-4 text-sm text-gray-600 text-left bg-gray-50 p-6 rounded-2xl w-full mb-6">
-        <p class="text-center font-bold text-black text-base border-b border-dashed border-gray-200 pb-3 mb-3">💵 PASA A CAJA A PAGAR</p>
-        <div class="flex justify-between"><span>Cliente:</span> <strong id="kTRecName" class="text-black"></strong></div>
-        <div class="flex justify-between" id="kTRecTableSelect"><span>Mesa:</span> <strong id="kTRecTable" class="text-black"></strong></div>
-        <div class="flex justify-between font-black text-base text-red-600 border-t border-gray-200 pt-3 mt-3"><span>Total a Pagar:</span> <span id="kTRecTotal"></span></div>
+      <!-- Order details box with a modern receipt design -->
+      <div class="bg-orange-50/50 border border-orange-100 p-6 rounded-2xl w-full mb-6 text-left space-y-3 relative">
+        <div class="flex justify-between items-center border-b border-dashed border-orange-200 pb-3 mb-3">
+          <span class="text-xs font-black text-orange-600 uppercase tracking-widest">Pedido</span>
+          <strong class="text-xl font-black text-gray-900" id="kTModalOrderId">#0000</strong>
+        </div>
+        
+        <p class="text-center font-black text-orange-700 text-xs bg-orange-100/60 py-1.5 rounded-lg mb-3 tracking-wider uppercase">💵 PASA A CAJA A PAGAR</p>
+        
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 font-bold">Cliente:</span>
+          <strong id="kTRecName" class="text-gray-800"></strong>
+        </div>
+        
+        <div class="flex justify-between text-sm" id="kTRecTableSelect">
+          <span class="text-gray-500 font-bold">Mesa / Ubicación:</span>
+          <strong id="kTRecTable" class="text-gray-800"></strong>
+        </div>
+        
+        <div class="flex justify-between items-center font-black text-lg text-red-600 border-t border-dashed border-orange-200 pt-3 mt-3">
+          <span>Total:</span>
+          <span id="kTRecTotal" class="text-2xl font-black"></span>
+        </div>
       </div>
 
-      <p class="text-xs text-gray-400 font-bold mb-6">La pantalla volverá al inicio en <span id="kTCountdown" class="text-red-500 font-black">15</span> segundos...</p>
+      <div class="flex items-center gap-2 mb-6">
+        <span class="animate-spin text-orange-500">⏳</span>
+        <p class="text-xs text-gray-400 font-bold">Volviendo al inicio en <span id="kTCountdown" class="text-red-500 font-black text-sm">15</span> segundos...</p>
+      </div>
 
-      <button onclick="resetKiosk()" class="w-full bg-black text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">
+      <button onclick="resetKiosk()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-4 rounded-[20px] shadow-lg shadow-orange-200 hover:shadow-xl active:scale-[0.98] transition-all text-base uppercase tracking-wider">
         🔄 HACER OTRO PEDIDO
       </button>
     </div>

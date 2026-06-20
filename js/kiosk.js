@@ -989,22 +989,25 @@ async function kProcessOrder() {
     clearInterval(inactivityTimer);
 
     // Render Ticket modal
-    document.getElementById('kTModalOrderId').textContent = `#${String(order.id).padStart(4, '0')}`;
-    document.getElementById('kTRecName').textContent = order.customer_name;
+    document.getElementById('kTModalOrderId').textContent = `#${String(orderToPrint.id).padStart(4, '0')}`;
+    document.getElementById('kTRecName').textContent = orderToPrint.customer_name;
     
     const tableRow = document.getElementById('kTRecTableSelect');
-    if (delivery === 'Para Consumir Aquí') {
+    if (delivery === 'A la mesa') {
       tableRow.classList.remove('hidden');
       document.getElementById('kTRecTable').textContent = mesaSelectValue;
     } else {
       tableRow.classList.add('hidden');
     }
 
-    document.getElementById('kTRecTotal').textContent = `$${Number(order.total).toLocaleString()}`;
+    document.getElementById('kTRecTotal').textContent = `$${Number(orderToPrint.total).toLocaleString()}`;
     
     // Show ticket modal
     document.getElementById('kTicketModal').classList.remove('hidden');
     document.getElementById('kTicketModal').classList.add('flex');
+
+    // Send WhatsApp tracking message
+    sendKioskWhatsApp(orderToPrint);
 
     // 15 seconds countdown before auto-restart
     let countdown = 15;
@@ -1032,6 +1035,44 @@ async function kProcessOrder() {
   }
 }
 
+// Send WhatsApp message to customer from Kiosk
+function sendKioskWhatsApp(order) {
+  if (!order || !order.customer_phone || order.customer_phone === 'N/A' || order.customer_phone === 'VENTA RAPIDA' || order.customer_name === 'VENTA RAPIDA') return;
+  
+  let msg = `🍦 *¡Gracias por tu compra en Goloso!* ✨\n`;
+  msg += `Hemos recibido tu pedido con éxito. Aquí tienes el detalle:\n\n`;
+  msg += `🛒 *PEDIDO #${String(order.id).padStart(4, '0')}*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━\n`;
+  
+  for (const item of order.items || []) {
+    msg += `▪️ ${item.name} x${item.qty}\n`;
+  }
+  
+  const discount = Number(order.discount || 0);
+  const total = Number(order.total || 0);
+  const subtotal = total + discount - (order.delivery_fee || 0);
+  
+  msg += `━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
+  if (discount > 0) msg += `Descuento: -$${discount.toLocaleString()}\n`;
+  if (order.delivery_fee > 0) msg += `Domicilio: +$${Number(order.delivery_fee).toLocaleString()}\n`;
+  msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `👤 *Cliente:* ${order.customer_name}\n`;
+  msg += `📦 *Método:* ${order.delivery_method}\n`;
+  if (order.address && order.address !== 'Llevar / Kiosko') {
+    msg += `📍 *Ubicación/Mesa:* ${order.address}\n`;
+  }
+  
+  const trackingUrl = window.location.origin + '/order-status.html?id=' + order.id;
+  msg += `\n🔗 *Sigue el estado de tu pedido aquí:*\n${trackingUrl}\n`;
+  
+  const cleanPhone = order.customer_phone.replace(/\D/g, '');
+  const finalPhone = cleanPhone.length === 10 ? `57${cleanPhone}` : cleanPhone;
+  
+  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
 // Override resetKiosk to clear the success timer if clicked manually
 const originalResetKiosk = resetKiosk;
 resetKiosk = function() {
@@ -1044,9 +1085,9 @@ resetKiosk = function() {
 
 async function printKioskTicket(o) {
   // Try PrintBridge first (silent network print - works from Android!)
-  if (typeof bridgePrintComanda === 'function') {
-    const ok = await bridgePrintComanda(o, window.kioskSettings || {});
-    if (ok) { console.log('[Kiosk] Comanda impresa via PrintBridge'); return; }
+  if (typeof bridgePrintTicket === 'function') {
+    const ok = await bridgePrintTicket(o, window.kioskSettings || {});
+    if (ok) { console.log('[Kiosk] Ticket impreso via PrintBridge'); return; }
   }
   // Fallback: browser iframe print
   const ticketId = String(o.id).split('-')[0].toUpperCase();
