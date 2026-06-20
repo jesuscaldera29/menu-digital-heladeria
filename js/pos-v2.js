@@ -188,8 +188,7 @@ function subscribeToOnlineOrders() {
         // Auto print if enabled
         if (autoPrintEnabled) {
           if (payload.new.notes && payload.new.notes.includes('[ORIGIN:KIOSKO]')) {
-            showToast('🖨️ Imprimiendo comanda de Kiosko...');
-            executePrintComanda(payload.new);
+            showToast('🛎️ Nuevo pedido de Kiosko recibido');
           } else {
             showToast('🖨️ Imprimiendo nuevo pedido online...');
             printPOSTicket(payload.new);
@@ -2230,6 +2229,9 @@ function renderNotifications() {
               <span class="text-xs text-gray-500 ml-2">${o.payment_method || 'Pendiente'}</span>
             </div>
             <div class="flex gap-2">
+              ${(o.payment_method === 'Pendiente' || !o.payment_method) ? `
+                <button onclick="notifRegisterPayment('${o.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm">💵 Cobrar</button>
+              ` : ''}
               <button onclick="notifPrintComanda('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🖨️ Comanda</button>
               <button onclick="notifPrintTicket('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🧾 Ticket</button>
               <button onclick="notifMarkReady('${o.id}')" class="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">✅ Listo</button>
@@ -2270,6 +2272,60 @@ window.notifMarkReady = async function(orderId) {
     showToast('❌ Error actualizando pedido', 'error');
   }
 };
+
+window.notifRegisterPayment = async function(orderId) {
+  const order = window.notifOrders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    try {
+      const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+      if (!data) return showToast('❌ Pedido no encontrado', 'error');
+      processPaymentFlow(data);
+    } catch(err) {
+      showToast('❌ Error al cargar pedido', 'error');
+    }
+  } else {
+    processPaymentFlow(order);
+  }
+};
+
+async function processPaymentFlow(order) {
+  const method = prompt("Registrar Pago -\nSeleccione el método de pago:\n1. Efectivo\n2. Tarjeta\n3. Transferencia (Nequi/Banco)", "1");
+  if (method === null) return;
+  
+  let paymentMethod = 'Efectivo';
+  if (method === '2') paymentMethod = 'Tarjeta';
+  if (method === '3') paymentMethod = 'Transferencia';
+
+  try {
+    const { data: updatedOrder, error } = await supabaseClient.from('orders')
+      .update({
+        status: 'Confirmado',
+        payment_method: paymentMethod
+      })
+      .eq('id', order.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    showToast(`✅ Pago registrado (${paymentMethod})`);
+    
+    // Automatically print kitchen comanda from cashier's POS
+    if (typeof executePrintComanda === 'function') {
+      executePrintComanda(updatedOrder);
+    }
+    
+    // Automatically print receipt ticket from cashier's POS
+    if (typeof printPOSTicket === 'function') {
+      printPOSTicket(updatedOrder);
+    }
+    
+    await refreshNotifications();
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Error al registrar pago', 'error');
+  }
+}
 
 // Push incoming realtime orders into notifications
 function pushToNotifications(orderPayload) {

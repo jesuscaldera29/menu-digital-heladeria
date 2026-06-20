@@ -935,10 +935,6 @@ async function kProcessOrder() {
       
       if (error) throw error;
       orderToPrint = order;
-      // Also print comanda automatically to kitchen since table was updated via Kiosk
-      if (typeof window.bridgePrintComanda === 'function') {
-        window.bridgePrintComanda(order);
-      }
     } else {
       // Insert new order in DB (payment defaults to 'Pendiente' since kiosk users pay at register)
       const { data: order, error } = await supabaseClient
@@ -963,10 +959,6 @@ async function kProcessOrder() {
 
       if (error) throw error;
       orderToPrint = order;
-      // Also print comanda automatically to kitchen since new order was created via Kiosk
-      if (typeof window.bridgePrintComanda === 'function') {
-        window.bridgePrintComanda(order);
-      }
     }
 
     // Imprimir ticket de cliente en Kiosko
