@@ -217,19 +217,30 @@
 
               <div class="space-y-4">
                 <!-- Name and Fast Check-out -->
-                <div class="flex gap-2">
-                  <input type="text" id="kCustomerName" placeholder="👤 Nombre" class="flex-1 bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
-                  <button onclick="kSetVentaRapida()" class="bg-orange-50 hover:bg-orange-100 text-orange-600 px-4 rounded-2xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all whitespace-nowrap border-2 border-orange-100">⚡ RÁPIDA</button>
+                <div class="space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">👤 Nombre del Cliente</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <input type="text" id="kCustomerName" placeholder="Ingresa tu nombre" class="flex-1 bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
+                    <button type="button" onclick="kSetVentaRapida()" class="bg-orange-50 hover:bg-orange-100 text-orange-600 px-4 rounded-2xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all whitespace-nowrap border-2 border-orange-100">⚡ RÁPIDA</button>
+                  </div>
                 </div>
                 
-                <!-- Phone input with absolute marker -->
-                <div class="relative">
-                  <input type="tel" id="kCustomerPhone" placeholder="📱 WhatsApp (Seguimiento de orden)" class="w-full bg-white border-2 border-gray-100 focus:border-green-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
-                  <span class="absolute right-4 top-[14px] text-[10px] font-black text-red-500 uppercase tracking-widest bg-white px-1 animate-pulse" id="kPhoneRequiredMark">*Obligatorio</span>
+                <!-- Phone input with label row -->
+                <div class="space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">📱 WhatsApp (Seguimiento)</span>
+                    <span class="text-[9px] font-black text-red-500 uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-200 shadow-sm animate-pulse" id="kPhoneRequiredMark">*Obligatorio</span>
+                  </div>
+                  <input type="tel" id="kCustomerPhone" placeholder="Ej: 300 123 4567" class="w-full bg-white border-2 border-gray-100 focus:border-green-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
                 </div>
                 
                 <!-- Table Select Container -->
-                <div id="kTableContainer">
+                <div id="kTableContainer" class="space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">🪑 Selecciona tu Mesa</span>
+                  </div>
                   <select id="kCustomerTable" class="w-full bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
                     <option value="">Selecciona tu Mesa</option>
                     <!-- Mesa options loaded via JS -->
@@ -237,16 +248,24 @@
                 </div>
 
                 <!-- Address Input Container -->
-                <div id="kAddressContainer" class="hidden">
-                  <input type="text" id="kCustomerAddress" placeholder="📍 Dirección de entrega" class="w-full bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
+                <div id="kAddressContainer" class="hidden space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">📍 Dirección de entrega</span>
+                  </div>
+                  <input type="text" id="kCustomerAddress" placeholder="Dirección de entrega" class="w-full bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-sm focus:outline-none transition-all shadow-sm focus:shadow-md">
                 </div>
 
                 <!-- Coupon Input inside kiosk -->
-                <div class="flex gap-2">
-                  <input type="text" id="kCouponInput" placeholder="🎟️ ¿Tienes un cupón?" class="flex-1 bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-xs uppercase focus:outline-none transition-all shadow-sm focus:shadow-md" oninput="this.value=this.value.toUpperCase()">
-                  <button onclick="kApplyCoupon()" class="bg-black text-white px-5 rounded-2xl font-black text-xs uppercase tracking-wider active:scale-95 transition-all shadow-sm">Aplicar</button>
+                <div class="space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">🎟️ ¿Tienes un cupón?</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <input type="text" id="kCouponInput" placeholder="Ej: GOLOSO10" class="flex-1 bg-white border-2 border-gray-100 focus:border-orange-500 rounded-2xl px-4 py-3.5 font-bold text-xs uppercase focus:outline-none transition-all shadow-sm focus:shadow-md" oninput="this.value=this.value.toUpperCase()">
+                    <button type="button" onclick="kApplyCoupon()" class="bg-black text-white px-5 rounded-2xl font-black text-xs uppercase tracking-wider active:scale-95 transition-all shadow-sm">Aplicar</button>
+                  </div>
+                  <div id="kCouponResult" class="text-xs font-bold hidden px-2"></div>
                 </div>
-                <div id="kCouponResult" class="text-xs font-bold hidden px-2"></div>
               </div>
 
               <!-- Submit Order Button -->
