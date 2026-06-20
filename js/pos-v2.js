@@ -50,6 +50,32 @@ async function initPOS() {
   autoPrintEnabled = localStorage.getItem('pos_auto_print') === 'true';
   updateAutoPrintUI();
   subscribeToOnlineOrders();
+
+  // Load initial notifications badge count
+  loadInitialNotifBadge();
+}
+
+async function loadInitialNotifBadge() {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const { data } = await supabaseClient
+      .from('orders')
+      .select('id, notes, status')
+      .eq('business_id', businessId)
+      .gte('created_at', startOfDay.toISOString())
+      .in('status', ['Pendiente', 'En preparación']);
+
+    const pending = (data || []).filter(o => {
+      const n = o.notes || '';
+      return n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true);
+    });
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+      badge.textContent = pending.length;
+      badge.classList.toggle('hidden', pending.length === 0);
+    }
+  } catch(e) { console.error('Badge load error', e); }
 }
 
 let autoPrintEnabled = false;
@@ -97,6 +123,11 @@ function subscribeToOnlineOrders() {
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
           audio.play().catch(e => console.log('Audio blocked', e));
         } catch (e) { }
+
+        // Push to notifications panel
+        if (typeof pushToNotifications === 'function') {
+          pushToNotifications(payload.new);
+        }
 
         // Auto print if enabled
         if (autoPrintEnabled) {
@@ -707,6 +738,17 @@ function selectOrderType(type, el) {
   if (driverField) driverField.classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
   if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
+
+  // Show/hide Contra Entrega payment option (only for Domicilio)
+  const btnCE = document.getElementById('btnContraEntrega');
+  if (btnCE) {
+    btnCE.classList.toggle('hidden', type !== 'Domicilio');
+    // If switching away from Domicilio and Contra Entrega was selected, reset to Efectivo
+    if (type !== 'Domicilio' && document.getElementById('paymentMethod').value === 'Contra Entrega') {
+      const efectivoBtn = document.querySelector('.payment-btn');
+      if (efectivoBtn) selectPayment('Efectivo', efectivoBtn);
+    }
+  }
   
   updateCheckoutTotal();
 }
@@ -722,8 +764,9 @@ function selectPayment(method, el) {
 
   document.getElementById('cashAmountSection').classList.toggle('hidden', method !== 'Efectivo');
   
+  // Show bank info for Transferencia AND Contra Entrega
   const bankInfoDisplay = document.getElementById('posBankInfoDisplay');
-  if (bankInfoDisplay) bankInfoDisplay.classList.toggle('hidden', method !== 'Transferencia');
+  if (bankInfoDisplay) bankInfoDisplay.classList.toggle('hidden', method !== 'Transferencia' && method !== 'Contra Entrega');
 
   const splitSection = document.getElementById('splitPaymentSection');
   if (splitSection) {
@@ -864,7 +907,7 @@ async function confirmSale() {
   btn.disabled = true;
 
   try {
-    const items = [];
+    let items = [];
     keys.forEach(k => {
       const item = posCart[k];
       items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
@@ -876,6 +919,7 @@ async function confirmSale() {
         appliedDeliveryFee = Number(posSettings.delivery_fee);
     }
 
+    // --- CUENTA ÚNICA: merge items from existing table order ---
     if (orderType === 'A la mesa' && !currentOpenOrderId) {
       const mesaSelect = document.getElementById('tableNumber');
       if (mesaSelect && mesaSelect.selectedOptions && mesaSelect.selectedOptions.length > 0) {
@@ -884,9 +928,29 @@ async function confirmSale() {
           const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', oId).single();
           if (exData) {
             currentOpenOrderId = oId;
-            items = [...(exData.items || []), ...items];
-            total = Number(exData.total || 0) + total;
           }
+        }
+      }
+    }
+
+    // If we have an open order, separate new items from existing ones
+    if (currentOpenOrderId) {
+      // Get new items only (those NOT loaded from DB)
+      const newItems = [];
+      keys.forEach(k => {
+        const item = posCart[k];
+        if (!item.fromDB) {
+          newItems.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
+        }
+      });
+
+      // Fetch current DB items to build full list
+      const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', currentOpenOrderId).single();
+      if (exData) {
+        items = [...(exData.items || []), ...newItems];
+        total = items.reduce((sum, it) => sum + (Number(it.price) * (it.qty || it.quantity || 1)), 0);
+        if (orderType === 'Domicilio' && posSettings.delivery_fee) {
+          total += Number(posSettings.delivery_fee);
         }
       }
     }
@@ -965,7 +1029,7 @@ async function saveTableOrder() {
   btn.disabled = true;
 
   try {
-    const items = [];
+    let items = [];
     keys.forEach(k => {
       const item = posCart[k];
       items.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
@@ -974,6 +1038,7 @@ async function saveTableOrder() {
 
     const customerPhone = document.getElementById('customerPhone')?.value?.trim() || 'N/A';
 
+    // --- CUENTA ÚNICA: detect existing table order ---
     if (!currentOpenOrderId) {
       const mesaSelect = document.getElementById('tableNumber');
       if (mesaSelect && mesaSelect.selectedOptions && mesaSelect.selectedOptions.length > 0) {
@@ -982,14 +1047,30 @@ async function saveTableOrder() {
           const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', oId).single();
           if (exData) {
             currentOpenOrderId = oId;
-            items = [...(exData.items || []), ...items];
-            total = Number(exData.total || 0) + total;
           }
         }
       }
     }
 
+    // Separate new items from existing (fromDB) items
+    const newItems = [];
+    keys.forEach(k => {
+      const item = posCart[k];
+      if (!item.fromDB) {
+        newItems.push({ id: item.id, name: item.extrasLabel ? `${item.name} (${item.extrasLabel})` : item.name, price: item.price, qty: item.qty });
+      }
+    });
+
     if (currentOpenOrderId) {
+      // Fetch current DB items and append only the new ones
+      const { data: exData } = await supabaseClient.from('orders').select('items, total').eq('id', currentOpenOrderId).single();
+      if (exData) {
+        items = [...(exData.items || []), ...newItems];
+      } else {
+        items = [...newItems];
+      }
+      total = items.reduce((sum, it) => sum + (Number(it.price) * (it.qty || it.quantity || 1)), 0);
+
       const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -1001,11 +1082,20 @@ async function saveTableOrder() {
       if (error) throw error;
       showToast('✅ Cuenta de mesa actualizada');
       if (updatedOrder && updatedOrder.length > 0) {
-        // ALWAYS auto-print comanda for the KITCHEN when table is saved/appended
-        executePrintComanda(updatedOrder[0]);
-        showComandaPreview(updatedOrder[0]);
+        // Print comanda with ONLY the NEW items for the kitchen
+        if (newItems.length > 0) {
+          const comandaOrder = { ...updatedOrder[0], items: newItems };
+          executePrintComanda(comandaOrder);
+          showComandaPreview(comandaOrder);
+        } else {
+          showToast('ℹ️ No hay items nuevos para enviar a cocina');
+        }
       }
     } else {
+      // First order for this table — all items are new
+      items = [...newItems];
+      total = items.reduce((sum, it) => sum + (Number(it.price) * (it.qty || it.quantity || 1)), 0);
+
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
         customer_name: customerName,
@@ -1021,7 +1111,6 @@ async function saveTableOrder() {
       if (error) throw error;
       showToast('✅ Cuenta enviada a cocina');
       if (insertedOrder && insertedOrder.length > 0) {
-        // ALWAYS auto-print comanda for the KITCHEN when a new table is saved
         executePrintComanda(insertedOrder[0]);
         showComandaPreview(insertedOrder[0]);
       }
@@ -1074,7 +1163,7 @@ function showTicketPreview(o) {
   const customHeader = localStorage.getItem('receipt_cash_header') || '';
   const customFooter = localStorage.getItem('receipt_cash_footer') || '¡Gracias por su compra!';
   
-  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 55mm; max-height: 35mm; object-fit: contain; margin-bottom: 8px;">` : '';
+  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="display:block; margin:0 auto; max-width:55mm; max-height:35mm; object-fit:contain; margin-bottom:8px;">` : '';
   const headerHtml = customHeader ? `<div style="text-align:center;margin-bottom:6px;font-size:11px;white-space:pre-wrap;">${customHeader}</div>` : '';
 
   let ticketDataHtml = '';
@@ -1197,7 +1286,7 @@ async function printPOSTicket(o) {
   const customHeader = localStorage.getItem('receipt_cash_header') || '';
   const customFooter = localStorage.getItem('receipt_cash_footer') || '¡Gracias por su compra!';
   
-  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="max-width: 60mm; max-height: 40mm; object-fit: contain; margin-bottom: 10px;">` : '';
+  const logoUrl = (useLogo && posSettings.logo_url) ? `<img src="${posSettings.logo_url}" style="display:block; margin:0 auto; max-width:60mm; max-height:40mm; object-fit:contain; margin-bottom:10px;">` : '';
   const headerHtml = customHeader ? `<div class="text-center mb-2" style="font-size: 12px; white-space: pre-wrap;">${customHeader}</div>` : '';
 
   let ticketDataHtml = '';
@@ -1559,6 +1648,8 @@ window.openTableOrder = function(orderId) {
   
   currentOpenOrderId = order.id;
   
+  // Load existing items into the cart, marked as fromDB so they won't be re-sent
+  // to the kitchen or duplicated when saving
   order.items.forEach((item, index) => {
     const key = `existing_${index}`;
     posCart[key] = {
@@ -1566,7 +1657,8 @@ window.openTableOrder = function(orderId) {
       qty: item.qty || item.quantity || 1,
       price: item.price,
       name: item.name,
-      extrasLabel: '' 
+      extrasLabel: '',
+      fromDB: true  // Mark as already-saved item
     };
   });
   
@@ -1906,4 +1998,188 @@ window.copyToClipboardPOS = function(text, btn) {
         document.body.removeChild(textArea);
     }
 };
+
+// ==========================================
+// NOTIFICATIONS SYSTEM (Pedidos Entrantes)
+// ==========================================
+window.notifOrders = [];
+window.notifFilter = 'all';
+
+window.openNotificationsModal = async function() {
+  document.getElementById('notificationsModal').classList.remove('hidden');
+  await refreshNotifications();
+};
+
+window.closeNotificationsModal = function() {
+  document.getElementById('notificationsModal').classList.add('hidden');
+};
+
+window.refreshNotifications = async function() {
+  const container = document.getElementById('notificationsList');
+  container.innerHTML = '<div class="text-center text-gray-500 py-10 font-bold animate-pulse">Cargando pedidos...</div>';
+
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const { data, error } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .eq('business_id', businessId)
+      .gte('created_at', startOfDay.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Filter to only non-POS origin orders (kiosk, menu, etc.)
+    window.notifOrders = (data || []).filter(o => {
+      const notes = o.notes || '';
+      return notes.includes('[ORIGIN:KIOSKO]') || notes.includes('[ORIGIN:MENU]') || (!notes.includes('[ORIGIN:POS]') && o.payment_method === 'Pendiente');
+    });
+
+    renderNotifications();
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<div class="text-center text-red-500 py-10 font-bold">Error cargando pedidos</div>';
+  }
+};
+
+window.filterNotifications = function(filter) {
+  window.notifFilter = filter;
+  document.querySelectorAll('.notif-filter-btn').forEach(btn => {
+    btn.classList.remove('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+    btn.classList.add('bg-[#222]', 'text-gray-300', 'border-[#333]');
+  });
+  event.target.classList.remove('bg-[#222]', 'text-gray-300', 'border-[#333]');
+  event.target.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+  renderNotifications();
+};
+
+function renderNotifications() {
+  const container = document.getElementById('notificationsList');
+  let orders = window.notifOrders;
+
+  if (window.notifFilter === 'kiosko') {
+    orders = orders.filter(o => (o.notes || '').includes('[ORIGIN:KIOSKO]'));
+  } else if (window.notifFilter === 'menu') {
+    orders = orders.filter(o => (o.notes || '').includes('[ORIGIN:MENU]'));
+  } else if (window.notifFilter === 'pendiente') {
+    orders = orders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación');
+  }
+
+  const pendingCount = window.notifOrders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación').length;
+  const badge = document.getElementById('notifBadge');
+  const modalCount = document.getElementById('notifModalCount');
+  if (badge) {
+    badge.textContent = pendingCount;
+    badge.classList.toggle('hidden', pendingCount === 0);
+  }
+  if (modalCount) modalCount.textContent = pendingCount;
+
+  if (!orders.length) {
+    container.innerHTML = '<div class="text-center text-gray-500 py-10 font-bold">No hay pedidos en esta categoría</div>';
+    return;
+  }
+
+  container.innerHTML = orders.map(o => {
+    const notes = o.notes || '';
+    let originLabel = 'Desconocido';
+    let originColor = 'gray';
+    if (notes.includes('[ORIGIN:KIOSKO]')) { originLabel = '🖥️ Kiosko'; originColor = 'blue'; }
+    else if (notes.includes('[ORIGIN:MENU]')) { originLabel = '📱 Menú QR'; originColor = 'green'; }
+
+    let statusColor = 'yellow';
+    if (o.status === 'Entregado' || o.status === 'Completado') statusColor = 'green';
+    else if (o.status === 'Pendiente') statusColor = 'red';
+
+    const timeStr = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const ticketId = String(o.id).split('-')[0];
+
+    const itemsHtml = (o.items || []).map(it =>
+      `<div class="flex justify-between text-xs py-1 border-b border-[#222]">
+        <span class="text-gray-300">${it.qty || it.quantity || 1}x ${it.name}</span>
+        <span class="text-white font-bold">$${Number(it.price * (it.qty || it.quantity || 1)).toLocaleString()}</span>
+      </div>`
+    ).join('');
+
+    return `
+      <div class="bg-[#111] border border-[#222] rounded-2xl overflow-hidden hover:border-[#444] transition-all">
+        <div class="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#222] bg-[#1a1a1a]">
+          <div class="flex items-center gap-3">
+            <span class="bg-${originColor}-500/20 text-${originColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest">${originLabel}</span>
+            <span class="font-black text-white text-sm">#${ticketId}</span>
+            <span class="text-gray-500 text-xs">${timeStr}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="bg-${statusColor}-500/20 text-${statusColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest">${o.status}</span>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Cliente</p>
+              <p class="text-sm font-bold text-white">${o.customer_name || 'Sin nombre'}</p>
+              <p class="text-xs text-gray-400">${o.customer_phone || 'N/A'}</p>
+              <p class="text-xs text-gray-400 mt-1">${o.delivery_method || 'N/A'} — ${o.address || 'N/A'}</p>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Productos</p>
+              <div class="max-h-32 overflow-y-auto custom-scroll">${itemsHtml}</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-[#222]">
+            <div>
+              <span class="text-2xl font-black text-orange-500">$${Number(o.total).toLocaleString()}</span>
+              <span class="text-xs text-gray-500 ml-2">${o.payment_method || 'Pendiente'}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="notifPrintComanda('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🖨️ Comanda</button>
+              <button onclick="notifPrintTicket('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🧾 Ticket</button>
+              <button onclick="notifMarkReady('${o.id}')" class="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">✅ Listo</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.notifPrintComanda = async function(orderId) {
+  const order = window.notifOrders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+    if (data) { showComandaPreview(data); executePrintComanda(data); }
+    return;
+  }
+  showComandaPreview(order);
+  executePrintComanda(order);
+};
+
+window.notifPrintTicket = async function(orderId) {
+  const order = window.notifOrders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+    if (data) showTicketPreview(data);
+    return;
+  }
+  showTicketPreview(order);
+};
+
+window.notifMarkReady = async function(orderId) {
+  try {
+    await supabaseClient.from('orders').update({ status: 'Entregado' }).eq('id', orderId);
+    showToast('✅ Pedido marcado como entregado');
+    await refreshNotifications();
+  } catch (e) {
+    showToast('❌ Error actualizando pedido', 'error');
+  }
+};
+
+// Push incoming realtime orders into notifications
+function pushToNotifications(orderPayload) {
+  const notes = orderPayload.notes || '';
+  if (notes.includes('[ORIGIN:KIOSKO]') || notes.includes('[ORIGIN:MENU]')) {
+    window.notifOrders.unshift(orderPayload);
+    renderNotifications();
+  }
+}
 
