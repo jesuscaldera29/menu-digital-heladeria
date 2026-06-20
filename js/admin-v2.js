@@ -63,6 +63,9 @@ async function initAdmin() {
         return false;
     }
 
+    // Enforce Staff Role routing and views
+    const staffRole = localStorage.getItem('staff_role');
+
     // MULTI-BRANCH SELECTOR LOGIC
     if (!staffRole) {
         const { data: businesses } = await supabaseClient
@@ -87,7 +90,6 @@ async function initAdmin() {
     currentBusinessName = biz.business_name || '';
     
     // Enforce Staff Role routing and views
-    const staffRole = localStorage.getItem('staff_role');
     if (staffRole === 'Repartidor') {
         window.location.href = 'driver.html';
         return false;
@@ -1021,7 +1023,7 @@ function showSection(sectionId, event) {
 // Load orders
 async function loadOrders() {
     try {
-        const { data, error } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).order('id', { ascending: false });
         if (error) throw error;
         allOrders = data || [];
         renderOrders();
@@ -1108,6 +1110,22 @@ function renderOrders() {
         `;
     }).join('');
 }
+
+window.deleteOrder = async function(orderId) {
+    if (!confirm('¿Estás seguro de eliminar este pedido? Esta acción no se puede deshacer.')) return;
+    
+    try {
+        const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
+        if (error) throw error;
+        
+        showToast('✅ Pedido eliminado exitosamente');
+        allOrders = allOrders.filter(o => String(o.id) !== String(orderId));
+        renderOrders();
+    } catch (err) {
+        showToast('❌ Error al eliminar pedido: ' + err.message, 'error');
+        console.error(err);
+    }
+};
 
 // Get status badge HTML
 function getStatusBadge(status) {
