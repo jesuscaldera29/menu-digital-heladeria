@@ -21,7 +21,18 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 function getSlugFromUrl() {
   const path = window.location.pathname;
   // Ignorar rutas de archivos estáticos y páginas del sistema
-  const systemPaths = ['/', '/index.html', '/admin.html', '/login.html', '/register.html', '/order-status.html'];
+  const systemPaths = [
+    '/', '/index', '/index.html', 
+    '/admin', '/admin.html', 
+    '/login', '/login.html', 
+    '/register', '/register.html', 
+    '/order-status', '/order-status.html',
+    '/kiosk', '/kiosk.html',
+    '/driver', '/driver.html',
+    '/client', '/client.html',
+    '/kds', '/kds.html',
+    '/superadmin', '/superadmin.html'
+  ];
   if (systemPaths.includes(path)) return null;
 
   // Ignorar rutas con extensión de archivo

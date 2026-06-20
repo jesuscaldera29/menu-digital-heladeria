@@ -82,7 +82,7 @@ async function initKioskBusiness() {
   if (!slug) {
     const pathParts = window.location.pathname.split('/');
     // Check if any path part matches a business slug (exclude known static page names)
-    const exclude = ['', 'index.html', 'admin.html', 'kiosk.html', 'order-status.html'];
+    const exclude = ['', 'index', 'index.html', 'admin', 'admin.html', 'kiosk', 'kiosk.html', 'order-status', 'order-status.html', 'login', 'login.html', 'register', 'register.html', 'kds', 'kds.html', 'driver', 'driver.html', 'client', 'client.html', 'superadmin', 'superadmin.html'];
     for (let part of pathParts) {
       if (part && !exclude.includes(part) && !part.includes('.')) {
         slug = part;
@@ -303,18 +303,19 @@ function selectKioskOrderType(type) {
   const tableContainer = document.getElementById('kTableContainer');
   const phoneInput = document.getElementById('kCustomerPhone');
   
+  if (phoneInput) {
+    phoneInput.classList.remove('hidden');
+  }
+  
   if (type === 'A la mesa') {
     tableContainer.classList.remove('hidden');
     addrContainer.classList.add('hidden');
-    phoneInput.classList.add('hidden');
   } else if (type === 'Domicilio') {
     tableContainer.classList.add('hidden');
     addrContainer.classList.remove('hidden');
-    phoneInput.classList.remove('hidden');
   } else {
     tableContainer.classList.add('hidden');
     addrContainer.classList.add('hidden');
-    phoneInput.classList.add('hidden');
   }
   
   document.getElementById('kioskOrderType').style.display = 'none';
@@ -346,6 +347,8 @@ function startOrder() {
   document.getElementById('kCustomerName').value = '';
   document.getElementById('kCustomerTable').value = '';
   document.getElementById('kCouponInput').value = '';
+  const phoneEl = document.getElementById('kCustomerPhone');
+  if (phoneEl) phoneEl.value = '';
   const cRes = document.getElementById('kCouponResult');
   if (cRes) cRes.classList.add('hidden');
 
