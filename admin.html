@@ -1030,12 +1030,188 @@
       </div>
     </div>
 
-    <!-- SECTION: GASTOS -->
+    <!-- SECTION: CAJA (Redesigned) -->
     <div id="section-expenses" class="section-content">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-4 space-y-6">
+      
+      <!-- CAJA MAIN MENU -->
+      <div id="cajaMainMenu" class="max-w-xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center gap-3 p-5 bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <span class="text-3xl">🖨️</span>
+          <h2 class="text-2xl font-black text-gray-800">Caja</h2>
+        </div>
+
+        <!-- Menu Items -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 mb-6">
+          <button onclick="showCajaView('resumen')" class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left">
+            <span class="text-xl w-8 text-center">⏱️</span>
+            <span class="font-bold text-gray-800">Resumen de caja</span>
+            <span class="ml-auto text-gray-400">›</span>
+          </button>
+          <button onclick="showCajaView('movimientos')" class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left">
+            <span class="text-xl w-8 text-center">💱</span>
+            <span class="font-bold text-gray-800">Depósitos / Salidas</span>
+            <span class="ml-auto text-gray-400">›</span>
+          </button>
+          <button onclick="showCajaView('historial')" class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left">
+            <span class="text-xl w-8 text-center">🕐</span>
+            <span class="font-bold text-gray-800">Historial de la caja</span>
+            <span class="ml-auto text-gray-400">›</span>
+          </button>
+          <button onclick="showCajaView('gastos')" class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left">
+            <span class="text-xl w-8 text-center">💰</span>
+            <span class="font-bold text-gray-800">Gastos operativos</span>
+            <span class="ml-auto text-gray-400">›</span>
+          </button>
+        </div>
+
+        <!-- Bottom Action -->
+        <div class="flex gap-3">
+          <button id="cajaBtnOpen" onclick="openCashOpeningModal()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl text-base transition-all shadow-lg shadow-emerald-200 active:scale-[0.98] flex items-center justify-center gap-2">
+            <span>Apertura de Caja</span>
+          </button>
+          <button id="cajaBtnClose" onclick="startCashClosing()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl text-base transition-all shadow-lg shadow-emerald-200 active:scale-[0.98] hidden flex items-center justify-center gap-2">
+            <span>Cierre de Caja</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SUB-VIEW: RESUMEN DE CAJA -->
+      <!-- ========================================== -->
+      <div id="cajaViewResumen" class="max-w-xl mx-auto hidden">
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="showCajaView('menu')" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all">‹</button>
+          <h2 class="text-xl font-black text-gray-800">Detalles de caja</h2>
+          <button onclick="loadCajaResumen()" class="ml-auto w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all text-sm">🔄</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div id="resumenCajaCard" class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 p-4 rounded-2xl text-center">
+            <div class="text-2xl mb-1">📊</div>
+            <p class="text-[10px] font-bold text-purple-600 uppercase">Caja</p>
+            <p id="resumenCajaTotal" class="text-xl font-black text-purple-800">$0</p>
+          </div>
+          <div class="bg-gray-50 border border-gray-200 p-4 rounded-2xl text-center">
+            <div class="text-2xl mb-1">🛒</div>
+            <p class="text-[10px] font-bold text-gray-500 uppercase">Ingresos</p>
+            <p id="resumenIngresosTotal" class="text-xl font-black text-gray-800">$0</p>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-200 mb-4">
+          <button onclick="switchResumenTab('resumen')" class="resumen-tab active flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent transition-all" data-tab="resumen">Resumen</button>
+          <button onclick="switchResumenTab('detallado')" class="resumen-tab flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent transition-all" data-tab="detallado">Detallado</button>
+          <button onclick="switchResumenTab('movimientos')" class="resumen-tab flex-1 py-3 text-sm font-bold text-center border-b-2 border-transparent transition-all" data-tab="movimientos">Movimientos</button>
+        </div>
+
+        <!-- Tab: Resumen -->
+        <div id="resumenTabResumen" class="resumen-tab-content">
+          <div class="flex justify-between text-xs text-gray-500 font-bold uppercase mb-3 px-1">
+            <span>Método</span>
+            <div class="flex gap-8">
+              <span>Empezaste con</span>
+              <span>Deberías tener</span>
+            </div>
+          </div>
+          <div id="resumenBreakdown" class="space-y-0 divide-y divide-gray-100 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <!-- JS rendered rows -->
+          </div>
+        </div>
+
+        <!-- Tab: Detallado -->
+        <div id="resumenTabDetallado" class="resumen-tab-content hidden">
+          <div id="resumenDetallado" class="space-y-3">
+            <!-- JS rendered details -->
+          </div>
+        </div>
+
+        <!-- Tab: Movimientos -->
+        <div id="resumenTabMovimientos" class="resumen-tab-content hidden">
+          <div id="resumenMovimientos" class="space-y-3">
+            <!-- JS rendered movements -->
+          </div>
+        </div>
+
+        <!-- Bottom Info Bar -->
+        <div id="resumenBottomBar" class="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-2xl">
+          <p id="resumenOpenedInfo" class="text-sm text-gray-700 font-bold">Sin caja abierta</p>
+          <p id="resumenCajero" class="text-xs text-gray-500 mb-3"></p>
+          <div class="flex gap-3">
+            <button onclick="showCajaView('movimientos')" class="flex-1 bg-white border border-gray-200 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all">Ir a Depósitos / Salidas</button>
+            <button id="resumenBtnCerrar" onclick="startCashClosing()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold transition-all hidden">Cerrar caja</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SUB-VIEW: DEPÓSITOS / SALIDAS -->
+      <!-- ========================================== -->
+      <div id="cajaViewMovimientos" class="max-w-xl mx-auto hidden">
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="showCajaView('menu')" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all">‹</button>
+          <h2 class="text-xl font-black text-gray-800">Depósitos / Salidas</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <button onclick="openCashMovementModal('deposit')" class="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl text-center hover:bg-emerald-100 transition-all active:scale-[0.98]">
+            <div class="text-2xl mb-1">📥</div>
+            <p class="text-sm font-black text-emerald-700">Ingreso</p>
+            <p class="text-[10px] text-emerald-600">Depósito a caja</p>
+          </button>
+          <button onclick="openCashMovementModal('withdrawal')" class="bg-orange-50 border-2 border-orange-200 p-4 rounded-2xl text-center hover:bg-orange-100 transition-all active:scale-[0.98]">
+            <div class="text-2xl mb-1">📤</div>
+            <p class="text-sm font-black text-orange-700">Salida</p>
+            <p class="text-[10px] text-orange-600">Retiro de caja</p>
+          </button>
+        </div>
+
+        <h3 class="font-black text-gray-800 mb-3">Movimientos recientes</h3>
+        <div id="cajaMovimientosList" class="space-y-2">
+          <p class="text-sm text-gray-400 text-center py-8">Cargando movimientos...</p>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SUB-VIEW: HISTORIAL DE CAJA -->
+      <!-- ========================================== -->
+      <div id="cajaViewHistorial" class="max-w-xl mx-auto hidden">
+        <div class="flex items-center gap-3 mb-4">
+          <button onclick="showCajaView('menu')" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all">‹</button>
+          <h2 class="text-xl font-black text-gray-800">Historial de la caja</h2>
+          <button onclick="loadCashClosings()" class="ml-auto w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all text-sm">🔄</button>
+        </div>
+
+        <div class="flex items-center gap-2 mb-6">
+          <span class="text-xs font-bold text-gray-500">Filtrado por:</span>
+          <select id="historialDateFilter" onchange="loadCashClosings()" class="bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-bold focus:ring-2 focus:ring-emerald-400 outline-none">
+            <option value="all">Todo el historial</option>
+            <option value="7days">Últimos 7 días</option>
+            <option value="30days">Últimos 30 días</option>
+          </select>
+          <button onclick="deleteAllZeroCash()" class="ml-auto text-[10px] text-red-500 font-bold hover:text-red-700 transition-all" title="Limpiar cajas vacías">🗑️ Limpiar</button>
+        </div>
+
+        <div id="cajaHistorialList" class="space-y-4">
+          <p class="text-sm text-gray-400 text-center py-8">Cargando historial...</p>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SUB-VIEW: GASTOS OPERATIVOS -->
+      <!-- ========================================== -->
+      <div id="cajaViewGastos" class="max-w-2xl mx-auto hidden">
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="showCajaView('menu')" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all">‹</button>
+          <h2 class="text-xl font-black text-gray-800">Gastos Operativos</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Register -->
           <div class="card">
-            <h2 class="text-xl font-bold mb-5">💰 Registrar Gasto</h2>
+            <h3 class="text-lg font-bold mb-4">💰 Registrar Gasto</h3>
             <select id="expenseCategory" class="input">
               <option value="Ingredientes">🧂 Ingredientes</option>
               <option value="Servicios">💡 Servicios</option>
@@ -1048,67 +1224,39 @@
             <input type="number" id="expenseAmount" class="input" placeholder="Monto ($)" min="0">
             <input type="date" id="expenseDate" class="input">
             <button class="btn btn-primary mt-4" onclick="addExpense(event)">➕ Registrar Gasto</button>
+            <div class="mt-4 bg-red-50 border border-red-100 rounded-xl p-3 text-center">
+              <p class="text-[10px] font-black text-red-600 uppercase tracking-widest">Gastos del Mes</p>
+              <h3 id="expensesMonthTotal" class="text-2xl font-black text-red-600 mt-1">$0</h3>
+            </div>
           </div>
-          <div class="card bg-red-50 border-red-100">
-            <p class="text-xs font-black text-red-600 uppercase tracking-widest">Gastos del Mes</p>
-            <h3 id="expensesMonthTotal" class="text-3xl font-black mt-2">$0</h3>
-          </div>
-        </div>
-        <div class="lg:col-span-8">
+          <!-- History -->
           <div class="card">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-black">📋 Historial de Gastos</h2>
-              <select id="expenseTimeFilter" onchange="loadExpenses()" class="bg-gray-100 border-none p-2 rounded-lg text-sm font-bold">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold">📋 Historial</h3>
+              <select id="expenseTimeFilter" onchange="loadExpenses()" class="bg-gray-100 border-none p-2 rounded-lg text-xs font-bold">
                 <option value="month">Este Mes</option>
                 <option value="week">Esta Semana</option>
                 <option value="all">Todos</option>
               </select>
             </div>
-            <div class="overflow-x-auto">
-              <table class="admin-table"><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Acciones</th></tr></thead>
-                <tbody id="expensesList"></tbody>
-              </table>
+            <div class="space-y-2" id="expensesListCards">
+              <!-- JS rendered -->
             </div>
+            <!-- Hidden table for backward compat -->
+            <table class="admin-table hidden"><tbody id="expensesList"></tbody></table>
           </div>
-        </div>
-      </div>
-      
-      <!-- Movimientos de Efectivo (Depósitos / Salidas) -->
-      <div class="card mt-8">
-        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-          <div>
-            <h2 class="text-2xl font-black">💵 Movimientos de Efectivo</h2>
-            <p class="text-sm text-gray-500">Registra entradas o salidas de dinero que NO son ventas ni gastos (Ej: Cambio, Devoluciones, Retiros de dueño).</p>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="openCashMovementModal('deposit')" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-4">📥 Ingreso de Efectivo</button>
-            <button onclick="openCashMovementModal('withdrawal')" class="btn bg-orange-500 hover:bg-orange-600 text-white !w-auto !px-4">📤 Salida de Efectivo</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="admin-table"><thead><tr><th>Fecha / Hora</th><th>Tipo</th><th>Motivo</th><th>Monto</th><th>Acciones</th></tr></thead>
-            <tbody id="cashMovementsList"></tbody>
-          </table>
         </div>
       </div>
 
-      <!-- Gestión de Caja -->
-      <div class="card mt-8">
-        <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
-          <h2 class="text-2xl font-black">📊 Gestión de Caja</h2>
-          <div class="flex gap-2">
-            <button onclick="deleteAllZeroCash()" class="btn bg-red-100 hover:bg-red-200 text-red-600 !w-auto !px-4 !text-xs font-bold border border-red-200">🗑️ Eliminar Cajas Vacías</button>
-            <button onclick="openCashOpeningModal()" id="btnOpenCash" class="btn bg-green-500 hover:bg-green-600 text-white !w-auto !px-6">🔓 Abrir Caja</button>
-            <button onclick="startCashClosing()" id="btnCloseCash" class="btn btn-primary !w-auto !px-6 hidden">🔒 Iniciar Cierre</button>
-          </div>
-        </div>
-        <div id="cashClosingResult" class="hidden"></div>
-        <div class="overflow-x-auto mt-4">
-          <table class="admin-table"><thead><tr><th>Fecha Apertura</th><th>Base (Apertura)</th><th>Fecha Cierre</th><th>Esperado</th><th>Declarado</th><th>Diferencia</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="cashClosingsList"></tbody>
-          </table>
-        </div>
+      <!-- Hidden elements for backward compat -->
+      <div class="hidden">
+        <div id="cashClosingResult"></div>
+        <table><tbody id="cashClosingsList"></tbody></table>
+        <table><tbody id="cashMovementsList"></tbody></table>
+        <button id="btnOpenCash"></button>
+        <button id="btnCloseCash"></button>
       </div>
+
     </div>
 
     <!-- SECTION: PERSONAL -->

@@ -19,6 +19,7 @@ async function loadExpenses() {
     if (error) throw error;
     allExpenses = data || [];
     renderExpenses();
+    if (typeof renderExpenseCards === 'function') renderExpenseCards();
     if (typeof loadCashMovements === 'function') loadCashMovements();
   } catch (err) { showToast('Error cargando gastos: ' + err.message, 'error'); }
 }
@@ -403,4 +404,300 @@ async function deleteCashMovement(id) {
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
   }
+}
+
+// ==========================================
+// NEW CAJA UI LOGIC
+// ==========================================
+
+window.showCajaView = function(view) {
+  const views = ['cajaMainMenu','cajaViewResumen','cajaViewMovimientos','cajaViewHistorial','cajaViewGastos'];
+  views.forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('hidden'); });
+
+  if (view === 'menu') {
+    document.getElementById('cajaMainMenu')?.classList.remove('hidden');
+    updateCajaMainButtons();
+  } else if (view === 'resumen') {
+    document.getElementById('cajaViewResumen')?.classList.remove('hidden');
+    loadCajaResumen();
+  } else if (view === 'movimientos') {
+    document.getElementById('cajaViewMovimientos')?.classList.remove('hidden');
+    loadCajaMovimientosCards();
+  } else if (view === 'historial') {
+    document.getElementById('cajaViewHistorial')?.classList.remove('hidden');
+    loadCajaHistorialCards();
+  } else if (view === 'gastos') {
+    document.getElementById('cajaViewGastos')?.classList.remove('hidden');
+    loadExpenses();
+    renderExpenseCards();
+  }
+};
+
+function updateCajaMainButtons() {
+  const btnOpen = document.getElementById('cajaBtnOpen');
+  const btnClose = document.getElementById('cajaBtnClose');
+  if (activeCashSession) {
+    if(btnOpen) btnOpen.classList.add('hidden');
+    if(btnClose) { btnClose.classList.remove('hidden'); btnClose.style.display = 'flex'; }
+  } else {
+    if(btnOpen) { btnOpen.classList.remove('hidden'); btnOpen.style.display = 'flex'; }
+    if(btnClose) btnClose.classList.add('hidden');
+  }
+}
+
+window.switchResumenTab = function(tab) {
+  document.querySelectorAll('.resumen-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.borderBottomColor = 'transparent';
+    t.style.color = '#9ca3af';
+  });
+  document.querySelectorAll('.resumen-tab-content').forEach(c => c.classList.add('hidden'));
+
+  const activeTab = document.querySelector(`.resumen-tab[data-tab="${tab}"]`);
+  if (activeTab) {
+    activeTab.classList.add('active');
+    activeTab.style.borderBottomColor = '#10b981';
+    activeTab.style.color = '#111827';
+  }
+
+  if (tab === 'resumen') document.getElementById('resumenTabResumen')?.classList.remove('hidden');
+  else if (tab === 'detallado') document.getElementById('resumenTabDetallado')?.classList.remove('hidden');
+  else if (tab === 'movimientos') document.getElementById('resumenTabMovimientos')?.classList.remove('hidden');
+};
+
+window.loadCajaResumen = async function() {
+  if (!businessId) return;
+  try {
+    // Get active session
+    const { data: sessions } = await supabaseClient.from('cash_closings').select('*').eq('business_id', businessId).eq('is_open', true).limit(1);
+    const session = sessions?.[0] || null;
+    activeCashSession = session;
+    updateCajaMainButtons();
+
+    const openingAmount = Number(session?.opening_amount || 0);
+    const openedAt = session?.opened_at || null;
+
+    // Get orders since opening
+    let cash = 0, transfer = 0, card = 0, nequi = 0, otros = 0, totalSales = 0;
+    if (openedAt) {
+      const { data: orders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).gte('created_at', openedAt).neq('status', 'Cancelado');
+      (orders || []).forEach(o => {
+        const t = Number(o.total);
+        totalSales += t;
+        if (o.payment_method === 'Dividido' && o.split_payments) {
+          cash += Number(o.split_payments.cash || 0);
+          transfer += Number(o.split_payments.transfer || 0);
+          card += Number(o.split_payments.card || 0);
+        } else if (o.payment_method === 'Efectivo') cash += t;
+        else if (o.payment_method === 'Transferencia') transfer += t;
+        else if (o.payment_method === 'Nequi') nequi += t;
+        else if (o.payment_method === 'Tarjeta') card += t;
+        else otros += t;
+      });
+    }
+
+    // Get movements
+    let depositsTotal = 0, withdrawalsTotal = 0;
+    if (openedAt) {
+      const { data: movs } = await supabaseClient.from('cash_movements').select('*').eq('business_id', businessId).gte('created_at', openedAt);
+      (movs || []).forEach(m => {
+        if (m.type === 'deposit') depositsTotal += Number(m.amount);
+        else withdrawalsTotal += Number(m.amount);
+      });
+    }
+
+    const expectedCash = openingAmount + cash + depositsTotal - withdrawalsTotal;
+
+    // Update summary cards
+    const cajaTotal = document.getElementById('resumenCajaTotal');
+    const ingresosTotal = document.getElementById('resumenIngresosTotal');
+    if (cajaTotal) cajaTotal.textContent = '$' + expectedCash.toLocaleString();
+    if (ingresosTotal) ingresosTotal.textContent = '$' + totalSales.toLocaleString();
+
+    // Update breakdown
+    const breakdown = document.getElementById('resumenBreakdown');
+    if (breakdown) {
+      const rows = [
+        { label: 'Efectivo', start: '$' + openingAmount.toLocaleString(), expected: '$' + (openingAmount + cash).toLocaleString(), expandable: false },
+        { label: 'Transferencia bancaria', start: '$0', expected: '$' + transfer.toLocaleString(), expandable: true },
+        { label: 'Tarjetas', start: '$0', expected: '$' + card.toLocaleString(), expandable: true },
+        { label: 'Billetera virtual', start: '$0', expected: '$' + nequi.toLocaleString(), expandable: true },
+        { label: 'Otros', start: '$0', expected: '$' + otros.toLocaleString(), expandable: true },
+      ];
+      const totalStart = '$' + openingAmount.toLocaleString();
+      const totalExpected = '$' + (openingAmount + totalSales).toLocaleString();
+
+      breakdown.innerHTML = rows.map(r => `
+        <div class="flex items-center justify-between px-4 py-3">
+          <span class="text-sm font-bold text-gray-800">${r.label}</span>
+          <div class="flex items-center gap-6">
+            <span class="text-sm text-gray-500 w-20 text-right">${r.start}</span>
+            <span class="text-sm font-bold text-gray-800 w-20 text-right">${r.expected}</span>
+            ${r.expandable ? '<span class="text-gray-400 text-xs">›</span>' : '<span class="w-3"></span>'}
+          </div>
+        </div>
+      `).join('') + `
+        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 font-black">
+          <span class="text-sm">Total</span>
+          <div class="flex items-center gap-6">
+            <span class="text-sm w-20 text-right">${totalStart}</span>
+            <span class="text-sm w-20 text-right">${totalExpected}</span>
+            <span class="w-3"></span>
+          </div>
+        </div>`;
+    }
+
+    // Update detallado tab
+    const detallado = document.getElementById('resumenDetallado');
+    if (detallado) {
+      detallado.innerHTML = `
+        <div class="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Base apertura</span><span class="text-sm font-bold">$${openingAmount.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Ventas en efectivo</span><span class="text-sm font-bold text-emerald-600">+$${cash.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Transferencias</span><span class="text-sm font-bold">$${transfer.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Tarjetas</span><span class="text-sm font-bold">$${card.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Nequi/Billetera</span><span class="text-sm font-bold">$${nequi.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Depósitos extra</span><span class="text-sm font-bold text-emerald-600">+$${depositsTotal.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3"><span class="text-sm text-gray-600">Retiros</span><span class="text-sm font-bold text-red-600">-$${withdrawalsTotal.toLocaleString()}</span></div>
+          <div class="flex justify-between px-4 py-3 bg-gray-50"><span class="text-sm font-black">Efectivo esperado</span><span class="text-sm font-black text-purple-700">$${expectedCash.toLocaleString()}</span></div>
+        </div>`;
+    }
+
+    // Update movimientos tab
+    const movsContainer = document.getElementById('resumenMovimientos');
+    if (movsContainer && openedAt) {
+      const { data: allMovs } = await supabaseClient.from('cash_movements').select('*').eq('business_id', businessId).gte('created_at', openedAt).order('created_at', { ascending: false });
+      if (!allMovs?.length) {
+        movsContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">Sin movimientos en este turno</p>';
+      } else {
+        movsContainer.innerHTML = allMovs.map(m => {
+          const isD = m.type === 'deposit';
+          return `<div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-bold">${m.reason}</p>
+              <p class="text-[10px] text-gray-400">${new Date(m.created_at).toLocaleString()}</p>
+            </div>
+            <span class="font-black text-sm ${isD ? 'text-emerald-600' : 'text-orange-600'}">${isD ? '+' : '-'}$${Number(m.amount).toLocaleString()}</span>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // Bottom bar
+    const openedInfo = document.getElementById('resumenOpenedInfo');
+    const cajero = document.getElementById('resumenCajero');
+    const btnCerrar = document.getElementById('resumenBtnCerrar');
+    if (session) {
+      if(openedInfo) openedInfo.textContent = 'Apertura: ' + new Date(session.opened_at).toLocaleString();
+      if(cajero) cajero.textContent = 'Cajero: ' + (localStorage.getItem('staff_name') || 'Admin');
+      if(btnCerrar) btnCerrar.classList.remove('hidden');
+    } else {
+      if(openedInfo) openedInfo.textContent = 'Sin caja abierta';
+      if(cajero) cajero.textContent = '';
+      if(btnCerrar) btnCerrar.classList.add('hidden');
+    }
+
+    // Init active tab
+    switchResumenTab('resumen');
+
+  } catch (err) { console.error('Error loading caja resumen:', err); }
+};
+
+async function loadCajaMovimientosCards() {
+  if (!businessId) return;
+  try {
+    const { data, error } = await supabaseClient.from('cash_movements').select('*').eq('business_id', businessId).order('created_at', { ascending: false }).limit(30);
+    if (error) throw error;
+    const container = document.getElementById('cajaMovimientosList');
+    if (!container) return;
+    if (!data?.length) { container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No hay movimientos recientes</p>'; return; }
+    container.innerHTML = data.map(m => {
+      const isD = m.type === 'deposit';
+      return `<div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full ${isD ? 'bg-emerald-100' : 'bg-orange-100'} flex items-center justify-center text-sm">${isD ? '📥' : '📤'}</div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">${m.reason}</p>
+            <p class="text-[10px] text-gray-400">${new Date(m.created_at).toLocaleString()}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-black text-sm ${isD ? 'text-emerald-600' : 'text-orange-600'}">${isD ? '+' : '-'}$${Number(m.amount).toLocaleString()}</span>
+          <button onclick="deleteCashMovement('${m.id}')" class="text-red-400 hover:text-red-600 text-xs p-1">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) { console.error(err); }
+}
+
+async function loadCajaHistorialCards() {
+  if (!businessId) return;
+  try {
+    const { data } = await supabaseClient.from('cash_closings').select('*').eq('business_id', businessId).order('opened_at', { ascending: false }).limit(50);
+    activeCashSession = data?.find(c => c.is_open === true) || null;
+    updateCajaMainButtons();
+
+    const container = document.getElementById('cajaHistorialList');
+    if (!container) return;
+    if (!data?.length) { container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">Sin sesiones de caja registradas</p>'; return; }
+
+    // Group by date
+    const grouped = {};
+    data.forEach(c => {
+      const d = c.opened_at ? new Date(c.opened_at) : new Date();
+      const key = d.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(c);
+    });
+
+    container.innerHTML = Object.entries(grouped).map(([dateLabel, items]) => `
+      <div>
+        <h3 class="font-black text-gray-800 text-base mb-2 capitalize">${dateLabel}</h3>
+        <div class="space-y-2">
+          ${items.map(c => {
+            const openDate = c.opened_at ? new Date(c.opened_at) : null;
+            const openStr = openDate ? openDate.toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-';
+            const closeStr = c.is_open ? 'Abierta aún' : (c.date ? 'Cierre: ' + new Date(c.date).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : '-');
+            const amount = c.is_open ? Number(c.opening_amount || 0) : Number(c.declared_total || 0);
+            return `<div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between shadow-sm cursor-pointer hover:bg-gray-50 transition-all" onclick="viewCashDetail('${c.id}')">
+              <div>
+                <p class="text-sm font-bold text-gray-800">${localStorage.getItem('staff_name') || 'Admin'}</p>
+                <p class="text-[10px] text-gray-500">Apertura: ${openStr}</p>
+                <p class="text-[10px] text-gray-500">${closeStr}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-black text-base">$${amount.toLocaleString()}</span>
+                ${c.is_open ? '<span class="bg-emerald-100 text-emerald-700 text-[8px] px-2 py-0.5 rounded-full font-bold">ABIERTA</span>' : ''}
+                <button onclick="event.stopPropagation(); deleteCashClosing('${c.id}')" class="text-red-400 hover:text-red-600 text-xs p-1">🗑️</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) { console.error(err); }
+}
+
+window.viewCashDetail = function(id) {
+  // Navigate to resumen and load that specific session's data
+  showCajaView('resumen');
+};
+
+function renderExpenseCards() {
+  const container = document.getElementById('expensesListCards');
+  if (!container) return;
+  if (!allExpenses.length) { container.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">No hay gastos registrados</p>'; return; }
+  container.innerHTML = allExpenses.map(e => `
+    <div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between">
+      <div>
+        <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full font-bold">${e.category}</span>
+        <p class="text-sm font-bold mt-1">${e.description || '-'}</p>
+        <p class="text-[10px] text-gray-400">${new Date(e.date).toLocaleDateString()}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-black text-red-600">-$${Number(e.amount).toLocaleString()}</span>
+        <button onclick="deleteExpense('${e.id}')" class="text-red-400 hover:text-red-600 text-xs p-1">🗑️</button>
+      </div>
+    </div>
+  `).join('');
 }

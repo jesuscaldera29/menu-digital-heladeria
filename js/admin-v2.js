@@ -998,7 +998,7 @@ function showSection(sectionId, event) {
     if (sectionId === 'customers') loadCustomers();
     if (sectionId === 'reports') initReports();
     if (sectionId === 'home') { if (typeof loadDashboard === 'function') loadDashboard(); }
-    if (sectionId === 'expenses') { if (typeof loadExpenses === 'function') loadExpenses(); if (typeof loadCashClosings === 'function') loadCashClosings(); }
+    if (sectionId === 'expenses') { if (typeof showCajaView === 'function') showCajaView('menu'); if (typeof loadCashClosings === 'function') loadCashClosings(); }
     if (sectionId === 'staff') { if (typeof loadStaff === 'function') loadStaff(); }
     if (sectionId === 'coupons') { if (typeof loadCoupons === 'function') loadCoupons(); }
     if (sectionId === 'credits') { if (typeof loadCredits === 'function') loadCredits(); }
