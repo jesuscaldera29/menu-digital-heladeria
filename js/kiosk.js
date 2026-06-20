@@ -827,7 +827,19 @@ async function kProcessOrder() {
   if (!keys.length) return showToast('Agrega productos al carrito', 'error');
 
   let name = document.getElementById('kCustomerName').value.trim();
-  const phone = document.getElementById('kCustomerPhone').value.trim() || 'N/A';
+  const phoneEl = document.getElementById('kCustomerPhone');
+  let phone = phoneEl ? phoneEl.value.trim() : '';
+  
+  if (name !== 'VENTA RAPIDA' && !phone) {
+    // Scroll cart to top to ensure phone field is visible
+    const cartList = document.getElementById('kioskCartPanel');
+    if (cartList) cartList.scrollTop = 0;
+    
+    if (phoneEl) phoneEl.focus();
+    return showToast('⚠️ Ingresa tu WhatsApp para seguimiento', 'error');
+  }
+  
+  if (!phone) phone = 'N/A';
   const delivery = kioskDeliveryMethodSelected;
   let finalAddress = '';
   let mesaSelectValue = '';
@@ -1145,4 +1157,12 @@ window.toggleKioskMobileCart = function() {
     panel.classList.add('translate-y-full');
     panel.classList.remove('translate-y-0');
   }
+};
+
+window.kSetVentaRapida = function() {
+  const nameEl = document.getElementById('kCustomerName');
+  const phoneEl = document.getElementById('kCustomerPhone');
+  if (nameEl) nameEl.value = 'VENTA RAPIDA';
+  // Clear phone or leave blank so validation skips it, wait we need to let validation skip it.
+  // We added `name !== 'VENTA RAPIDA'` to the validation, so it will skip.
 };

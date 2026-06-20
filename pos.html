@@ -441,6 +441,13 @@
           <datalist id="customersDataList"></datalist>
         </div>
 
+        <!-- WHATSAPP -->
+        <div class="relative mt-3">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">WhatsApp (Seguimiento)</label>
+          <input type="tel" id="customerPhone" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-green-500" placeholder="Ej: 3001234567" autocomplete="off">
+          <span class="absolute right-4 top-[35px] text-[9px] font-black text-red-500 uppercase tracking-widest bg-[#222] px-1" id="posPhoneRequiredMark">*Obligatorio</span>
+        </div>
+
         <!-- DIRECCIÓN -->
         <div id="addressField" class="hidden">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Dirección de Entrega</label>
@@ -453,11 +460,6 @@
           <input type="text" id="deliveryNeighborhood" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: El Centro">
         </div>
 
-        <!-- TELÉFONO -->
-        <div id="phoneField" class="hidden">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Teléfono del Cliente</label>
-          <input type="tel" id="customerPhone" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: 3001234567">
-        </div>
 
         <!-- REPARTIDOR -->
         <div id="driverField" class="hidden">

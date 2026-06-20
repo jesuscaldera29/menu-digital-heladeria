@@ -699,6 +699,8 @@ function toggleMobileCart() {
 window.setVentaRapida = function() {
   const cn = document.getElementById('customerName');
   if(cn) cn.value = 'Venta Rápida';
+  const cp = document.getElementById('customerPhone');
+  if(cp) cp.value = '';
 };
 
 async function openCheckoutModal() {
@@ -948,7 +950,7 @@ async function confirmSale() {
       return;
     }
     const phoneVal = document.getElementById('customerPhone')?.value?.trim();
-    if (!phoneVal) {
+    if (!phoneVal && customerName !== 'Venta Rápida') {
       showToast('⚠️ El teléfono del cliente es obligatorio para domicilio', 'error');
       return;
     }
@@ -964,7 +966,16 @@ async function confirmSale() {
     address = 'Para llevar';
   }
 
-  const customerPhone = document.getElementById('customerPhone')?.value?.trim() || 'N/A';
+  const phoneEl = document.getElementById('customerPhone');
+  let customerPhone = phoneEl?.value?.trim() || '';
+
+  if (customerName !== 'Venta Rápida' && !customerPhone) {
+    phoneEl?.focus();
+    showToast('⚠️ El número de WhatsApp es obligatorio para seguimiento', 'error');
+    return;
+  }
+  
+  if (!customerPhone) customerPhone = 'N/A';
 
   const btn = document.getElementById('btnConfirmSale');
   const originalText = btn.innerHTML;
