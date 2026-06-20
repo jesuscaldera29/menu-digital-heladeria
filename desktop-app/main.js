@@ -51,6 +51,12 @@ function createWindow() {
   });
 }
 
+// Automatically maximize ALL new windows (e.g. POS, Kiosko popups) and remove menus
+app.on('browser-window-created', (e, window) => {
+  window.setMenuBarVisibility(false);
+  window.maximize();
+});
+
 // Disabling hardware acceleration sometimes helps with older POS machines
 app.disableHardwareAcceleration();
 
