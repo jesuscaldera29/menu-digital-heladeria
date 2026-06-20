@@ -101,6 +101,12 @@ async function initAdmin() {
     setInterval(pollNewOrders, 15000);
     pollNewOrders(); // Primera carga silenciosa
 
+    const loading = document.getElementById('loadingBizScreen');
+    if (loading) {
+        loading.style.opacity = '0';
+        setTimeout(() => loading.style.display = 'none', 300);
+    }
+
     return true;
 }
 
@@ -803,7 +809,7 @@ function renderProducts() {
         // Add Products for this category
         html += catProducts.map(p => `
         <div class="product-card">
-          ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">` : '<div class="product-img flex items-center justify-center bg-gray-100 text-4xl">🍽️</div>'}
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="product-img" loading="lazy" decoding="async">` : '<div class="product-img flex items-center justify-center bg-gray-100 text-4xl">🍽️</div>'}
           <div class="p-5">
             <div class="flex justify-between items-start">
                 <h3 class="text-xl font-black leading-tight">${p.name} ${p.is_featured ? '<span class="text-orange-600 text-[10px] bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full font-black uppercase tracking-wider ml-1">⭐ Destacado</span>' : ''}</h3>

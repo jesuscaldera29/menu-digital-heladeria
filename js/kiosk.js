@@ -266,7 +266,7 @@ function renderKioskProducts() {
       ${p.is_featured ? `<span class="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-10">🔥 RECOMENDADO</span>` : ''}
       
       <div class="h-44 w-full bg-gray-100 relative overflow-hidden flex items-center justify-center">
-        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover">` : '<span class="text-5xl">🍽️</span>'}
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" loading="lazy" decoding="async">` : '<span class="text-5xl">🍽️</span>'}
       </div>
       
       <div class="p-6 flex flex-col flex-grow justify-between">
@@ -1098,9 +1098,12 @@ async function printKioskTicket(o) {
   const ok = await initKioskBusiness();
   if (!ok) return;
 
-  const loading = document.getElementById('loadingBizScreen');
-  if (loading) loading.style.display = 'none';
-
   await loadKioskSettings();
   await loadKioskProducts();
+
+  const loading = document.getElementById('loadingBizScreen');
+  if (loading) {
+    loading.style.opacity = '0';
+    setTimeout(() => loading.style.display = 'none', 300);
+  }
 })();

@@ -309,7 +309,7 @@ function renderMenu() {
 
   container.innerHTML = filtered.map(p => `
     <div class="menu-product-card">
-      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : '<div style="height:140px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>'}
+      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async">` : '<div style="height:140px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:2rem">🍽️</div>'}
       <div class="m-info">
         <h4>${p.name}</h4>
         <div class="m-price">${currency} $${Number(p.price).toLocaleString()}</div>

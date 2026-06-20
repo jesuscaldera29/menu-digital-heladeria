@@ -53,6 +53,12 @@ async function initPOS() {
 
   // Load initial notifications badge count
   loadInitialNotifBadge();
+
+  const loading = document.getElementById('loadingBizScreen');
+  if (loading) {
+    loading.style.opacity = '0';
+    setTimeout(() => loading.style.display = 'none', 300);
+  }
 }
 
 async function loadInitialNotifBadge() {
@@ -329,7 +335,7 @@ function renderProducts() {
     return `
     <div class="bg-[#111] border border-[#222] rounded-xl overflow-hidden cursor-pointer hover:border-gray-600 transition-all active:scale-95 select-none flex flex-col h-full" onclick="handleProductClick('${p.id}')">
       <div class="h-32 md:h-40 bg-white flex items-center justify-center overflow-hidden shrink-0 relative">
-        ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-contain p-1">` : `<span class="text-3xl">🍽️</span>`}
+        ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-contain p-1" loading="lazy" decoding="async">` : `<span class="text-3xl">🍽️</span>`}
         ${(hasExtras || hasAcc) ? '<span class="absolute top-1 right-1 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg">+Extras</span>' : ''}
       </div>
       <div class="p-2 md:p-3 flex flex-col flex-1">
