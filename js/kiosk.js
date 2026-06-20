@@ -834,11 +834,10 @@ async function kProcessOrder() {
   let phone = phoneEl ? phoneEl.value.trim() : '';
   
   if (name !== 'VENTA RAPIDA' && !phone) {
-    // Scroll cart to top to ensure phone field is visible
-    const cartList = document.getElementById('kioskCartPanel');
-    if (cartList) cartList.scrollTop = 0;
-    
-    if (phoneEl) phoneEl.focus();
+    if (phoneEl) {
+      phoneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      phoneEl.focus();
+    }
     return showToast('⚠️ Ingresa tu WhatsApp para seguimiento', 'error');
   }
   
