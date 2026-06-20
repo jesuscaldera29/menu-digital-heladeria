@@ -797,7 +797,7 @@ function selectOrderType(type, el) {
   const driverField = document.getElementById('driverField');
   if (driverField) driverField.classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
-  if (btnSave) btnSave.classList.toggle('hidden', type !== 'A la mesa');
+  if (btnSave) btnSave.classList.remove('hidden');
 
   // Show/hide Contra Entrega payment option (only for Domicilio)
   const btnCE = document.getElementById('btnContraEntrega');
@@ -1044,7 +1044,7 @@ async function confirmSale() {
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Venta cobrada (Mesa cerrada)');
-      if (updatedOrder && updatedOrder.length > 0) showTicketPreview(updatedOrder[0]);
+      if (updatedOrder && updatedOrder.length > 0) printPOSTicket(updatedOrder[0]);
     } else {
       const { data: insertedOrder, error } = await supabaseClient.from('orders').insert([{
         business_id: businessId,
@@ -1064,7 +1064,7 @@ async function confirmSale() {
       showToast('✅ Venta registrada');
       if (insertedOrder && insertedOrder.length > 0) {
         executePrintComanda(insertedOrder[0]);
-        showTicketPreview(insertedOrder[0]);
+        printPOSTicket(insertedOrder[0]);
       }
     }
 
@@ -1084,15 +1084,20 @@ async function saveTableOrder() {
   if (!keys.length) return;
 
   const orderType = document.getElementById('orderType').value;
-  if (orderType !== 'A la mesa') return;
-
-  const mesa = document.getElementById('tableNumber').value;
-  if (!mesa) {
-    showToast('⚠️ Seleccione una mesa', 'error');
-    return;
-  }
+  let address = 'POS - Local';
   
-  const address = 'Mesa ' + mesa;
+  if (orderType === 'A la mesa') {
+    const mesa = document.getElementById('tableNumber').value;
+    if (!mesa) {
+      showToast('⚠️ Seleccione una mesa', 'error');
+      return;
+    }
+    address = 'Mesa ' + mesa;
+  } else if (orderType === 'Domicilio') {
+    address = document.getElementById('deliveryAddress')?.value?.trim() || 'Domicilio';
+  } else {
+    address = 'Para llevar';
+  }
   let customerName = document.getElementById('customerName').value.trim();
   if (!customerName) {
     customerName = 'Venta Rápida';
@@ -1161,7 +1166,6 @@ async function saveTableOrder() {
         if (newItems.length > 0) {
           const comandaOrder = { ...updatedOrder[0], items: newItems };
           executePrintComanda(comandaOrder);
-          showComandaPreview(comandaOrder);
         } else {
           showToast('ℹ️ No hay items nuevos para enviar a cocina');
         }
@@ -1187,7 +1191,6 @@ async function saveTableOrder() {
       showToast('✅ Cuenta enviada a cocina');
       if (insertedOrder && insertedOrder.length > 0) {
         executePrintComanda(insertedOrder[0]);
-        showComandaPreview(insertedOrder[0]);
       }
     }
     
@@ -1621,7 +1624,7 @@ window.manualPrintComanda = async function() {
   if (currentOpenOrderId) {
     const { data, error } = await supabaseClient.from('orders').select('*').eq('id', currentOpenOrderId).single();
     if (!error && data) {
-      showComandaPreview(data);
+      executePrintComanda(data);
       showToast('🖨️ Comanda generada');
     }
   } else {
@@ -1653,7 +1656,7 @@ window.manualPrintComanda = async function() {
       delivery_fee: (orderType === 'Domicilio' && posSettings.delivery_fee) ? Number(posSettings.delivery_fee) : 0
     };
     
-    showComandaPreview(fakeOrder);
+    executePrintComanda(fakeOrder);
     showToast('🖨️ Comanda generada');
   }
 };
@@ -1662,7 +1665,7 @@ window.reprintTableComanda = function(e, orderId) {
   e.stopPropagation(); // Prevent opening the table
   const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
   if (!order) return;
-  showComandaPreview(order);
+  executePrintComanda(order);
   showToast('🖨️ Comanda generada');
 };
 
@@ -2243,24 +2246,21 @@ function renderNotifications() {
 }
 
 window.notifPrintComanda = async function(orderId) {
-  const order = window.notifOrders.find(o => String(o.id) === String(orderId));
+  let order = window.notifOrders.find(o => String(o.id) === String(orderId));
   if (!order) {
     const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
-    if (data) { showComandaPreview(data); executePrintComanda(data); }
-    return;
+    if (data) order = data;
   }
-  showComandaPreview(order);
-  executePrintComanda(order);
+  if (order) executePrintComanda(order);
 };
 
 window.notifPrintTicket = async function(orderId) {
-  const order = window.notifOrders.find(o => String(o.id) === String(orderId));
+  let order = window.notifOrders.find(o => String(o.id) === String(orderId));
   if (!order) {
     const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
-    if (data) showTicketPreview(data);
-    return;
+    if (data) order = data;
   }
-  showTicketPreview(order);
+  if (order) printPOSTicket(order);
 };
 
 window.notifMarkReady = async function(orderId) {
