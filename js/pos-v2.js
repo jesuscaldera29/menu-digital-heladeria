@@ -1321,11 +1321,11 @@ async function printPOSTicket(o) {
     <head>
       <title>Ticket #${ticketId}</title>
       <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-        .text-xl { font-size: 20px; }
-        .text-2xl { font-size: 26px; }
+        .text-xl { font-size: 22px; }
+        .text-2xl { font-size: 28px; }
         .mb-2 { margin-bottom: 8px; }
         .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
@@ -1338,10 +1338,10 @@ async function printPOSTicket(o) {
       <div class="text-center font-bold text-2xl mb-1">${posSettings.business_name || 'MI NEGOCIO'}</div>
       ${ticketDataHtml}
       ${headerHtml}
-      <div class="text-center border-b font-bold text-lg mb-2">
+      <div class="text-center border-b font-bold mb-2" style="font-size: 20px;">
         TICKET DE VENTA<br>#${ticketId}
       </div>
-      <div class="mb-2" style="font-size: 12px;">
+      <div class="mb-2" style="font-size: 15px;">
         <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
         <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
         <strong>Teléfono:</strong> ${o.customer_phone || 'N/A'}<br>
@@ -1363,7 +1363,14 @@ async function printPOSTicket(o) {
         ${customFooter}
       </div>
       <script>
-        setTimeout(() => { window.print(); window.close(); }, 500);
+        let printed = false;
+        function doPrint() {
+          if(printed) return;
+          printed = true;
+          setTimeout(() => { window.print(); window.close(); }, 300);
+        }
+        window.onload = doPrint;
+        setTimeout(doPrint, 2500); // fallback
       <\/script>
     </body>
   </html>`;
@@ -1401,7 +1408,7 @@ function showComandaPreview(o) {
     
     return `
       <div style="padding:6px 0;">
-          <div style="font-weight:bold; font-size:20px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
+          <div style="font-weight:bold; font-size:22px;">${item.qty || item.quantity}x ${mainName.toUpperCase()}</div>
           ${extrasHtml}
       </div>`
   }).join('');
@@ -1410,20 +1417,20 @@ function showComandaPreview(o) {
   let deliveryFeeHtml = '';
   if (deliveryType === 'DOMICILIO' && deliveryFee > 0) {
     deliveryFeeHtml = `
-      <div style="font-weight:bold; font-size:20px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
+      <div style="font-weight:bold; font-size:22px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
         + TARIFA DOMICILIO: $${deliveryFee.toLocaleString()}
       </div>
     `;
   }
 
   container.innerHTML = `
-    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:16px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
-      <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center;">PEDIDO #${ticketId}</div>
+    <div id="ticketPrintArea" style="font-family:Arial, Helvetica, sans-serif;font-size:18px;padding:16px;width:80mm;margin:0 auto;color:#000;background:white;">
+      <div style="text-align:center; font-weight:bold; font-size:24px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">PEDIDO #${ticketId}</div>
       ${customerPhone}
-      <div style="font-weight:bold; font-size:20px; text-align:center;">${timeStr}</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center;">${deliveryType}</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">${timeStr}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">${deliveryType}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
       <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
         ${itemsHtml}
         ${deliveryFeeHtml}
@@ -1478,7 +1485,7 @@ async function executePrintComanda(o) {
   let deliveryFeeHtml = '';
   if (deliveryType === 'DOMICILIO' && deliveryFee > 0) {
     deliveryFeeHtml = `
-      <div style="font-weight:bold; font-size:20px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
+      <div style="font-weight:bold; font-size:22px; text-align:center; margin-top:8px; border-top:1px dashed #000; padding-top:8px;">
         + TARIFA DOMICILIO: $${deliveryFee.toLocaleString()}
       </div>
     `;
@@ -1494,18 +1501,25 @@ async function executePrintComanda(o) {
       </style>
     </head>
     <body>
-      <div style="text-align:center; font-weight:bold; font-size:22px; margin-bottom:8px;">** IMPRESORA DE CAJA **</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center;">PEDIDO #${ticketId}</div>
+      <div style="text-align:center; font-weight:bold; font-size:24px; margin-bottom:8px;">COMANDA</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">PEDIDO #${ticketId}</div>
       ${customerPhone}
-      <div style="font-weight:bold; font-size:20px; text-align:center;">${timeStr}</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center;">${deliveryType}</div>
-      <div style="font-weight:bold; font-size:20px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">${timeStr}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center;">${deliveryType}</div>
+      <div style="font-weight:bold; font-size:22px; text-align:center; margin-bottom:8px;">Cliente: ${customerName}</div>
       <div style="border-top:2px dashed #000; border-bottom:2px dashed #000; padding:8px 0; margin:12px 0;">
         ${itemsHtml}
         ${deliveryFeeHtml}
       </div>
       <script>
-        setTimeout(() => { window.print(); window.close(); }, 500);
+        let printed = false;
+        function doPrint() {
+          if(printed) return;
+          printed = true;
+          setTimeout(() => { window.print(); window.close(); }, 300);
+        }
+        window.onload = doPrint;
+        setTimeout(doPrint, 2500); // fallback
       </script>
     </body>
   </html>`;
