@@ -233,6 +233,9 @@ async function loadCashClosings() {
       if(btnCloseCash) btnCloseCash.classList.add('hidden');
     }
     
+    // Sync new UI buttons
+    if (typeof updateCajaMainButtons === 'function') updateCajaMainButtons();
+    
     if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">Sin sesiones de caja registradas</td></tr>'; return; }
     
     tbody.innerHTML = data.map(c => {
@@ -255,21 +258,18 @@ async function loadCashClosings() {
 }
 
 async function deleteCashClosing(id) {
-  const code = prompt('Escribe la palabra ELIMINAR en mayúsculas para confirmar la eliminación de esta sesión de caja:');
-  if (code !== 'ELIMINAR') {
-    if (code !== null) showToast('⚠️ Cancelado: La palabra no coincide', 'error');
-    return;
-  }
+  if (!confirm('¿Estás seguro de eliminar esta sesión de caja?')) return;
   
   try {
     const { data, error } = await supabaseClient.from('cash_closings').delete().eq('id', id).select();
     if (error) throw error;
     if (!data || data.length === 0) {
-      alert('⚠️ ERROR DE PERMISOS EN SUPABASE:\n\nSupabase bloqueó la acción porque falta la política (RLS) de DELETE para la tabla "cash_closings".\n\nVe a Supabase -> SQL Editor y ejecuta esto:\n\nCREATE POLICY "Enable delete for users" ON "public"."cash_closings" FOR DELETE USING (true);');
+      showToast('⚠️ Error de permisos. Ejecuta en Supabase SQL: CREATE POLICY "Enable delete for users" ON "public"."cash_closings" FOR DELETE USING (true);', 'error');
       return;
     }
     showToast('🗑️ Sesión de caja eliminada');
     loadCashClosings();
+    if (typeof loadCajaHistorialCards === 'function') loadCajaHistorialCards();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
   }
