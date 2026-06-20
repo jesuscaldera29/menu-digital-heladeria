@@ -46,12 +46,18 @@ function resetInactivityTimer() {
     
     const indicator = document.getElementById('inactivityIndicator');
     const timerEl = document.getElementById('inactivityTimer');
-    if (indicator) indicator.classList.remove('hidden');
+    
+    // Hide initially until countdown <= 15
+    if (indicator) indicator.classList.add('hidden');
     if (timerEl) timerEl.textContent = inactivityCountdown;
 
     inactivityTimer = setInterval(() => {
       inactivityCountdown--;
       if (timerEl) timerEl.textContent = inactivityCountdown;
+
+      if (inactivityCountdown <= 15) {
+        if (indicator) indicator.classList.remove('hidden');
+      }
 
       if (inactivityCountdown <= 0) {
         clearInterval(inactivityTimer);
@@ -276,7 +282,7 @@ function renderKioskProducts() {
       
       <div class="p-3 md:p-4 flex flex-col flex-1 border-t border-gray-50">
         <h4 class="text-xs md:text-sm font-black text-gray-900 leading-tight mb-1 line-clamp-2">${p.name}</h4>
-        ${p.description ? `<p class="text-[10px] md:text-xs text-gray-500 leading-snug line-clamp-2 mb-2 hidden sm:block">${p.description}</p>` : ''}
+        ${p.description ? `<p class="text-[10px] md:text-xs text-gray-500 leading-snug line-clamp-2 mb-2">${p.description}</p>` : ''}
         
         <div class="mt-auto pt-2 flex items-center justify-between">
           <span class="text-sm md:text-base font-black text-orange-600">$${Number(p.price).toLocaleString()}</span>
