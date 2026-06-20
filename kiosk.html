@@ -154,16 +154,16 @@
     </header>
 
     <!-- GRID LAYOUT -->
-    <div class="flex-1 w-full flex flex-col md:flex-row overflow-hidden bg-gray-50">
+    <div class="flex-1 w-full flex flex-col md:flex-row overflow-hidden bg-gray-50 relative">
       <!-- LEFT/TOP: Categories & Products -->
-      <div class="w-full md:w-[60%] lg:w-2/3 flex flex-col h-[55%] md:h-full bg-gray-100 md:border-r border-[#222] shrink-0 border-gray-200">
+      <div class="w-full md:w-[60%] lg:w-2/3 flex flex-col h-full bg-gray-100 md:border-r border-gray-200 shrink-0">
         <!-- Categories Container -->
         <div id="categoriesContainer" class="p-4 md:p-6 overflow-x-auto flex gap-3 hide-scroll bg-white shadow-sm shrink-0 sticky top-0 z-30">
           <!-- Categories loaded via JS -->
         </div>
 
         <!-- Products Grid Container -->
-        <div class="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8" id="productsContainer">
+        <div class="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8 pb-32 md:pb-8" id="productsContainer">
           <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5 pb-6">
             <!-- Products loaded via JS -->
           </div>
@@ -171,11 +171,14 @@
       </div>
 
       <!-- RIGHT/BOTTOM: Cart & Checkout -->
-      <div class="w-full md:w-[40%] lg:w-1/3 flex flex-col flex-1 bg-white relative z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] md:shadow-none h-[45%] md:h-full shrink-0 rounded-t-[40px] md:rounded-none mt-2 md:mt-0">
+      <div id="kioskCartPanel" class="fixed inset-0 z-[150] bg-white flex flex-col translate-y-full transition-transform duration-300 ease-out md:translate-y-0 md:relative md:z-20 w-full md:w-[40%] lg:w-1/3 md:h-full shrink-0 shadow-[-10px_0_40px_rgba(0,0,0,0.05)]">
         <!-- Cart Header -->
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-20 rounded-t-[40px] md:rounded-none pt-8 md:pt-6">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-20 pt-8 md:pt-6 shrink-0">
           <h3 class="text-xl md:text-2xl font-black flex items-center gap-2">🛒 Tu Pedido</h3>
-          <span id="cartCountBadge" class="bg-orange-600 text-white font-black text-xs px-3 py-1 rounded-full shadow-md">0 items</span>
+          <div class="flex items-center gap-3">
+            <span id="cartCountBadge" class="bg-orange-600 text-white font-black text-xs px-3 py-1 rounded-full shadow-md">0 items</span>
+            <button onclick="toggleKioskMobileCart()" class="md:hidden bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg active:scale-95 transition-all">✕</button>
+          </div>
         </div>
 
         <!-- Cart Items List -->
@@ -242,6 +245,25 @@
           </div>
         </div>
       </div>
+      
+      <!-- MOBILE FLOATING CART BUTTON -->
+      <div id="kioskMobileCartBtn" class="md:hidden fixed bottom-6 left-6 right-6 bg-black text-white p-4 rounded-[24px] shadow-2xl z-[120] flex justify-between items-center cursor-pointer active:scale-95 transition-all transform translate-y-32 hidden" onclick="toggleKioskMobileCart()">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <span class="text-3xl">🛒</span>
+            <span class="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md border border-black" id="mobileCartItemCount">0</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-bold text-[10px] text-gray-400 uppercase tracking-widest leading-tight">Ver Carrito</span>
+            <span class="font-black text-sm leading-tight text-white">Continuar</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="font-black text-xl text-orange-500" id="mobileCartTotal">$0</span>
+          <span class="bg-white/10 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">➔</span>
+        </div>
+      </div>
+      
     </div>
   </div>
 

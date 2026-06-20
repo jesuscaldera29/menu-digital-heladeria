@@ -366,6 +366,12 @@ function resetKiosk() {
   if (main) { main.style.display = 'none'; main.classList.add('hidden'); }
   if (indicator) indicator.classList.add('hidden');
   
+  const panel = document.getElementById('kioskCartPanel');
+  if (panel) {
+    panel.classList.add('translate-y-full');
+    panel.classList.remove('translate-y-0');
+  }
+  
   // Hide all modals
   document.getElementById('accompanimentsModal').classList.add('hidden');
   document.getElementById('kTicketModal').classList.add('hidden');
@@ -610,6 +616,12 @@ function updateKioskCartUI() {
     document.getElementById('kCartSubtotal').textContent = '$0';
     document.getElementById('kCartTotal').textContent = '$0';
     document.getElementById('kDiscountRow').classList.add('hidden');
+    
+    const mobileBtn = document.getElementById('kioskMobileCartBtn');
+    if (mobileBtn) {
+      mobileBtn.classList.add('translate-y-32');
+      setTimeout(() => mobileBtn.classList.add('hidden'), 300);
+    }
     return;
   }
 
@@ -675,6 +687,14 @@ function updateKioskCartUI() {
 
   document.getElementById('kCartSubtotal').textContent = `$${subtotal.toLocaleString()}`;
   document.getElementById('kCartTotal').textContent = `$${total.toLocaleString()}`;
+
+  const mobileBtn = document.getElementById('kioskMobileCartBtn');
+  if (mobileBtn && totalQty > 0) {
+    mobileBtn.classList.remove('hidden');
+    setTimeout(() => mobileBtn.classList.remove('translate-y-32'), 10);
+    document.getElementById('mobileCartItemCount').textContent = totalQty;
+    document.getElementById('mobileCartTotal').textContent = `$${total.toLocaleString()}`;
+  }
 
   const discRow = document.getElementById('kDiscountRow');
   if (discount > 0) {
@@ -1114,3 +1134,15 @@ async function printKioskTicket(o) {
     setTimeout(() => loading.style.display = 'none', 300);
   }
 })();
+
+// Toggle mobile cart modal
+window.toggleKioskMobileCart = function() {
+  const panel = document.getElementById('kioskCartPanel');
+  if (panel.classList.contains('translate-y-full')) {
+    panel.classList.remove('translate-y-full');
+    panel.classList.add('translate-y-0');
+  } else {
+    panel.classList.add('translate-y-full');
+    panel.classList.remove('translate-y-0');
+  }
+};
