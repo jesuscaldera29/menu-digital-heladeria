@@ -118,15 +118,26 @@ function subscribeToOnlineOrders() {
         filter: `business_id=eq.${businessId}`
       },
       (payload) => {
-        // Play notification sound
+        // Play notification sound (Pleasant Chime)
         try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
+          audio.volume = 1.0;
           audio.play().catch(e => console.log('Audio blocked', e));
         } catch (e) { }
 
-        // Push to notifications panel
+        // Push to notifications panel and animate badge
         if (typeof pushToNotifications === 'function') {
           pushToNotifications(payload.new);
+          
+          // Make the badge bounce to call attention
+          const badge = document.getElementById('notifBadge');
+          if (badge) {
+            badge.classList.remove('animate-pulse');
+            badge.classList.add('animate-bounce');
+            setTimeout(() => {
+              badge.classList.remove('animate-bounce');
+            }, 3000);
+          }
         }
 
         // Auto print if enabled
