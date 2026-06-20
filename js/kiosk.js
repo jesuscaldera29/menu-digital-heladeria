@@ -140,6 +140,7 @@ async function loadKioskSettings() {
       .single();
 
     if (data) {
+      window.kioskSettings = data;
       currency = data.currency || 'COP';
       kioskDeliveryFeeAmount = Number(data.delivery_fee) || 0;
       

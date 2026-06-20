@@ -90,7 +90,10 @@ function buildTicket(d, cfg, logoImage = null) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
   b.init().alignCenter();
   if (logoImage) b.image(logoImage);
-  b.textLine(san(d.business_name || 'MI NEGOCIO'));
+  
+  // Registered Business Name - Bold & Centered
+  b.bold(true).doubleHeight(true).textLine(san(d.business_name || 'MI NEGOCIO').toUpperCase()).normalSize().bold(false);
+  
   if (d.ticket_data) {
     const td = typeof d.ticket_data === 'string' ? JSON.parse(d.ticket_data) : d.ticket_data;
     if (td.sede) b.textLine('Sede: ' + san(td.sede));
@@ -99,14 +102,17 @@ function buildTicket(d, cfg, logoImage = null) {
     if (td.email) b.textLine(san(td.email));
   }
   b.separator('-');
+  
+  // Date and Order Number (Bold & Clear)
   b.textLine(d.date || new Date().toLocaleString());
-  b.textLine('No. ' + san(d.ticket_id || '0000'));
+  b.bold(true).doubleHeight(true).textLine('ORDEN No. ' + san(d.ticket_id || '0000')).normalSize().bold(false);
   
   let dt = (d.delivery_method || 'LOCAL').toUpperCase();
   if (dt === 'A LA MESA') { const m = d.address ? d.address.replace(/Mesa\s*/i,'').trim() : ''; dt = m ? 'MESA '+m : 'MESA'; }
-  b.textLine(dt);
+  b.bold(true).textLine(dt).bold(false);
   b.separator('-');
   
+  // Items List
   b.alignLeft();
   if (d.items && Array.isArray(d.items)) {
     d.items.forEach(item => {
@@ -115,25 +121,42 @@ function buildTicket(d, cfg, logoImage = null) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.doubleHeight(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q));
+      b.bold(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q)).bold(false);
       extras.forEach(e => {
-        b.leftRight('- ' + san(e) + ' x ' + q, fmt(0));
+        b.leftRight('  - ' + san(e) + ' x ' + q, fmt(0));
       });
-      b.normalSize();
     });
   }
   
   b.newline();
   b.alignCenter();
-  b.leftRight('              Subtotal', '');
-  b.leftRight('              Total venta', fmt(d.total));
-  b.leftRight('', fmt(d.total));
   b.separator('-');
   
-  const paymentMethod = san(d.payment_method || 'Efectivo');
-  b.leftRight('Tipo de pago   ' + paymentMethod + '   Valor', fmt(d.cash_received || d.total));
+  // Pricing breakdown
+  b.leftRight('Subtotal', fmt(d.total - (d.delivery_fee || 0) + (d.discount || 0)));
+  if (d.delivery_fee > 0) {
+    b.leftRight('Domicilio/Envio', fmt(d.delivery_fee));
+  }
+  if (d.discount > 0) {
+    b.leftRight('Descuento', '-' + fmt(d.discount));
+  }
+  b.bold(true).doubleHeight(true).leftRight('TOTAL A PAGAR', fmt(d.total)).normalSize().bold(false);
+  b.separator('-');
+  
+  // Payment Breakdown
+  const paymentMethod = san(d.payment_method || 'Pendiente').toUpperCase();
+  b.leftRight('METODO DE PAGO:', paymentMethod);
+  b.leftRight('VALOR RECIBIDO:', fmt(d.cash_received || d.total));
   const ch = Number(d.cash_received || 0) - Number(d.total);
-  b.leftRight('                          Cambio', fmt(ch > 0 ? ch : 0));
+  b.bold(true).leftRight('CAMBIO:', fmt(ch > 0 ? ch : 0)).bold(false);
+  
+  // Kiosk cashier warning
+  if (paymentMethod === 'PENDIENTE') {
+    b.newline();
+    b.alignCenter().bold(true).textLine('*** FAVOR LLEVAR TICKET A CAJA ***').bold(false);
+    b.alignCenter().bold(true).textLine('***     PARA PROCESAR PAGO     ***').bold(false);
+    b.newline();
+  }
   
   b.separator('-');
   b.newline().alignCenter().textLine(san(d.footer || 'Gracias por su compra!')).newline();
@@ -144,17 +167,19 @@ function buildTicket(d, cfg, logoImage = null) {
 
 function buildComanda(d, cfg) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
-  b.init().alignCenter().textLine('Comanda');
-  if (d.ticket_id && d.ticket_id !== 'MESA') {
-    b.textLine('Orden # ' + san(d.ticket_id));
+  b.init().alignCenter().bold(true).doubleHeight(true).textLine('*** KITCHEN COMANDA ***').normalSize().bold(false);
+  
+  if (d.ticket_id) {
+    b.bold(true).doubleHeight(true).textLine('ORDEN #' + san(d.ticket_id)).normalSize().bold(false);
   }
+  
   let dt = (d.delivery_method || 'LOCAL').toUpperCase();
   if (dt === 'A LA MESA') { const m = d.address ? d.address.replace(/Mesa\s*/i,'').trim() : ''; dt = m ? 'MESA '+m : 'MESA'; }
-  b.doubleSize(true).textLine(dt).normalSize();
+  b.bold(true).doubleSize(true).textLine(dt).normalSize().bold(false);
   
   b.newline();
   b.alignLeft().textLine(d.time || d.date || new Date().toLocaleString());
-  b.newline();
+  b.separator('-');
   
   if (d.items) {
     d.items.forEach(item => {
@@ -163,9 +188,8 @@ function buildComanda(d, cfg) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.doubleHeight(true).textLine('* ' + san(mn).toUpperCase() + ' x ' + q);
+      b.bold(true).doubleHeight(true).textLine('* ' + san(mn).toUpperCase() + ' x ' + q).normalSize().bold(false);
       extras.forEach(e => b.textLine('  ' + san(e).toUpperCase() + ' x ' + q));
-      b.normalSize();
     });
   }
   
