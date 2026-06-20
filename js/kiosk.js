@@ -1001,12 +1001,16 @@ async function kProcessOrder() {
 
     document.getElementById('kTRecTotal').textContent = `$${Number(orderToPrint.total).toLocaleString()}`;
     
+    // Set QR code image src for tracking
+    const trackingUrl = window.location.origin + '/order-status.html?id=' + orderToPrint.id;
+    const qrImg = document.getElementById('kKioskQrImage');
+    if (qrImg) {
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(trackingUrl)}`;
+    }
+
     // Show ticket modal
     document.getElementById('kTicketModal').classList.remove('hidden');
     document.getElementById('kTicketModal').classList.add('flex');
-
-    // Send WhatsApp tracking message
-    sendKioskWhatsApp(orderToPrint);
 
     // 15 seconds countdown before auto-restart
     let countdown = 15;
@@ -1088,84 +1092,8 @@ async function printKioskTicket(o) {
     const ok = await bridgePrintTicket(o, window.kioskSettings || {});
     if (ok) { console.log('[Kiosk] Ticket impreso via PrintBridge'); return; }
   }
-  // Fallback: browser iframe print
-  const ticketId = String(o.id).split('-')[0].toUpperCase();
-  const logoUrl = window.kioskSettings?.logo_url ? `<img src="${window.kioskSettings.logo_url}" style="max-width: 50mm; max-height: 30mm; object-fit: contain; margin-bottom: 8px;">` : '';
-  const businessName = window.kioskSettings?.business_name || 'MI NEGOCIO';
-
-  const itemsHtml = o.items.map(item => `
-    <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-size:12px;">
-      <span style="flex:1; padding-right:4px;">${item.qty}x ${item.name}</span>
-      <span>$${Number(item.price * item.qty).toLocaleString()}</span>
-    </div>
-  `).join('');
-
-  let discountHtml = '';
-  if (o.discount > 0) {
-    discountHtml = `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;"><span>Descuento:</span><span>-$${Number(o.discount).toLocaleString()}</span></div>`;
-  }
-  let deliveryFeeHtml = '';
-  if (o.delivery_fee > 0) {
-    deliveryFeeHtml = `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;"><span>Domicilio:</span><span>+$${Number(o.delivery_fee).toLocaleString()}</span></div>`;
-  }
-
-  const html = `
-  <html>
-    <head>
-      <title>Ticket #${ticketId}</title>
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .text-2xl { font-size: 22px; }
-        .mb-2 { margin-bottom: 8px; }
-        @media print { body { width: 100%; margin:0; padding:0; } }
-      </style>
-    </head>
-    <body>
-      <div class="text-center mb-2">${logoUrl}</div>
-      <div class="text-center font-bold text-2xl mb-2">${businessName}</div>
-      <div class="text-center" style="border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; font-weight: bold; font-size: 16px;">
-        TICKET DE COMPRA<br>#${ticketId}
-      </div>
-      <div style="margin-bottom:8px;font-size:12px;">
-        <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
-        <strong>Cliente:</strong> ${o.customer_name || 'Mostrador'}<br>
-        <strong>Tipo:</strong> ${o.delivery_method || 'Kiosko'}<br>
-        ${o.address && o.address !== 'Llevar / Kiosko' ? `<strong>Mesa/Dir:</strong> ${o.address}<br>` : ''}
-        <strong>Pago:</strong> Acercarse a caja
-      </div>
-      <div style="border-top:1px dashed #000; border-bottom:1px dashed #000; margin-bottom:8px; padding:8px 0;">
-        <div style="display:flex;justify-content:space-between;font-weight:bold;padding-bottom:4px;font-size:11px;"><span>CANT DESCRIPCIÓN</span><span>TOTAL</span></div>
-        ${itemsHtml}
-      </div>
-      ${discountHtml}
-      ${deliveryFeeHtml}
-      <div style="display:flex; justify-content:space-between; border-top: 1px dashed #000; font-weight: bold; font-size: 18px; margin-top: 8px; padding-top: 8px;">
-        <span>TOTAL:</span>
-        <span>$${Number(o.total).toLocaleString()}</span>
-      </div>
-      <div class="text-center" style="margin-top:20px; font-size: 12px; font-weight: bold;">
-        PASA A CAJA PARA REALIZAR TU PAGO.<br>¡GRACIAS POR TU PREFERENCIA!
-      </div>
-    </body>
-  </html>`;
-
-  let iframe = document.getElementById('printIframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'printIframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(html);
-  doc.close();
-  setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-  }, 500);
+  // Fallback: browser iframe print -> DISABLED per request to avoid print dialog popup
+  console.log('[Kiosk] Browser print fallback skipped per request. Ticket is printed from POS/Kitchen.');
 }
 
 // Initialize Kiosk

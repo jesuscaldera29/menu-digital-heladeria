@@ -89,7 +89,7 @@
     <div id="expiredScreen" class="hidden py-8">
       <div class="text-6xl mb-4">⏳</div>
       <h2 class="text-xl font-bold text-red-600 mb-2">Enlace Expirado o Inválido</h2>
-      <p class="text-gray-500 text-sm">Por razones de seguridad, los enlaces de seguimiento solo son válidos por 1 hora.</p>
+      <p class="text-gray-500 text-sm">Por razones de seguridad, los enlaces de seguimiento solo son válidos por 3 horas.</p>
       <a href="index.html" class="mt-6 inline-block bg-black text-white px-6 py-3 rounded-xl font-bold">Volver al Menú</a>
     </div>
 
@@ -160,6 +160,10 @@
           <span class="text-lg font-black text-red-600" id="orderTotalText"></span>
         </div>
         <button id="btnNotify" onclick="enableNotifications()" class="mt-6 bg-orange-100 text-orange-600 px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-orange-200 flex items-center justify-center gap-2">🔔 Activar Notificaciones y Sonido</button>
+        <button id="btnWhatsAppShare" onclick="shareViaWhatsApp()" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-bold w-full transition-all flex items-center justify-center gap-2 shadow-md">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.725 1.451 5.402.002 9.799-4.393 9.802-9.799.002-2.618-1.01-5.08-2.858-6.93C16.47 2.025 14.014.996 11.997.996 6.596.996 2.2 5.391 2.197 10.797c-.001 1.637.478 3.237 1.385 4.678l-1.011 3.693 3.791-.994z"/></svg>
+          Enviar Resumen a mi WhatsApp
+        </button>
         <button id="btnDownload" onclick="downloadTicket()" class="mt-2 bg-gray-800 text-white px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-gray-700 flex items-center justify-center gap-2">📥 Descargar Resumen del Pedido</button>
       </div>
     </div>
@@ -173,6 +177,37 @@
     const orderId = urlParams.get('id');
     let currentKnownStatus = null;
     let notificationsEnabled = false;
+    let currentOrder = null;
+
+    function shareViaWhatsApp() {
+      if (!currentOrder) return alert('No se ha podido cargar los detalles del pedido aún.');
+      
+      let msg = `🍦 *Detalle de mi Pedido en Goloso* ✨\n\n`;
+      msg += `🛒 *PEDIDO #${String(currentOrder.id).padStart(4, '0')}*\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━\n`;
+      for (const item of currentOrder.items || []) {
+        msg += `▪️ ${item.name} x${item.qty}\n`;
+      }
+      
+      const discount = Number(currentOrder.discount || 0);
+      const total = Number(currentOrder.total || 0);
+      const subtotal = total + discount - (currentOrder.delivery_fee || 0);
+      
+      msg += `━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
+      if (discount > 0) msg += `Descuento: -$${discount.toLocaleString()}\n`;
+      if (currentOrder.delivery_fee > 0) msg += `Domicilio: +$${Number(currentOrder.delivery_fee).toLocaleString()}\n`;
+      msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━\n\n`;
+      msg += `👤 *Cliente:* ${currentOrder.customer_name}\n`;
+      msg += `📦 *Método:* ${currentOrder.delivery_method}\n`;
+      if (currentOrder.address && currentOrder.address !== 'Llevar / Kiosko') {
+        msg += `📍 *Ubicación/Mesa:* ${currentOrder.address}\n`;
+      }
+      msg += `\n🔗 *Seguimiento en vivo:*\n${window.location.href}\n`;
+      
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 
     async function enableNotifications() {
       if ("Notification" in window) {
@@ -206,17 +241,19 @@
           return;
         }
 
+        currentOrder = order;
+
         // Load business settings from order's business_id
         if (order.business_id) {
           loadBusinessSettings(order.business_id);
         }
 
-        // Check if expired (1 hour limit)
+        // Check if expired (3 hours limit)
         const createdAt = new Date(order.created_at);
         const now = new Date();
         const diffHours = (now - createdAt) / (1000 * 60 * 60);
 
-        if (diffHours > 1) {
+        if (diffHours > 3) {
           document.getElementById('loadingScreen').classList.add('hidden');
           document.getElementById('trackerScreen').classList.add('hidden');
           document.getElementById('expiredScreen').classList.remove('hidden');
