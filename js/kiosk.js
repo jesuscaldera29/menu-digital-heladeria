@@ -1129,3 +1129,24 @@ window.kSetVentaRapida = function() {
   // Clear phone or leave blank so validation skips it, wait we need to let validation skip it.
   // We added `name !== 'VENTA RAPIDA'` to the validation, so it will skip.
 };
+
+let logoClicks = 0;
+window.handleLogoClick = function() {
+  logoClicks++;
+  if (logoClicks >= 5) {
+    logoClicks = 0;
+    const currentIP = localStorage.getItem('printbridge_url') || 'http://192.168.1.100:9101';
+    const newIP = prompt("⚙️ Configuración del Servidor de Impresión (PrintBridge):\nIngrese la dirección IP y puerto del servidor del PC (ej. http://192.168.1.100:9101):", currentIP);
+    if (newIP !== null) {
+      localStorage.setItem('printbridge_url', newIP);
+      if (typeof PRINTBRIDGE_URL !== 'undefined') {
+        PRINTBRIDGE_URL = newIP;
+      }
+      alert("✅ Servidor de impresión configurado en:\n" + newIP);
+      // Try to detect/connect
+      if (typeof detectPrintBridge === 'function') {
+        detectPrintBridge();
+      }
+    }
+  }
+};
