@@ -404,7 +404,11 @@
         <div class="flex items-center gap-4">
           <div>
             <h1 class="text-2xl font-black">👨‍🍳 Administrador</h1>
-            <p class="opacity-90 text-xs font-medium uppercase tracking-widest">Gestión de Menú</p>
+            <div class="flex items-center gap-2">
+              <p class="opacity-90 text-xs font-medium uppercase tracking-widest">Gestión de Menú</p>
+              <select id="globalBranchSelector" class="hidden bg-white/20 text-white text-[10px] font-bold rounded-lg px-2 py-0.5 outline-none border border-white/20 cursor-pointer hover:bg-white/30 transition-all" onchange="changeGlobalBranch()">
+              </select>
+            </div>
           </div>
         </div>
         <button onclick="toggleAdminSidebar()" class="sm:hidden bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl transition-all">
@@ -439,7 +443,7 @@
         <button id="tab-recipes" onclick="showSection('recipes', event)"
           class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">📖 Recetas</button>
         <button id="tab-branches" onclick="showSection('branches', event)"
-          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap hidden">🏪 Sucursales</button>
+          class="nav-tab px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all whitespace-nowrap">🏪 Sucursales</button>
       </nav>
 
       <div class="hidden sm:flex items-center gap-2">
@@ -645,6 +649,25 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- SECTION: SUCURSALES -->
+    <div id="section-branches" class="section-content">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-black text-gray-800 flex items-center gap-3">
+            <span>🏪</span> Sucursales
+          </h2>
+          <button class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl active:scale-95" onclick="openCreateBranchModal()">
+            + Nueva Sucursal
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="branchesList">
+          <!-- Sucursales se renderizan aquí -->
+          <p class="text-sm text-gray-400 italic">Cargando sucursales...</p>
+        </div>
       </div>
     </div>
 
@@ -2609,6 +2632,36 @@
   </div>
 
 
+
+  <!-- CREATE BRANCH MODAL -->
+  <div id="createBranchModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] backdrop-blur-sm p-4">
+    <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+      <button onclick="document.getElementById('createBranchModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-black">❌</button>
+      <h3 class="text-xl font-black mb-1">🏪 Nueva Sucursal</h3>
+      <p class="text-xs text-gray-500 mb-4">Crea un espacio independiente para una nueva sede.</p>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase">Nombre de la Sucursal</label>
+          <input type="text" id="branchName" class="input !mt-1" placeholder="Ej: Sede Centro">
+        </div>
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase">URL / Slug</label>
+          <input type="text" id="branchSlug" class="input !mt-1" placeholder="Ej: mi-negocio-centro">
+          <p class="text-[10px] text-gray-400 mt-1">Debe ser único, sin espacios ni caracteres especiales.</p>
+        </div>
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase">Email Administrador</label>
+          <input type="email" id="branchEmail" class="input !mt-1" placeholder="admin@sede.com">
+        </div>
+        <div>
+          <label class="font-bold text-xs text-gray-500 uppercase">Contraseña</label>
+          <input type="password" id="branchPassword" class="input !mt-1" placeholder="Contraseña segura">
+        </div>
+        <button id="btnSubmitBranch" class="btn btn-primary w-full mt-4" onclick="createBranch(event)">Crear Sucursal</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPTS PRINCIPALES -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -82,6 +82,10 @@ async function switchBranch(newBusinessId) {
   window.location.reload();
 }
 
+window.openCreateBranchModal = function() {
+  document.getElementById('createBranchModal').classList.remove('hidden');
+};
+
 async function createBranch(event) {
   const name = document.getElementById('branchName').value.trim();
   const slug = document.getElementById('branchSlug').value.trim().toLowerCase();

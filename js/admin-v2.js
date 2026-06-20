@@ -63,6 +63,25 @@ async function initAdmin() {
         return false;
     }
 
+    // MULTI-BRANCH SELECTOR LOGIC
+    if (!staffRole) {
+        const { data: businesses } = await supabaseClient
+            .from('businesses')
+            .select('id, business_name, slug')
+            .eq('owner_id', session.user.id)
+            .order('created_at');
+            
+        if (businesses && businesses.length > 1) {
+            const selector = document.getElementById('globalBranchSelector');
+            if (selector) {
+                selector.innerHTML = businesses.map(b => 
+                    `<option value="${b.id}" ${b.id === biz.id ? 'selected' : ''}>${b.business_name}</option>`
+                ).join('');
+                selector.classList.remove('hidden');
+            }
+        }
+    }
+
     businessId = biz.id;
     businessSlug = biz.slug;
     currentBusinessName = biz.business_name || '';
@@ -97,6 +116,10 @@ async function initAdmin() {
     const menuLink = document.querySelector('a[href="index.html"]');
     if (menuLink) { menuLink.href = '/' + biz.slug; menuLink.innerHTML = '📱 Ver Menú'; }
 
+    if (!staffRole && typeof loadBranches === 'function') {
+        loadBranches();
+    }
+
     // Iniciar auto-polling de pedidos cada 15 segundos
     setInterval(pollNewOrders, 15000);
     pollNewOrders(); // Primera carga silenciosa
@@ -109,6 +132,16 @@ async function initAdmin() {
 
     return true;
 }
+
+window.changeGlobalBranch = async function() {
+    const newId = document.getElementById('globalBranchSelector').value;
+    const { data: b } = await supabaseClient.from('businesses').select('*').eq('id', newId).single();
+    if (b) {
+        localStorage.setItem('business_slug', b.slug);
+        localStorage.setItem('business_id', b.id);
+        window.location.reload();
+    }
+};
 
 // Polling for new orders
 async function pollNewOrders() {

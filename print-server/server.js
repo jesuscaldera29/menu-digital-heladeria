@@ -125,9 +125,11 @@ app.post('/print/ticket', async (req, res) => {
     let logoImage = null;
     if (req.body.logo_url) {
       try {
-        logoImage = await Jimp.read(req.body.logo_url);
-        // Resize to max 384px width for 58mm or keep original if smaller. 200px is safe.
-        logoImage.resize(200, Jimp.AUTO);
+        const resp = await fetch(req.body.logo_url);
+        const arrayBuf = await resp.arrayBuffer();
+        logoImage = await Jimp.read(Buffer.from(arrayBuf));
+        // Resize to max 384px width for 58mm or keep original if smaller. 384px is full width.
+        logoImage.resize(384, Jimp.AUTO);
         // Process image to ensure sharp edges for thermal printing
         logoImage.greyscale().contrast(0.5);
       } catch (e) {

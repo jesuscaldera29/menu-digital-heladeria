@@ -14,6 +14,7 @@ let selectedAccompaniments = [];
 let posSettings = {};
 let currentOpenOrderId = null;
 let posCustomers = [];
+let activeCashClosingId = null;
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -58,6 +59,44 @@ async function initPOS() {
   if (loading) {
     loading.style.opacity = '0';
     setTimeout(() => loading.style.display = 'none', 300);
+  }
+
+  await checkActiveCashRegister();
+}
+
+async function checkActiveCashRegister() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const { data: activeClosing } = await supabaseClient
+      .from('cash_closings')
+      .select('id, opened_at')
+      .eq('business_id', businessId)
+      .eq('is_open', true)
+      .gte('date', today)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const btnCash = document.getElementById('btnCashMgmt');
+    if (activeClosing) {
+      activeCashClosingId = activeClosing.id;
+      if (btnCash) {
+        btnCash.innerHTML = '<span>💵</span> <span class="hidden sm:inline">Caja (Abierta)</span>';
+        btnCash.classList.remove('text-red-500', 'bg-red-500/10', 'border-red-500/20');
+        btnCash.classList.add('text-green-500', 'bg-green-500/10', 'border-green-500/20');
+      }
+    } else {
+      activeCashClosingId = null;
+      if (btnCash) {
+        btnCash.innerHTML = '<span>🛑</span> <span class="hidden sm:inline">Abrir Caja</span>';
+        btnCash.classList.remove('text-green-500', 'bg-green-500/10', 'border-green-500/20');
+        btnCash.classList.add('text-red-500', 'bg-red-500/10', 'border-red-500/20');
+      }
+      // Force cash opening
+      setTimeout(openCashModal, 1000);
+    }
+  } catch(e) {
+    console.error('Error checking cash register:', e);
   }
 }
 
@@ -844,6 +883,12 @@ function calculateChange() {
 }
 
 async function confirmSale() {
+  if (!activeCashClosingId) {
+    showToast('⚠️ Debes abrir la caja antes de procesar ventas', 'error');
+    openCashModal();
+    return;
+  }
+
   const keys = Object.keys(posCart);
   if (!keys.length) return;
 
@@ -1551,6 +1596,12 @@ async function executePrintComanda(o) {
 
 // MANUAL COMANDA LOGIC
 window.manualPrintComanda = async function() {
+  if (!activeCashClosingId) {
+    showToast('⚠️ Debes abrir la caja antes de enviar comandas', 'error');
+    openCashModal();
+    return;
+  }
+
   const keys = Object.keys(posCart);
   if (!keys.length) {
     showToast('⚠️ Agrega productos primero', 'error');
@@ -2216,5 +2267,214 @@ function pushToNotifications(orderPayload) {
     window.notifOrders.unshift(orderPayload);
     renderNotifications();
   }
+}
+
+// === CASH REGISTER / SHIFTS (CAJA) ===
+
+window.openCashModal = function() {
+  document.getElementById('cashRegisterModal').classList.remove('hidden');
+  const title = document.getElementById('cashModalTitle');
+  
+  if (activeCashClosingId) {
+    title.textContent = 'Movimientos de Caja';
+    document.getElementById('cashOpenSection').classList.add('hidden');
+    document.getElementById('cashMovementSection').classList.remove('hidden');
+  } else {
+    title.textContent = 'Apertura de Caja';
+    document.getElementById('cashMovementSection').classList.add('hidden');
+    document.getElementById('cashOpenSection').classList.remove('hidden');
+  }
+};
+
+window.closeCashModal = function() {
+  document.getElementById('cashRegisterModal').classList.add('hidden');
+};
+
+window.submitOpenCash = async function() {
+  const amount = parseFloat(document.getElementById('cashOpenAmount').value) || 0;
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from('cash_closings')
+      .insert([{
+        business_id: businessId,
+        is_open: true,
+        opening_amount: amount
+      }])
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    
+    activeCashClosingId = data.id;
+    showToast('💵 Caja abierta exitosamente', 'success');
+    closeCashModal();
+    
+    const btnCash = document.getElementById('btnCashMgmt');
+    if (btnCash) {
+      btnCash.innerHTML = '<span>💵</span> <span class="hidden sm:inline">Caja (Abierta)</span>';
+      btnCash.classList.remove('text-red-500', 'bg-red-500/10', 'border-red-500/20');
+      btnCash.classList.add('text-green-500', 'bg-green-500/10', 'border-green-500/20');
+    }
+  } catch (err) {
+    showToast('❌ Error abriendo caja', 'error');
+    console.error(err);
+  }
+};
+
+window.selectCashMovement = function(type) {
+  document.getElementById('cashMoveType').value = type;
+  if (type === 'withdrawal') {
+    document.getElementById('btnMoveWithdrawal').className = 'flex-1 bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-sm';
+    document.getElementById('btnMoveDeposit').className = 'flex-1 bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-sm';
+  } else {
+    document.getElementById('btnMoveDeposit').className = 'flex-1 bg-green-500/20 border border-green-500 text-green-500 font-bold py-2 rounded-lg transition-all text-sm';
+    document.getElementById('btnMoveWithdrawal').className = 'flex-1 bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-sm';
+  }
+};
+
+window.submitCashMovement = async function() {
+  if (!activeCashClosingId) {
+    showToast('⚠️ No hay caja abierta', 'error');
+    return;
+  }
+  const type = document.getElementById('cashMoveType').value;
+  const amount = parseFloat(document.getElementById('cashMoveAmount').value) || 0;
+  const reason = document.getElementById('cashMoveReason').value.trim();
+
+  if (amount <= 0 || !reason) {
+    showToast('⚠️ Ingresa un monto y un concepto válido', 'error');
+    return;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from('cash_movements')
+      .insert([{
+        business_id: businessId,
+        type: type,
+        amount: amount,
+        reason: reason
+      }]);
+
+    if (error) throw error;
+    
+    showToast(`✅ ${type === 'deposit' ? 'Ingreso' : 'Egreso'} registrado`);
+    document.getElementById('cashMoveAmount').value = '';
+    document.getElementById('cashMoveReason').value = '';
+    closeCashModal();
+  } catch (err) {
+    showToast('❌ Error registrando movimiento', 'error');
+    console.error(err);
+  }
+};
+
+// === CIERRE CIEGO / LOGOUT ===
+
+window.logout = function() {
+  if (activeCashClosingId) {
+    document.getElementById('blindCloseModal').classList.remove('hidden');
+  } else {
+    performLogout();
+  }
+};
+
+window.cancelBlindClose = function() {
+  document.getElementById('blindCloseModal').classList.add('hidden');
+};
+
+window.submitBlindClose = async function() {
+  const declaredCash = parseFloat(document.getElementById('blindCashAmount').value) || 0;
+  
+  if (declaredCash < 0) {
+    showToast('⚠️ Ingresa un monto válido', 'error');
+    return;
+  }
+  
+  const btn = document.getElementById('btnSubmitBlindClose');
+  btn.textContent = 'CERRANDO...';
+  btn.disabled = true;
+
+  try {
+    // We get the opening info
+    const { data: closingInfo } = await supabaseClient
+      .from('cash_closings')
+      .select('*')
+      .eq('id', activeCashClosingId)
+      .single();
+
+    // Sum all orders for this business today since opened_at
+    const { data: orders } = await supabaseClient
+      .from('orders')
+      .select('total, payment_method, status')
+      .eq('business_id', businessId)
+      .gte('created_at', closingInfo.opened_at);
+
+    let cashSales = 0, transferSales = 0, cardSales = 0;
+    if (orders) {
+      orders.forEach(o => {
+        if (o.status !== 'Cancelado') {
+          if (o.payment_method === 'Efectivo') cashSales += Number(o.total);
+          else if (o.payment_method === 'Tarjeta') cardSales += Number(o.total);
+          else if (o.payment_method === 'Transferencia') transferSales += Number(o.total);
+        }
+      });
+    }
+
+    // Sum cash movements
+    const { data: moves } = await supabaseClient
+      .from('cash_movements')
+      .select('amount, type')
+      .eq('business_id', businessId)
+      .gte('created_at', closingInfo.opened_at);
+
+    let totalDeposits = 0, totalWithdrawals = 0;
+    if (moves) {
+      moves.forEach(m => {
+        if (m.type === 'deposit') totalDeposits += Number(m.amount);
+        else totalWithdrawals += Number(m.amount);
+      });
+    }
+
+    const expectedCash = Number(closingInfo.opening_amount) + cashSales + totalDeposits - totalWithdrawals;
+    const difference = declaredCash - expectedCash;
+
+    // Update the cash_closing record
+    await supabaseClient
+      .from('cash_closings')
+      .update({
+        is_open: false,
+        closed_at: new Date().toISOString(),
+        expected_total: expectedCash,
+        declared_total: declaredCash,
+        difference: difference,
+        cash_sales: cashSales,
+        transfer_sales: transferSales,
+        card_sales: cardSales,
+        total_expenses: totalWithdrawals
+      })
+      .eq('id', activeCashClosingId);
+
+    // TODO: Imprimir ticket de cierre o algo
+    showToast('✅ Turno Cerrado. Sesión finalizada.', 'success');
+    
+    setTimeout(() => {
+      performLogout();
+    }, 1500);
+
+  } catch (e) {
+    showToast('❌ Error al cerrar caja', 'error');
+    console.error(e);
+    btn.textContent = 'CONFIRMAR CIERRE';
+    btn.disabled = false;
+  }
+};
+
+async function performLogout() {
+  await supabaseClient.auth.signOut();
+  localStorage.removeItem('staff_business_id');
+  localStorage.removeItem('staff_id');
+  localStorage.removeItem('staff_name');
+  window.location.href = 'login.html';
 }
 
