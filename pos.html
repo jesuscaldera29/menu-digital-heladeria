@@ -168,29 +168,43 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" title="Cambiar Tema">
-        <span id="themeIcon">☀️</span> <span class="hidden md:inline">Tema</span>
-      </button>
-      <button onclick="openTablesModal()" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-        <span>🗺️</span> <span class="hidden sm:inline">Mesas</span>
-      </button>
-      <button onclick="openNotificationsModal()" class="relative bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" id="btnNotifications">
+      <button onclick="openNotificationsModal()" class="relative bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2" id="btnNotifications">
         <span>🔔</span> <span class="hidden sm:inline">Pedidos</span>
-        <span id="notifBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center hidden shadow-lg shadow-red-500/50">0</span>
+        <span id="notifBadge" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center hidden shadow-lg shadow-red-600/50 border-2 border-[#111]">0</span>
       </button>
-      <button id="btnAutoPrint" onclick="toggleAutoPrint()" class="bg-[#222] border border-[#333] text-gray-400 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2" title="Imprimir pedidos online automáticamente">
-        <span>🖨️</span> <span class="hidden sm:inline" id="autoPrintText">Auto-Print: OFF</span>
-      </button>
-      <button onclick="openCashModal()" class="bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1" id="btnCashMgmt">
-        <span>💵</span> <span class="hidden sm:inline">Caja</span>
-      </button>
-      <button onclick="openPOSReport()" class="bg-[#222] hover:bg-[#333] border border-orange-500/50 text-orange-500 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-        <span>📊</span> <span class="hidden sm:inline">Corte</span>
-      </button>
-      <button onclick="window.location.reload()" class="bg-[#222] hover:bg-[#333] text-gray-300 p-2 rounded-xl transition-all text-sm">🔄</button>
-      <button onclick="logout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
-        <span>🚪</span> <span class="hidden sm:inline">Cerrar Turno</span>
-      </button>
+      
+      <div class="relative">
+        <button onclick="document.getElementById('posMoreMenu').classList.toggle('hidden')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+          <span>⚙️</span> <span class="hidden sm:inline">Opciones</span>
+        </button>
+        
+        <!-- Dropdown Menu -->
+        <div id="posMoreMenu" class="absolute right-0 top-full mt-2 w-56 bg-[#111] border border-[#333] rounded-2xl shadow-2xl hidden flex-col overflow-hidden z-50 py-2">
+          <button onclick="openTablesModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-white text-sm font-bold flex items-center gap-3">
+            <span>🗺️</span> Mesas
+          </button>
+          <button onclick="openCashModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-green-400 text-sm font-bold flex items-center gap-3">
+            <span>💵</span> Gestión de Caja
+          </button>
+          <button onclick="openPOSReport(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-orange-400 text-sm font-bold flex items-center gap-3">
+            <span>📊</span> Corte de Caja
+          </button>
+          <div class="h-px bg-[#333] my-1 w-full"></div>
+          <button id="btnAutoPrint" onclick="toggleAutoPrint(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
+            <span>🖨️</span> <span id="autoPrintText">Auto-Print: OFF</span>
+          </button>
+          <button onclick="toggleTheme(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
+            <span id="themeIcon">☀️</span> Cambiar Tema
+          </button>
+          <button onclick="window.location.reload()" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
+            <span>🔄</span> Recargar POS
+          </button>
+          <div class="h-px bg-[#333] my-1 w-full"></div>
+          <button onclick="logout()" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-500 text-sm font-bold flex items-center gap-3">
+            <span>🚪</span> Cerrar Turno
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 

@@ -146,8 +146,8 @@ async function loadKioskSettings() {
       if (data.logo_url) {
         const welcomeIcon = document.getElementById('kioskWelcomeIcon');
         const headerIcon = document.getElementById('kioskHeaderIcon');
-        if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-cover">`;
-        if (headerIcon) headerIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-12 h-12 object-cover rounded-full">`;
+        if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-contain p-2">`;
+        if (headerIcon) headerIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-12 h-12 object-contain bg-white rounded-full">`;
 
         let link = document.querySelector("link[rel~='icon']");
         if (!link) {
