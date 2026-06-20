@@ -134,21 +134,21 @@
   <!-- 2. MAIN APP CONTENT -->
   <div id="kioskMain" class="w-full h-full flex flex-col hidden">
     <!-- HEADER -->
-    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm z-50">
-      <div class="flex items-center gap-4">
-        <span class="text-4xl" id="kioskHeaderIcon">🍦</span>
+    <header class="bg-white border-b border-gray-200 px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-sm z-50">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl md:text-4xl" id="kioskHeaderIcon">🍦</span>
         <div>
-          <h2 id="kioskHeaderName" class="text-2xl font-black">Mi Heladería</h2>
-          <p class="text-xs font-bold text-orange-600 uppercase tracking-widest">Kiosko de Auto-Servicio</p>
+          <h2 id="kioskHeaderName" class="text-xl md:text-2xl font-black leading-tight">Mi Heladería</h2>
+          <p class="text-[10px] md:text-xs font-bold text-orange-600 uppercase tracking-widest">Kiosko de Auto-Servicio</p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 md:gap-4">
         <!-- Inactivity countdown indicator -->
-        <div id="inactivityIndicator" class="text-sm font-bold text-gray-400 bg-gray-100 px-4 py-2 rounded-full hidden">
-          Reiniciando en <span id="inactivityTimer" class="text-red-500">60</span>s
+        <div id="inactivityIndicator" class="text-xs md:text-sm font-bold text-gray-400 bg-gray-100 px-3 py-1.5 md:px-4 md:py-2 rounded-full hidden flex items-center gap-1">
+          <span class="hidden md:inline">Reiniciando en</span> <span id="inactivityTimer" class="text-red-500">60</span><span class="md:hidden">s</span>
         </div>
-        <button onclick="resetKiosk()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-6 py-3 rounded-2xl transition-all flex items-center gap-2">
-          ❌ Cancelar Pedido
+        <button onclick="resetKiosk()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-2 md:px-6 md:py-3 rounded-xl transition-all flex items-center gap-1 md:gap-2 text-xs md:text-base">
+          <span class="text-base md:text-lg">❌</span> <span class="hidden sm:inline">Cancelar Pedido</span>
         </button>
       </div>
     </header>
@@ -163,8 +163,8 @@
         </div>
 
         <!-- Products Grid Container -->
-        <div class="flex-1 md:overflow-y-auto p-4 md:p-6 lg:p-8" id="productsContainer">
-          <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 pb-6">
+        <div class="flex-1 md:overflow-y-auto p-3 md:p-6 lg:p-8" id="productsContainer">
+          <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5 pb-6">
             <!-- Products loaded via JS -->
           </div>
         </div>

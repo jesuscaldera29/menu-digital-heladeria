@@ -261,29 +261,30 @@ function renderKioskProducts() {
     return;
   }
 
-  container.innerHTML = filtered.map((p, index) => `
-    <div class="kiosk-product-card relative flex flex-col h-full border border-gray-100 opacity-0 animate-fade-in-up ${p.is_featured ? 'border-2 border-orange-500/30 shadow-[0_8px_30px_rgba(234,88,12,0.08)]' : ''}" style="animation-delay: ${index * 0.05}s">
-      ${p.is_featured ? `<span class="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-10">🔥 RECOMENDADO</span>` : ''}
+  container.innerHTML = filtered.map((p, index) => {
+    const hasExtras = (window.allVisualExtras || []).some(e => String(e.product_id) === String(p.id));
+    const hasAcc = p.accompaniments && p.accompaniments.trim().length > 0;
+    
+    return `
+    <div class="kiosk-product-card relative flex flex-col h-full bg-white border border-gray-100 rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-all opacity-0 animate-fade-in-up ${p.is_featured ? 'border-2 border-orange-500/30 shadow-[0_8px_30px_rgba(234,88,12,0.08)]' : ''}" style="animation-delay: ${index * 0.05}s" onclick="handleProductTap('${p.id}')">
       
-      <div class="h-44 w-full bg-gray-100 relative overflow-hidden flex items-center justify-center">
-        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" loading="lazy" decoding="async">` : '<span class="text-5xl">🍽️</span>'}
+      <div class="h-28 md:h-36 w-full bg-white relative overflow-hidden flex items-center justify-center shrink-0">
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-contain p-2" loading="lazy" decoding="async">` : '<span class="text-4xl">🍽️</span>'}
+        ${p.is_featured ? `<span class="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shadow-sm z-10">🔥 REC</span>` : ''}
+        ${(hasExtras || hasAcc) ? '<span class="absolute bottom-2 right-2 bg-black text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md z-10">+Extras</span>' : ''}
       </div>
       
-      <div class="p-6 flex flex-col flex-grow justify-between">
-        <div>
-          <h4 class="text-lg font-black text-gray-900 leading-tight mb-2 line-clamp-2">${p.name}</h4>
-          <p class="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-3">${p.description || 'Delicioso sabor preparado al instante.'}</p>
-        </div>
+      <div class="p-3 md:p-4 flex flex-col flex-1 border-t border-gray-50">
+        <h4 class="text-xs md:text-sm font-black text-gray-900 leading-tight mb-1 line-clamp-2">${p.name}</h4>
+        ${p.description ? `<p class="text-[10px] md:text-xs text-gray-500 leading-snug line-clamp-2 mb-2 hidden sm:block">${p.description}</p>` : ''}
         
-        <div class="flex items-center justify-between mt-auto pt-2">
-          <div class="text-xl font-black text-red-600">$${Number(p.price).toLocaleString()}</div>
-          <button onclick="handleProductTap('${p.id}')" class="bg-black text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl active:scale-90 transition-all shadow-md hover:bg-gray-800">
-            ＋
-          </button>
+        <div class="mt-auto pt-2 flex items-center justify-between">
+          <span class="text-sm md:text-base font-black text-orange-600">$${Number(p.price).toLocaleString()}</span>
+          <div class="bg-gray-100 text-gray-800 w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center font-black text-sm md:text-lg shrink-0">＋</div>
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // Select Order Type
