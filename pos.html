@@ -626,20 +626,35 @@
 
         <!-- Movimientos de Caja Form -->
         <div id="cashMovementSection" class="hidden">
-          <div class="flex gap-2 mb-4">
-            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="flex-1 bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-sm">📤 Egreso (Pago)</button>
-            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="flex-1 bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-sm">📥 Ingreso (Extra)</button>
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs">📤 Retiro (Caja)</button>
+            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📥 Ingreso (Caja)</button>
+            <button onclick="selectCashMovement('expense')" id="btnMoveExpense" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">💰 Nuevo Gasto</button>
+            <button onclick="selectCashMovement('purchase')" id="btnMovePurchase" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📦 Nueva Compra</button>
           </div>
           <input type="hidden" id="cashMoveType" value="withdrawal">
           
+          <!-- Categoría para Gastos (hidden by default) -->
+          <div id="cashMoveExpenseCatContainer" class="hidden mb-3">
+            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Categoría del Gasto</label>
+            <select id="cashMoveExpenseCat" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-sm focus:border-orange-500 outline-none">
+              <option value="Ingredientes">🧂 Ingredientes</option>
+              <option value="Servicios">💡 Servicios</option>
+              <option value="Personal">👤 Personal</option>
+              <option value="Arriendo">🏠 Arriendo</option>
+              <option value="Transporte">🚚 Transporte</option>
+              <option value="Otro">📦 Otro</option>
+            </select>
+          </div>
+
           <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Monto</label>
           <input type="number" id="cashMoveAmount" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-xl font-black mb-3 focus:border-orange-500 outline-none" placeholder="$0">
           
-          <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Concepto / Motivo</label>
+          <label id="cashMoveReasonLabel" class="text-xs font-bold text-gray-500 uppercase block mb-2">Concepto / Motivo</label>
           <input type="text" id="cashMoveReason" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-sm mb-4 focus:border-orange-500 outline-none" placeholder="Ej: Pago de hielo">
           
           <button onclick="submitCashMovement()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-lg">
-            REGISTRAR MOVIMIENTO
+            REGISTRAR
           </button>
         </div>
       </div>

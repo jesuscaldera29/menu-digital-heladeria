@@ -144,7 +144,7 @@ async function submitCashClosing() {
       else card += t;
     });
     
-    // Fetch expenses since opening
+    // Fetch expenses since opening (just for the record)
     const { data: sessionExpenses } = await supabaseClient
       .from('expenses')
       .select('amount')
@@ -152,9 +152,24 @@ async function submitCashClosing() {
       .gte('created_at', openedAt);
       
     const totalExp = (sessionExpenses || []).reduce((s, e) => s + Number(e.amount), 0);
+
+    // Fetch cash movements
+    const { data: moves } = await supabaseClient
+      .from('cash_movements')
+      .select('amount, type')
+      .eq('business_id', businessId)
+      .gte('created_at', openedAt);
+
+    let totalDeposits = 0, totalWithdrawals = 0;
+    if (moves) {
+      moves.forEach(m => {
+        if (m.type === 'deposit') totalDeposits += Number(m.amount);
+        else totalWithdrawals += Number(m.amount);
+      });
+    }
     
-    // Calculate expected (opening + cash sales - expenses)
-    const expectedCash = Number(activeCashSession.opening_amount || 0) + cash - totalExp;
+    // Calculate expected (opening + cash sales + deposits - withdrawals)
+    const expectedCash = Number(activeCashSession.opening_amount || 0) + cash + totalDeposits - totalWithdrawals;
     const diff = declared - expectedCash;
     
     const { error } = await supabaseClient.from('cash_closings')
@@ -166,7 +181,7 @@ async function submitCashClosing() {
         cash_sales: cash,
         transfer_sales: transfer,
         card_sales: card,
-        total_expenses: totalExp,
+        total_expenses: totalWithdrawals,
         total_orders: orders.length,
         notes: notes,
         is_open: false
@@ -193,7 +208,8 @@ async function submitCashClosing() {
       <h3 class="text-xl font-black mb-4">📊 Resultado del Cierre</h3>
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div><span class="text-gray-500">Base Apertura:</span> <strong>$${Number(activeCashSession.opening_amount || 0).toLocaleString()}</strong></div>
-        <div><span class="text-gray-500">Gastos:</span> <strong class="text-red-500">-$${totalExp.toLocaleString()}</strong></div>
+        <div><span class="text-gray-500">Gastos/Retiros:</span> <strong class="text-red-500">-$${totalWithdrawals.toLocaleString()}</strong></div>
+        <div><span class="text-gray-500">Ingresos Extras:</span> <strong class="text-green-500">+$${totalDeposits.toLocaleString()}</strong></div>
         <div><span class="text-gray-500">Ventas Efectivo:</span> <strong>$${cash.toLocaleString()}</strong></div>
         <div><span class="text-gray-500">Otras Ventas (Trans/Tarj):</span> <strong>$${(transfer + card).toLocaleString()}</strong></div>
         <div><span class="text-gray-500">Esperado en Efectivo:</span> <strong class="text-blue-600">$${expectedCash.toLocaleString()}</strong></div>

@@ -61,7 +61,21 @@ async function initPOS() {
     setTimeout(() => loading.style.display = 'none', 300);
   }
 
-  await checkActiveCashRegister();
+  const staffRole = localStorage.getItem('staff_role');
+  if (staffRole === 'Mesero') {
+    const btnCashMgmt = document.getElementById('btnCashMgmt');
+    if (btnCashMgmt) btnCashMgmt.classList.add('hidden');
+    
+    // Hide 'Corte de Caja' and 'Cerrar Turno' in the more menu
+    const menuButtons = document.querySelectorAll('#posMoreMenu button');
+    menuButtons.forEach(btn => {
+      if (btn.innerText.includes('Corte de Caja') || btn.innerText.includes('Cerrar Turno')) {
+        btn.classList.add('hidden');
+      }
+    });
+  } else {
+    await checkActiveCashRegister();
+  }
 }
 
 async function checkActiveCashRegister() {
@@ -2391,12 +2405,34 @@ window.submitOpenCash = async function() {
 
 window.selectCashMovement = function(type) {
   document.getElementById('cashMoveType').value = type;
+  
+  // Reset buttons
+  const btns = ['btnMoveWithdrawal', 'btnMoveDeposit', 'btnMoveExpense', 'btnMovePurchase'];
+  btns.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.className = 'bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs';
+  });
+
+  const catContainer = document.getElementById('cashMoveExpenseCatContainer');
+  const reasonLabel = document.getElementById('cashMoveReasonLabel');
+  const reasonInput = document.getElementById('cashMoveReason');
+  
+  if (catContainer) catContainer.classList.add('hidden');
+  if (reasonLabel) reasonLabel.textContent = 'Concepto / Motivo';
+  if (reasonInput) reasonInput.placeholder = 'Ej: Pago de hielo';
+
   if (type === 'withdrawal') {
-    document.getElementById('btnMoveWithdrawal').className = 'flex-1 bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-sm';
-    document.getElementById('btnMoveDeposit').className = 'flex-1 bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-sm';
-  } else {
-    document.getElementById('btnMoveDeposit').className = 'flex-1 bg-green-500/20 border border-green-500 text-green-500 font-bold py-2 rounded-lg transition-all text-sm';
-    document.getElementById('btnMoveWithdrawal').className = 'flex-1 bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-sm';
+    document.getElementById('btnMoveWithdrawal').className = 'bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs';
+  } else if (type === 'deposit') {
+    document.getElementById('btnMoveDeposit').className = 'bg-green-500/20 border border-green-500 text-green-500 font-bold py-2 rounded-lg transition-all text-xs';
+  } else if (type === 'expense') {
+    document.getElementById('btnMoveExpense').className = 'bg-orange-500/20 border border-orange-500 text-orange-500 font-bold py-2 rounded-lg transition-all text-xs';
+    if (catContainer) catContainer.classList.remove('hidden');
+    if (reasonLabel) reasonLabel.textContent = 'Descripción del Gasto';
+  } else if (type === 'purchase') {
+    document.getElementById('btnMovePurchase').className = 'bg-blue-500/20 border border-blue-500 text-blue-500 font-bold py-2 rounded-lg transition-all text-xs';
+    if (reasonLabel) reasonLabel.textContent = 'Proveedor / Descripción de Compra';
+    if (reasonInput) reasonInput.placeholder = 'Ej: Compra de insumos a Proveedor X';
   }
 };
 
@@ -2408,6 +2444,7 @@ window.submitCashMovement = async function() {
   const type = document.getElementById('cashMoveType').value;
   const amount = parseFloat(document.getElementById('cashMoveAmount').value) || 0;
   const reason = document.getElementById('cashMoveReason').value.trim();
+  const category = document.getElementById('cashMoveExpenseCat')?.value || 'Otro';
 
   if (amount <= 0 || !reason) {
     showToast('⚠️ Ingresa un monto y un concepto válido', 'error');
@@ -2415,18 +2452,56 @@ window.submitCashMovement = async function() {
   }
 
   try {
-    const { error } = await supabaseClient
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Determine the actual cash movement type
+    const cmType = (type === 'deposit') ? 'deposit' : 'withdrawal';
+    const cmReason = (type === 'expense') ? `Gasto: ${reason}` : (type === 'purchase') ? `Compra: ${reason}` : reason;
+
+    // 1. Insert into cash_movements
+    const { error: cmError } = await supabaseClient
       .from('cash_movements')
       .insert([{
         business_id: businessId,
-        type: type,
+        type: cmType,
         amount: amount,
-        reason: reason
+        reason: cmReason
       }]);
 
-    if (error) throw error;
+    if (cmError) throw cmError;
+
+    // 2. If Expense, insert into expenses
+    if (type === 'expense') {
+      const { error: expError } = await supabaseClient
+        .from('expenses')
+        .insert([{
+          business_id: businessId,
+          category: category,
+          description: reason,
+          amount: amount,
+          date: today
+        }]);
+      if (expError) console.error('Error guardando gasto en admin:', expError);
+    }
     
-    showToast(`✅ ${type === 'deposit' ? 'Ingreso' : 'Egreso'} registrado`);
+    // 3. If Purchase, insert into purchases (simplified)
+    if (type === 'purchase') {
+      const { error: purError } = await supabaseClient
+        .from('purchases')
+        .insert([{
+          business_id: businessId,
+          supplier_name: 'Compra Rápida POS',
+          total: amount,
+          payment_method: 'Efectivo',
+          notes: reason,
+          items: [{ name: reason, qty: 1, cost: amount }]
+        }]);
+      if (purError) console.error('Error guardando compra en admin:', purError);
+    }
+
+    let msg = type === 'deposit' ? 'Ingreso' : type === 'withdrawal' ? 'Egreso' : type === 'expense' ? 'Gasto' : 'Compra';
+    showToast(`✅ ${msg} registrado`);
+    
     document.getElementById('cashMoveAmount').value = '';
     document.getElementById('cashMoveReason').value = '';
     closeCashModal();
