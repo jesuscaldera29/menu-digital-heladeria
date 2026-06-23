@@ -920,14 +920,35 @@ function sendTicketWhatsApp() {
   if (orderDeliveryFee > 0) msg += `Domicilio: +$${orderDeliveryFee.toLocaleString()}\n`;
   msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
 
-  msg += `👤 *CLIENTE:* ${order.customer_name}\n📞 *TELÉFONO:* ${order.customer_phone}\n📦 *TIPO:* ${order.delivery_method}\n💳 *PAGO:* ${order.payment_method}\n`;
-  if (order.delivery_method === 'Domicilio') msg += `📍 *DIRECCIÓN:* ${order.address}\n`;
-  else if (order.delivery_method === 'A la mesa') msg += `🪑 *UBICACIÓN:* ${order.address}\n`;
-  else msg += `🛍️ *UBICACIÓN:* Recoge en local\n`;
-  if (order.notes) msg += `📝 *NOTAS:* ${order.notes}\n`;
+  msg += `👤 *CLIENTE:* ${order.customer_name}\n`;
+  msg += `📞 *TELÉFONO:* ${order.customer_phone}\n`;
+  
+  if (order.delivery_method === 'Domicilio') {
+      msg += `🛵 *TIPO DE ENTREGA:* Domicilio\n`;
+      msg += `📍 *DIRECCIÓN:* ${order.address}\n`;
+  } else if (order.delivery_method === 'A la mesa') {
+      msg += `🍽️ *TIPO DE ENTREGA:* A la mesa\n`;
+      msg += `🪑 *UBICACIÓN:* ${order.address}\n`;
+  } else {
+      msg += `🛍️ *TIPO DE ENTREGA:* Recoge en local\n`;
+  }
+
+  // Lógica especial para método de pago
+  if (order.payment_method === 'Transf/Nequi') {
+      msg += `💳 *MÉTODO DE PAGO:* TRANSFERENCIA / NEQUI\n`;
+      msg += `\n⚠️ _Por favor, adjunta el comprobante de pago a este chat para confirmar tu pedido._\n`;
+  } else if (order.payment_method === 'Efectivo') {
+      msg += `💵 *MÉTODO DE PAGO:* EFECTIVO\n`;
+  } else if (order.payment_method === 'Tarjeta') {
+      msg += `💳 *MÉTODO DE PAGO:* TARJETA (Pago en punto)\n`;
+  } else {
+      msg += `💳 *MÉTODO DE PAGO:* ${order.payment_method}\n`;
+  }
+
+  if (order.notes) msg += `\n📝 *NOTAS ADICIONALES:*\n_${order.notes}_\n`;
 
   const trackingUrl = window.location.origin + '/order-status.html?id=' + order.id;
-  msg += `\n🔗 *Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
+  msg += `\n📍 *Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
 
   const numero = whatsappNumber ? whatsappNumber.replace(/\D/g, '') : '573001234567';
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
