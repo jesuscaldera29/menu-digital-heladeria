@@ -814,7 +814,24 @@
               <input type="number" id="deliveryFeeInput" class="input !mt-1" placeholder="Ej: 5000" min="0">
               <p class="text-[10px] text-gray-400 mt-1">Costo adicional que se suma al total cuando el cliente elige "Domicilio".</p>
             </div>
-            <button class="btn btn-primary w-full" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
+            <div class="pt-4 border-t border-gray-100">
+              <label class="font-bold text-xs text-gray-500 uppercase tracking-widest block mb-3">Opciones del Menú Público</label>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" id="enableCardPayment" class="w-5 h-5 rounded text-orange-600 focus:ring-orange-500 border-gray-300" checked>
+                  <span class="text-sm font-bold text-gray-800">💳 Habilitar Pago con Tarjeta</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" id="enableCoupons" class="w-5 h-5 rounded text-orange-600 focus:ring-orange-500 border-gray-300" checked>
+                  <span class="text-sm font-bold text-gray-800">🎟️ Habilitar Cupones</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" id="enableTips" class="w-5 h-5 rounded text-orange-600 focus:ring-orange-500 border-gray-300" checked>
+                  <span class="text-sm font-bold text-gray-800">💖 Habilitar Propinas</span>
+                </label>
+              </div>
+            </div>
+            <button class="btn btn-primary w-full mt-2" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
           </div>
 
           <div class="mt-6 pt-6 border-t border-gray-100">

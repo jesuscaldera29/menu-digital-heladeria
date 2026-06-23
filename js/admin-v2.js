@@ -303,6 +303,15 @@ async function loadSettings() {
                 deliveryFeeInput.value = data.delivery_fee || 0;
             }
 
+            const enableCardPayment = document.getElementById('enableCardPayment');
+            if (enableCardPayment) enableCardPayment.checked = data.enable_card_payment !== false;
+
+            const enableCoupons = document.getElementById('enableCoupons');
+            if (enableCoupons) enableCoupons.checked = data.enable_coupons !== false;
+
+            const enableTips = document.getElementById('enableTips');
+            if (enableTips) enableTips.checked = data.enable_tips !== false;
+
             if (data.ticket_data) {
                 const ticketData = typeof data.ticket_data === 'string' ? JSON.parse(data.ticket_data) : data.ticket_data;
                 const ticketNitInput = document.getElementById('ticketNitInput');
@@ -432,7 +441,10 @@ async function saveMenuConfig(event) {
             nequi_info: nequiInfo,
             bank_info: bankInfo,
             delivery_fee: deliveryFee,
-            ticket_data: ticketData
+            ticket_data: ticketData,
+            enable_card_payment: document.getElementById('enableCardPayment')?.checked ?? true,
+            enable_coupons: document.getElementById('enableCoupons')?.checked ?? true,
+            enable_tips: document.getElementById('enableTips')?.checked ?? true
         }).eq('business_id', businessId);
 
         if (error) throw error;

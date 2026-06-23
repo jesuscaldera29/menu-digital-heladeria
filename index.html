@@ -402,7 +402,7 @@
                 <span>🏦</span>
                 <label>TRANSF/NEQUI</label>
               </div>
-              <div class="option-pill" onclick="selectPayment('Tarjeta', this)">
+              <div class="option-pill" id="cardPaymentPill" onclick="selectPayment('Tarjeta', this)">
                 <span>💳</span>
                 <label>TARJETA</label>
               </div>
@@ -433,23 +433,25 @@
             </div>
           </div>
 
-          <!-- EXTRAS: CUPONES Y PROPINAS -->
-          <div class="space-y-4">
+            <!-- EXTRAS: CUPONES Y PROPINAS -->
+          <div class="space-y-4" id="extrasSection">
             <div class="flex items-center gap-2 mb-2">
               <span class="w-1.5 h-4 bg-black rounded-full"></span>
               <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase">Extras (Opcional)</h3>
             </div>
             <!-- Cupón -->
-            <div class="flex gap-2">
-              <input type="text" id="couponCodeInput" placeholder="🎟️ ¿Tienes un cupón?" class="form-input flex-1"
-                oninput="this.value=this.value.toUpperCase()">
-              <button onclick="applyCoupon()"
-                class="bg-black text-white px-4 rounded-xl font-bold active:scale-95 transition-all text-sm">Aplicar</button>
+            <div id="couponBlock" class="space-y-2">
+              <div class="flex gap-2">
+                <input type="text" id="couponCodeInput" placeholder="🎟️ ¿Tienes un cupón?" class="form-input flex-1"
+                  oninput="this.value=this.value.toUpperCase()">
+                <button onclick="applyCoupon()"
+                  class="bg-black text-white px-4 rounded-xl font-bold active:scale-95 transition-all text-sm">Aplicar</button>
+              </div>
+              <div id="couponResult" class="text-xs font-bold hidden px-2"></div>
             </div>
-            <div id="couponResult" class="text-xs font-bold hidden px-2"></div>
 
             <!-- Propina -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2" id="tipBlock">
               <label class="text-sm font-bold text-gray-600">💖 ¿Deseas agregar propina?</label>
               <div class="flex gap-2">
                 <button onclick="setTip(0, this)"

@@ -92,6 +92,32 @@ async function loadSettings() {
 
       // Inject dynamic brand color
       window.businessSettings = data;
+      
+      // UI Toggles
+      const cardPaymentPill = document.getElementById('cardPaymentPill');
+      if (cardPaymentPill) {
+          cardPaymentPill.style.display = data.enable_card_payment === false ? 'none' : '';
+          if (data.enable_card_payment === false && document.getElementById('paymentMethod')?.value === 'Tarjeta') {
+              const efectivoPill = document.querySelector('.option-pill[onclick*="Efectivo"]');
+              if (efectivoPill) selectPayment('Efectivo', efectivoPill);
+          }
+      }
+
+      const couponBlock = document.getElementById('couponBlock');
+      if (couponBlock) couponBlock.style.display = data.enable_coupons === false ? 'none' : '';
+
+      const tipBlock = document.getElementById('tipBlock');
+      if (tipBlock) tipBlock.style.display = data.enable_tips === false ? 'none' : '';
+
+      const extrasSection = document.getElementById('extrasSection');
+      if (extrasSection) {
+          if (data.enable_coupons === false && data.enable_tips === false) {
+              extrasSection.style.display = 'none';
+          } else {
+              extrasSection.style.display = '';
+          }
+      }
+
       if (data.brand_color) {
         const style = document.createElement('style');
         style.innerHTML = `
