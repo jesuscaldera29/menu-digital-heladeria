@@ -180,6 +180,7 @@ async function loadSettings() {
           }
 
           if (accounts.length > 0) {
+              window.bankAccountsList = accounts;
               bankInfoDisplay.innerHTML = accounts.map((acc, idx) => `
                 <label class="bg-white rounded-xl p-3 shadow-sm border border-pink-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors">
                   <div class="flex items-center gap-3">
@@ -902,9 +903,9 @@ function showTicket(order, items) {
 function sendTicketWhatsApp() {
   if (!window.currentOrderData) return;
   const { order, items } = window.currentOrderData;
-  let msg = `🛒 *NUEVO PEDIDO #${String(order.id).padStart(4, '0')}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+  let msg = `\uD83D\uDED2 *NUEVO PEDIDO #${String(order.id).padStart(4, '0')}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
   for (const item of items) {
-    msg += `▪️ ${item.name} x${item.qty} — $${(item.price * item.qty).toLocaleString()}\n`;
+    msg += `\u25AA\uFE0F ${item.name} x${item.qty} \u2014 $${(item.price * item.qty).toLocaleString()}\n`;
   }
 
   const discount = Number(order.discount || 0);
@@ -915,40 +916,54 @@ function sendTicketWhatsApp() {
 
   msg += `\n━━━━━━━━━━━━━━━━━━━\n`;
   msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
-  if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cupón'}): -$${discount.toLocaleString()}\n`;
+  if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cup\u00f3n'}): -$${discount.toLocaleString()}\n`;
   if (tip > 0) msg += `Propina: +$${tip.toLocaleString()}\n`;
   if (orderDeliveryFee > 0) msg += `Domicilio: +$${orderDeliveryFee.toLocaleString()}\n`;
-  msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `\uD83D\uDCB0 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
 
-  msg += `👤 *CLIENTE:* ${order.customer_name}\n`;
-  msg += `📞 *TELÉFONO:* ${order.customer_phone}\n`;
+  msg += `\uD83D\uDC64 *CLIENTE:* ${order.customer_name}\n`;
+  msg += `\uD83D\uDCDE *TEL\u00c9FONO:* ${order.customer_phone}\n`;
   
   if (order.delivery_method === 'Domicilio') {
-      msg += `🛵 *TIPO DE ENTREGA:* Domicilio\n`;
-      msg += `📍 *DIRECCIÓN:* ${order.address}\n`;
+      msg += `\uD83D\uDEFA *TIPO DE ENTREGA:* Domicilio\n`;
+      msg += `\uD83D\uDCCD *DIRECCI\u00d3N:* ${order.address}\n`;
   } else if (order.delivery_method === 'A la mesa') {
-      msg += `🍽️ *TIPO DE ENTREGA:* A la mesa\n`;
-      msg += `🪑 *UBICACIÓN:* ${order.address}\n`;
+      msg += `\uD83C\uDF7D\uFE0F *TIPO DE ENTREGA:* A la mesa\n`;
+      msg += `\uD83E\uDE91 *UBICACI\u00d3N:* ${order.address}\n`;
   } else {
-      msg += `🛍️ *TIPO DE ENTREGA:* Recoge en local\n`;
+      msg += `\uD83D\uDECD\uFE0F *TIPO DE ENTREGA:* Recoge en local\n`;
   }
 
   // Lógica especial para método de pago
-  if (order.payment_method === 'Transf/Nequi') {
-      msg += `💳 *MÉTODO DE PAGO:* TRANSFERENCIA / NEQUI\n`;
-      msg += `\n⚠️ _Por favor, adjunta el comprobante de pago a este chat para confirmar tu pedido._\n`;
-  } else if (order.payment_method === 'Efectivo') {
-      msg += `💵 *MÉTODO DE PAGO:* EFECTIVO\n`;
-  } else if (order.payment_method === 'Tarjeta') {
-      msg += `💳 *MÉTODO DE PAGO:* TARJETA (Pago en punto)\n`;
-  } else {
-      msg += `💳 *MÉTODO DE PAGO:* ${order.payment_method}\n`;
+  let isTransfer = false;
+  let accountNumStr = '';
+  
+  if (order.payment_method !== 'Efectivo' && order.payment_method !== 'Tarjeta') {
+      isTransfer = true;
+      if (window.bankAccountsList) {
+          const acc = window.bankAccountsList.find(a => a.bank_name === order.payment_method);
+          if (acc) {
+              accountNumStr = ` (N\u00b0 ${acc.account_number})`;
+          }
+      }
   }
 
-  if (order.notes) msg += `\n📝 *NOTAS ADICIONALES:*\n_${order.notes}_\n`;
+  if (isTransfer) {
+      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* ${order.payment_method.toUpperCase()}${accountNumStr}\n`;
+      msg += `\n\u26A0\uFE0F _Por favor, adjunta el comprobante de pago a este chat para confirmar tu pedido._\n`;
+  } else if (order.payment_method === 'Efectivo') {
+      msg += `\uD83D\uDCB5 *M\u00c9TODO DE PAGO:* EFECTIVO\n`;
+  } else if (order.payment_method === 'Tarjeta') {
+      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* TARJETA (Pago en punto)\n`;
+  } else {
+      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* ${order.payment_method}\n`;
+  }
+
+  let notes = order.notes ? order.notes.replace('[ORIGIN:MENU]', '').trim() : '';
+  if (notes) msg += `\n\uD83D\uDCDD *NOTAS ADICIONALES:*\n_${notes}_\n`;
 
   const trackingUrl = window.location.origin + '/order-status.html?id=' + order.id;
-  msg += `\n📍 *Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
+  msg += `\n\uD83D\uDE9A *Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
 
   const numero = whatsappNumber ? whatsappNumber.replace(/\D/g, '') : '573001234567';
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
