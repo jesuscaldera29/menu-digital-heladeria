@@ -903,9 +903,9 @@ function showTicket(order, items) {
 function sendTicketWhatsApp() {
   if (!window.currentOrderData) return;
   const { order, items } = window.currentOrderData;
-  let msg = `\uD83D\uDED2 *NUEVO PEDIDO #${String(order.id).padStart(4, '0')}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+  let msg = `*NUEVO PEDIDO #${String(order.id).padStart(4, '0')}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
   for (const item of items) {
-    msg += `\u25AA\uFE0F ${item.name} x${item.qty} \u2014 $${(item.price * item.qty).toLocaleString()}\n`;
+    msg += `> ${item.name} x${item.qty} - $${(item.price * item.qty).toLocaleString()}\n`;
   }
 
   const discount = Number(order.discount || 0);
@@ -916,22 +916,22 @@ function sendTicketWhatsApp() {
 
   msg += `\n━━━━━━━━━━━━━━━━━━━\n`;
   msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
-  if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cup\u00f3n'}): -$${discount.toLocaleString()}\n`;
+  if (discount > 0) msg += `Descuento (${order.coupon_code || 'Cupón'}): -$${discount.toLocaleString()}\n`;
   if (tip > 0) msg += `Propina: +$${tip.toLocaleString()}\n`;
   if (orderDeliveryFee > 0) msg += `Domicilio: +$${orderDeliveryFee.toLocaleString()}\n`;
-  msg += `\uD83D\uDCB0 *TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `*TOTAL A PAGAR: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━━━━━━\n\n`;
 
-  msg += `\uD83D\uDC64 *CLIENTE:* ${order.customer_name}\n`;
-  msg += `\uD83D\uDCDE *TEL\u00c9FONO:* ${order.customer_phone}\n`;
+  msg += `*CLIENTE:* ${order.customer_name}\n`;
+  msg += `*TELÉFONO:* ${order.customer_phone}\n`;
   
   if (order.delivery_method === 'Domicilio') {
-      msg += `\uD83D\uDEFA *TIPO DE ENTREGA:* Domicilio\n`;
-      msg += `\uD83D\uDCCD *DIRECCI\u00d3N:* ${order.address}\n`;
+      msg += `*TIPO DE ENTREGA:* Domicilio\n`;
+      msg += `*DIRECCIÓN:* ${order.address}\n`;
   } else if (order.delivery_method === 'A la mesa') {
-      msg += `\uD83C\uDF7D\uFE0F *TIPO DE ENTREGA:* A la mesa\n`;
-      msg += `\uD83E\uDE91 *UBICACI\u00d3N:* ${order.address}\n`;
+      msg += `*TIPO DE ENTREGA:* A la mesa\n`;
+      msg += `*UBICACIÓN:* ${order.address}\n`;
   } else {
-      msg += `\uD83D\uDECD\uFE0F *TIPO DE ENTREGA:* Recoge en local\n`;
+      msg += `*TIPO DE ENTREGA:* Recoge en local\n`;
   }
 
   // Lógica especial para método de pago
@@ -943,27 +943,27 @@ function sendTicketWhatsApp() {
       if (window.bankAccountsList) {
           const acc = window.bankAccountsList.find(a => a.bank_name === order.payment_method);
           if (acc) {
-              accountNumStr = ` (N\u00b0 ${acc.account_number})`;
+              accountNumStr = ` (N° ${acc.account_number})`;
           }
       }
   }
 
   if (isTransfer) {
-      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* ${order.payment_method.toUpperCase()}${accountNumStr}\n`;
-      msg += `\n\u26A0\uFE0F _Por favor, adjunta el comprobante de pago a este chat para confirmar tu pedido._\n`;
+      msg += `*MÉTODO DE PAGO:* ${order.payment_method.toUpperCase()}${accountNumStr}\n`;
+      msg += `\n_Por favor, adjunta el comprobante de pago a este chat para confirmar tu pedido._\n`;
   } else if (order.payment_method === 'Efectivo') {
-      msg += `\uD83D\uDCB5 *M\u00c9TODO DE PAGO:* EFECTIVO\n`;
+      msg += `*MÉTODO DE PAGO:* EFECTIVO\n`;
   } else if (order.payment_method === 'Tarjeta') {
-      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* TARJETA (Pago en punto)\n`;
+      msg += `*MÉTODO DE PAGO:* TARJETA (Pago en punto)\n`;
   } else {
-      msg += `\uD83D\uDCB3 *M\u00c9TODO DE PAGO:* ${order.payment_method}\n`;
+      msg += `*MÉTODO DE PAGO:* ${order.payment_method}\n`;
   }
 
   let notes = order.notes ? order.notes.replace('[ORIGIN:MENU]', '').trim() : '';
-  if (notes) msg += `\n\uD83D\uDCDD *NOTAS ADICIONALES:*\n_${notes}_\n`;
+  if (notes) msg += `\n*NOTAS ADICIONALES:*\n_${notes}_\n`;
 
   const trackingUrl = window.location.origin + '/order-status.html?id=' + order.id;
-  msg += `\n\uD83D\uDE9A *Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
+  msg += `\n*Sigue tu pedido en vivo (1 hora):*\n${trackingUrl}\n`;
 
   const numero = whatsappNumber ? whatsappNumber.replace(/\D/g, '') : '573001234567';
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
