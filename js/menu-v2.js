@@ -367,6 +367,30 @@ function removeFromCart(key) {
   }
 }
 
+window.deleteFromCart = function(key) {
+  if (cart[key]) {
+    delete cart[key];
+    updateCartUI();
+    const el = document.getElementById('orderDetails');
+    if (el && el.style.display !== 'none') {
+      if (Object.keys(cart).length === 0) {
+        el.style.display = 'none';
+        const form = document.getElementById('customerForm');
+        if (form) form.style.display = 'none';
+        
+        // Also reset button state if defined in index.html
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        if (btnText) btnText.innerText = 'Ver resumen';
+        if (btnIcon) btnIcon.innerText = '📋';
+      } else {
+        el.style.display = 'none';
+        toggleOrderDetails();
+      }
+    }
+  }
+}
+
 function updateCartUI() {
   let subtotal = 0;
   for (const [key, item] of Object.entries(cart)) {
@@ -594,14 +618,22 @@ function toggleOrderDetails() {
       }
       
       const displayName = allAcc.length 
-        ? `${p.name} <span class="text-xs text-gray-500 block">(Extras: ${allAcc.join(', ')})</span>`
+        ? `${p.name} <span class="text-[10px] text-gray-500 block leading-tight mt-0.5">(Extras: ${allAcc.join(', ')})</span>`
         : p.name;
-      html += `<div class="order-item">
-        <span>${displayName}</span>
-        <div class="qty-controls">
-          <button onclick="removeFromCart('${key}')">−</button>
-          <span class="qty">${item.qty}</span>
-          <button onclick="addToCartFromKey('${key}')">+</button>
+      html += `<div class="flex items-center justify-between border-b border-gray-100 py-3">
+        <div class="flex-1 pr-3">
+          <span class="text-sm font-bold text-gray-800">${displayName}</span>
+          <div class="text-orange-600 font-bold text-xs mt-1">$${(p.price * item.qty).toLocaleString()}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
+            <button onclick="removeFromCart('${key}')" class="w-7 h-7 flex items-center justify-center font-bold text-lg text-gray-600 bg-white rounded-md shadow-sm active:scale-95 transition-all">−</button>
+            <span class="w-8 text-center font-black text-sm">${item.qty}</span>
+            <button onclick="addToCartFromKey('${key}')" class="w-7 h-7 flex items-center justify-center font-bold text-lg text-gray-600 bg-white rounded-md shadow-sm active:scale-95 transition-all">+</button>
+          </div>
+          <button onclick="deleteFromCart('${key}')" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-100 active:scale-95 transition-all" title="Eliminar">
+            <span class="text-lg leading-none">🗑️</span>
+          </button>
         </div>
       </div>`;
     }

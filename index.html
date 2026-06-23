@@ -970,9 +970,11 @@
     window.toggleOrderDetails = function () {
       oldToggle();
       const btnText = document.getElementById('btnText');
+      const btnIcon = document.getElementById('btnIcon');
       const orderDetails = document.getElementById('orderDetails');
       const isShown = orderDetails && orderDetails.style.display !== 'none' && orderDetails.style.display !== '';
       if (btnText) btnText.innerText = isShown ? 'Ocultar resumen' : 'Completar mi pedido';
+      if (btnIcon) btnIcon.innerText = isShown ? '✖' : '📋';
     }
 
     // Registrar Service Worker para PWA (Menú Público)
