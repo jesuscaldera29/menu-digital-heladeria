@@ -453,8 +453,22 @@ function updateCartUI() {
   const deliveryMethod = document.getElementById('deliveryMethod')?.value || 'Domicilio';
   let appliedDeliveryFee = (deliveryMethod === 'Domicilio') ? deliveryFee : 0;
 
+  const isCartEmpty = Object.keys(cart).length === 0;
+  
+  if (isCartEmpty) {
+    appliedDeliveryFee = 0;
+    tip = 0;
+    discount = 0;
+    subtotal = 0;
+  }
+
   let total = subtotal - discount + tip + appliedDeliveryFee;
   if (total < 0) total = 0;
+
+  const floatingCartContainer = document.getElementById('floatingCartContainer');
+  if (floatingCartContainer) {
+    floatingCartContainer.style.display = isCartEmpty ? 'none' : 'block';
+  }
 
   const cartTotal = document.getElementById('cartTotal');
   const cartTotalBottom = document.getElementById('cartTotalBottom');
