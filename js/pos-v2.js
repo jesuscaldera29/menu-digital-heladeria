@@ -2311,9 +2311,9 @@ window.openCheckoutForOrder = function(order) {
 
   // Load items into posCart so they show in checkout visually
   (order.items || []).forEach((item, index) => {
-    const key = \`db_\${item.id || index}_\${Date.now()}_\${index}\`;
+    const key = `db_${item.id || index}_${Date.now()}_${index}`;
     posCart[key] = {
-      id: item.id || \`custom_\${index}\`,
+      id: item.id || `custom_${index}`,
       qty: item.qty || item.quantity || 1,
       price: item.price,
       name: item.name,
