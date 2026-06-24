@@ -636,7 +636,7 @@ function addOneMore(key) {
   if (posCart[key]) { posCart[key].qty++; updateCartUI(); }
 }
 
-function clearCart() { posCart = {}; currentOpenOrderId = null; updateCartUI(); }
+function clearCart() { posCart = {}; currentOpenOrderId = null; window.currentOpenOrderNotes = ''; updateCartUI(); }
 
 function getCartTotal() {
   let total = 0;
@@ -1054,7 +1054,7 @@ async function confirmSale() {
         total: total,
         delivery_fee: appliedDeliveryFee,
         status: 'Entregado',
-        notes: '[ORIGIN:POS]'
+        notes: (window.currentOpenOrderNotes && window.currentOpenOrderNotes.includes('[ORIGIN:')) ? window.currentOpenOrderNotes : '[ORIGIN:POS]'
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Venta cobrada (Mesa cerrada)');
@@ -2293,53 +2293,74 @@ window.notifRegisterPayment = async function(orderId) {
     try {
       const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
       if (!data) return showToast('❌ Pedido no encontrado', 'error');
-      processPaymentFlow(data);
+      openCheckoutForOrder(data);
     } catch(err) {
       showToast('❌ Error al cargar pedido', 'error');
     }
   } else {
-    processPaymentFlow(order);
+    openCheckoutForOrder(order);
   }
 };
 
-async function processPaymentFlow(order) {
-  const method = prompt("Registrar Pago -\nSeleccione el método de pago:\n1. Efectivo\n2. Tarjeta\n3. Transferencia (Nequi/Banco)", "1");
-  if (method === null) return;
+window.openCheckoutForOrder = function(order) {
+  clearCart();
+  currentOpenOrderId = order.id;
+
+  // Preserve original notes to not overwrite origin (like Kiosk or Menu QR)
+  window.currentOpenOrderNotes = order.notes || '';
+
+  // Load items into posCart so they show in checkout visually
+  (order.items || []).forEach((item, index) => {
+    const key = \`db_\${item.id || index}_\${Date.now()}_\${index}\`;
+    posCart[key] = {
+      id: item.id || \`custom_\${index}\`,
+      qty: item.qty || item.quantity || 1,
+      price: item.price,
+      name: item.name,
+      extrasLabel: '',
+      fromDB: true
+    };
+  });
+
+  updateCartUI();
+
+  // Populate customer info
+  const cn = document.getElementById('customerName');
+  if(cn) cn.value = order.customer_name || '';
   
-  let paymentMethod = 'Efectivo';
-  if (method === '2') paymentMethod = 'Tarjeta';
-  if (method === '3') paymentMethod = 'Transferencia';
+  const cp = document.getElementById('customerPhone');
+  if(cp) cp.value = order.customer_phone || '';
 
-  try {
-    const { data: updatedOrder, error } = await supabaseClient.from('orders')
-      .update({
-        status: 'Confirmado',
-        payment_method: paymentMethod
-      })
-      .eq('id', order.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    showToast(`✅ Pago registrado (${paymentMethod})`);
-    
-    // Automatically print kitchen comanda from cashier's POS
-    if (typeof executePrintComanda === 'function') {
-      executePrintComanda(updatedOrder);
-    }
-    
-    // Automatically print receipt ticket from cashier's POS
-    if (typeof printPOSTicket === 'function') {
-      printPOSTicket(updatedOrder);
-    }
-    
-    await refreshNotifications();
-  } catch (e) {
-    console.error(e);
-    showToast('❌ Error al registrar pago', 'error');
+  // Select order type based on what was chosen in Kiosk
+  let oType = 'A la mesa';
+  if (order.delivery_method === 'Domicilio' || (order.notes && order.notes.includes('Domicilio'))) oType = 'Domicilio';
+  else if (order.delivery_method === 'Para Llevar' || (order.notes && order.notes.includes('Llevar'))) oType = 'Para Llevar';
+  
+  const typeBtns = document.querySelectorAll('.order-type-btn');
+  let foundBtn = null;
+  typeBtns.forEach(b => { if(b.textContent.trim() === oType) foundBtn = b; });
+  if (foundBtn) {
+    selectOrderType(oType, foundBtn);
+  } else {
+    document.getElementById('orderType').value = oType;
   }
-}
+
+  // Populate table or address
+  if (oType === 'A la mesa' && order.address) {
+    const tableNum = String(order.address).replace(/\\D/g, ''); 
+    const tableSelect = document.getElementById('tableNumber');
+    if (tableSelect && tableNum) {
+       setTimeout(() => { tableSelect.value = tableNum; }, 100);
+    }
+  } else if (oType === 'Domicilio') {
+    const addr = document.getElementById('deliveryAddress');
+    if (addr) addr.value = order.address || '';
+  }
+
+  // Close notifications modal and open the real checkout modal
+  closeNotificationsModal();
+  openCheckoutModal();
+};
 
 // Push incoming realtime orders into notifications
 function pushToNotifications(orderPayload) {
