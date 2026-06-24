@@ -54,6 +54,7 @@ async function initPOS() {
 
   // Load initial notifications badge count
   loadInitialNotifBadge();
+  startOrderPolling();
 
   const loading = document.getElementById('loadingBizScreen');
   if (loading) {
@@ -135,6 +136,60 @@ async function loadInitialNotifBadge() {
       badge.classList.toggle('hidden', pending.length === 0);
     }
   } catch(e) { console.error('Badge load error', e); }
+}
+
+let posOrderPollingInterval = null;
+
+function startOrderPolling() {
+  if (posOrderPollingInterval) clearInterval(posOrderPollingInterval);
+  
+  posOrderPollingInterval = setInterval(async () => {
+    try {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      const { data } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('business_id', businessId)
+        .gte('created_at', startOfDay.toISOString())
+        .in('status', ['Pendiente', 'En preparación'])
+        .order('created_at', { ascending: false });
+        
+      if (!data) return;
+      
+      let newOrdersFound = false;
+      
+      data.forEach(order => {
+        const n = order.notes || '';
+        if (n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true)) {
+          const exists = window.notifOrders.find(o => String(o.id) === String(order.id));
+          if (!exists) {
+            window.notifOrders.unshift(order);
+            newOrdersFound = true;
+          }
+        }
+      });
+      
+      if (newOrdersFound) {
+        renderNotifications();
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
+          audio.volume = 1.0;
+          audio.play().catch(e => console.log('Audio blocked', e));
+        } catch (e) { }
+        
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+          badge.classList.remove('animate-pulse');
+          badge.classList.add('animate-bounce');
+          setTimeout(() => badge.classList.remove('animate-bounce'), 3000);
+        }
+      }
+    } catch(err) {
+      console.log('Polling error silently ignored', err);
+    }
+  }, 10000);
 }
 
 let autoPrintEnabled = false;
@@ -721,6 +776,10 @@ async function openCheckoutModal() {
   document.getElementById('cashReceived').value = '';
   document.getElementById('changeDisplay').classList.add('hidden');
   document.getElementById('insufficientDisplay').classList.add('hidden');
+  
+  // 1. Force a synchronous update of the checkout total so it doesn't display $0 during loading
+  updateCheckoutTotal();
+  
   document.getElementById('checkoutModal').classList.remove('hidden');
   
   // Update table dropdown with active states
