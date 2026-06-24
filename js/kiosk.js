@@ -431,15 +431,17 @@ function openAccompanimentsModal(product, visualExtras) {
         <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Acompañamientos (Máx. ${window.kioskCurrentLimit})</h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           ${accList.map((acc, index) => `
-            <div id="kioskAccCard_${index}" class="flex items-center justify-between gap-3 bg-white border-2 border-gray-50 shadow-sm hover:shadow-md hover:border-orange-100 rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-all duration-300 animate-fade-in-up" style="animation-delay: ${index * 0.04}s" onclick="updateKioskAccCount('acc_${index}', 1)">
-              <div class="min-w-0 flex-1 pointer-events-none">
-                <span class="text-sm md:text-base font-black text-gray-800 block whitespace-normal leading-tight">${acc}</span>
+            <div id="kioskAccCard_${index}" class="relative bg-white border-2 border-gray-50 shadow-sm hover:shadow-md hover:border-orange-100 rounded-2xl p-3 md:p-4 cursor-pointer active:scale-[0.98] transition-all duration-300 animate-fade-in-up" style="animation-delay: ${index * 0.04}s" onclick="updateKioskAccCount('acc_${index}', 1)">
+              <div class="min-w-0 pointer-events-none mb-3">
+                <span class="text-sm md:text-[15px] font-black text-gray-800 block leading-tight break-words">${acc}</span>
                 <span class="text-[10px] text-red-600 font-black tracking-widest uppercase mt-1 inline-block bg-red-50 px-2 py-0.5 rounded-md">Gratis</span>
               </div>
-              <div class="flex items-center gap-2 md:gap-3 shrink-0" onclick="event.stopPropagation()">
-                <button type="button" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 hover:text-gray-900 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('acc_${index}', -1)">−</button>
-                <span id="kioskCount_acc_${index}" class="font-black text-gray-800 text-base md:text-lg w-5 text-center">0</span>
-                <button type="button" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 hover:text-orange-700 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('acc_${index}', 1)">+</button>
+              <div class="flex justify-end" onclick="event.stopPropagation()">
+                <div class="flex items-center gap-1.5 md:gap-2 shrink-0 bg-gray-50 p-1 rounded-full border border-gray-100">
+                  <button type="button" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 hover:text-gray-900 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('acc_${index}', -1)">−</button>
+                  <span id="kioskCount_acc_${index}" class="font-black text-gray-800 text-sm md:text-base w-6 text-center">0</span>
+                  <button type="button" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 hover:text-orange-700 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('acc_${index}', 1)">+</button>
+                </div>
               </div>
               <input type="hidden" class="kiosk-acc-input" id="kioskInput_acc_${index}" value="${acc}" data-count="0">
             </div>
@@ -456,18 +458,22 @@ function openAccompanimentsModal(product, visualExtras) {
       <h4 class="font-black text-gray-800 text-sm uppercase tracking-widest mb-3">Adicionales / Opciones</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         ${visualExtras.map((extra, index) => `
-          <div id="kioskVecCard_${index}" class="flex items-center justify-between gap-3 md:gap-4 bg-white border-2 border-gray-50 shadow-sm hover:shadow-md hover:border-orange-100 rounded-2xl p-3 md:p-4 cursor-pointer active:scale-[0.98] transition-all duration-300 animate-fade-in-up" style="animation-delay: ${index * 0.04}s" onclick="updateKioskAccCount('ve_${index}', 1)">
-            ${extra.image_url ? `<div class="relative w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-xl overflow-hidden bg-gray-50 shadow-sm"><img src="${extra.image_url}" alt="${extra.name}" class="w-full h-full object-cover pointer-events-none scale-105 hover:scale-110 transition-transform duration-500"></div>` : '<div class="w-14 h-14 md:w-16 md:h-16 bg-gray-50 flex items-center justify-center text-2xl rounded-xl shrink-0 pointer-events-none shadow-sm">➕</div>'}
-            <div class="min-w-0 flex-1 pointer-events-none flex flex-col justify-center">
-              <span class="text-sm md:text-base font-black text-gray-800 block whitespace-normal leading-tight">${extra.name}</span>
-              <div class="mt-1">
-                <span class="text-[10px] md:text-xs text-red-600 font-black tracking-widest uppercase inline-block bg-red-50 px-2 py-0.5 rounded-md shadow-sm">${Number(extra.price) > 0 ? '+$' + Number(extra.price).toLocaleString() : 'Gratis'}</span>
+          <div id="kioskVecCard_${index}" class="relative bg-white border-2 border-gray-50 shadow-sm hover:shadow-md hover:border-orange-100 rounded-2xl p-3 md:p-4 cursor-pointer active:scale-[0.98] transition-all duration-300 animate-fade-in-up" style="animation-delay: ${index * 0.04}s" onclick="updateKioskAccCount('ve_${index}', 1)">
+            <div class="flex items-start gap-3">
+              ${extra.image_url ? `<div class="relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl overflow-hidden bg-gray-50 shadow-sm"><img src="${extra.image_url}" alt="${extra.name}" class="w-full h-full object-cover pointer-events-none scale-105 hover:scale-110 transition-transform duration-500"></div>` : '<div class="w-12 h-12 md:w-14 md:h-14 bg-gray-50 flex items-center justify-center text-2xl rounded-xl shrink-0 pointer-events-none shadow-sm">➕</div>'}
+              <div class="min-w-0 flex-1 pointer-events-none">
+                <span class="text-sm md:text-[15px] font-black text-gray-800 block leading-tight break-words">${extra.name}</span>
+                <div class="mt-1">
+                  <span class="text-[10px] text-red-600 font-black tracking-widest uppercase inline-block bg-red-50 px-2 py-0.5 rounded-md shadow-sm">${Number(extra.price) > 0 ? '+$' + Number(extra.price).toLocaleString() : 'Gratis'}</span>
+                </div>
               </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-3 shrink-0" onclick="event.stopPropagation()">
-              <button type="button" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 hover:text-gray-900 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('ve_${index}', -1)">−</button>
-              <span id="kioskCount_ve_${index}" class="font-black text-gray-800 text-base md:text-lg w-5 text-center">0</span>
-              <button type="button" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 hover:text-orange-700 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('ve_${index}', 1)">+</button>
+            <div class="mt-3 flex justify-end" onclick="event.stopPropagation()">
+              <div class="flex items-center gap-1.5 md:gap-2 shrink-0 bg-gray-50 p-1 rounded-full border border-gray-100">
+                <button type="button" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white text-gray-600 flex items-center justify-center font-bold text-lg hover:bg-gray-200 hover:text-gray-900 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('ve_${index}', -1)">−</button>
+                <span id="kioskCount_ve_${index}" class="font-black text-gray-800 text-sm md:text-base w-6 text-center">0</span>
+                <button type="button" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg hover:bg-orange-100 hover:text-orange-700 active:scale-90 transition-all shadow-sm" onclick="updateKioskAccCount('ve_${index}', 1)">+</button>
+              </div>
             </div>
             <input type="hidden" class="kiosk-ve-input" id="kioskInput_ve_${index}" value='${JSON.stringify(extra).replace(/'/g, "&#39;")}' data-count="0">
           </div>
