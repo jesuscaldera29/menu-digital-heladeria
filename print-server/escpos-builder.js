@@ -121,7 +121,7 @@ function buildTicket(d, cfg, logoImage = null) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.bold(true).doubleHeight(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q)).normalSize().bold(false);
+      b.bold(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q)).bold(false);
       extras.forEach(e => {
         b.leftRight('  - ' + san(e) + ' x ' + q, fmt(0));
       });
@@ -167,19 +167,18 @@ function buildTicket(d, cfg, logoImage = null) {
 
 function buildComanda(d, cfg) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
-  b.init().alignCenter().doubleHeight(true).bold(true).textLine('COMANDA').normalSize().bold(false);
+  b.init().alignCenter().textLine('Comanda');
   
   if (d.ticket_id) {
-    b.doubleSize(true).bold(true).textLine('Orden # ' + san(d.ticket_id)).normalSize().bold(false);
+    b.textLine('Orden # ' + san(d.ticket_id));
   }
   
   let dt = (d.delivery_method || 'LOCAL').toUpperCase();
   if (dt === 'A LA MESA') { const m = d.address ? d.address.replace(/Mesa\s*/i,'').trim() : ''; dt = m ? 'MESA '+m : 'MESA'; }
-  b.bold(true).textLine(dt).bold(false);
+  b.textLine(dt);
   
   b.newline();
   b.alignLeft().textLine(d.time || d.date || new Date().toLocaleString());
-  b.separator();
   
   if (d.items) {
     d.items.forEach(item => {
@@ -188,8 +187,8 @@ function buildComanda(d, cfg) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.doubleHeight(true).bold(true).textLine('* ' + q + 'x ' + san(mn).toUpperCase()).normalSize().bold(false);
-      extras.forEach(e => b.textLine('  - ' + san(e).toUpperCase()));
+      b.textLine('* ' + san(mn).toUpperCase() + ' x ' + q);
+      extras.forEach(e => b.textLine('  ' + san(e).toUpperCase() + ' x ' + q));
     });
   }
   
