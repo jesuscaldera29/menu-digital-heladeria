@@ -1713,8 +1713,9 @@ window.manualPrintComanda = async function() {
     }
     
     let fakeId = 'PENDIENTE';
+    let mesa = '';
     if (orderType === 'A la mesa') {
-      const mesa = document.getElementById('tableNumber').value;
+      mesa = document.getElementById('tableNumber').value;
       fakeId = mesa ? 'MESA-' + mesa : 'MESA';
     }
 
