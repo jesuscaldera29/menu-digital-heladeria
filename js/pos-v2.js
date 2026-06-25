@@ -2398,7 +2398,7 @@ window.openCheckoutForOrder = function(order) {
   
   const typeBtns = document.querySelectorAll('.order-type-btn');
   let foundBtn = null;
-  typeBtns.forEach(b => { if(b.textContent.trim() === oType) foundBtn = b; });
+  typeBtns.forEach(b => { if(b.getAttribute('onclick') && b.getAttribute('onclick').includes(oType)) foundBtn = b; });
   if (foundBtn) {
     selectOrderType(oType, foundBtn);
   } else {

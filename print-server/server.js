@@ -8,6 +8,8 @@ const os = require('os');
 const Jimp = require('jimp');
 const { buildTicket, buildComanda, buildReport } = require('./escpos-builder');
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Load config
 let config;
 try {
