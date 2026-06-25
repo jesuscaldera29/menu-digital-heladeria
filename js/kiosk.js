@@ -165,6 +165,35 @@ async function loadKioskSettings() {
         link.href = data.logo_url;
       }
 
+      // 4. Inject Dynamic PWA Manifest for Kiosk App Installation
+      const manifest = {
+        "name": (data.business_name || businessName) + " Kiosko",
+        "short_name": "Kiosko",
+        "start_url": window.location.href,
+        "display": "fullscreen",
+        "background_color": "#ffffff",
+        "theme_color": "#ea580c",
+        "icons": [
+          {
+            "src": data.logo_url || "https://cdn-icons-png.flaticon.com/512/3135/3135695.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+          }
+        ]
+      };
+      
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      
+      let manifestLink = document.querySelector("link[rel='manifest']");
+      if (!manifestLink) {
+        manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        document.head.appendChild(manifestLink);
+      }
+      manifestLink.href = manifestUrl;
+
       // Populate table dropdown
       const tableSelect = document.getElementById('kCustomerTable');
       if (tableSelect && data.table_count) {
