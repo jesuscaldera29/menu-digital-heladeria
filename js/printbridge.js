@@ -9,12 +9,12 @@ let PRINTBRIDGE_URL = localStorage.getItem('printbridge_url') || '';
 async function detectPrintBridge() {
   const candidates = [
     PRINTBRIDGE_URL,
-    'http://localhost:9101',
-    'http://127.0.0.1:9101',
+    'http://localhost:9100',
+    'http://127.0.0.1:9100',
     // Try common LAN IPs
-    'http://192.168.1.1:9101',
-    'http://192.168.0.1:9101',
-    'http://192.168.20.10:9101'
+    'http://192.168.1.1:9100',
+    'http://192.168.0.1:9100',
+    'http://192.168.20.10:9100'
   ].filter(Boolean);
 
   for (const url of candidates) {
