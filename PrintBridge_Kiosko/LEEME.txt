@@ -1,0 +1,16 @@
+INSTRUCCIONES PARA HELADERIA GOLOSO
+====================================
+
+Hola,
+
+Este archivo contiene el servidor de impresión "PrintBridge" ya pre-configurado para su impresora con la IP: 192.168.20.20.
+
+PASOS PARA USARLO:
+1. Extraiga esta carpeta en su computadora (por ejemplo, en el Escritorio o en Documentos).
+2. Para que el programa se abra solo cada vez que encienda la computadora, haga doble clic en el archivo "Activar_Inicio_Automatico.bat" y siga las instrucciones en la pantalla negra (solo debe presionar Enter).
+3. Haga doble clic en el archivo "PrintBridge.exe". Se abrirá una ventana negra (consola). NO LA CIERRE. Esta ventana es el servidor que conecta su sistema de ventas con su impresora térmica.
+4. Asegúrese de que su computadora esté conectada a la misma red WiFi/Cable que la impresora (192.168.20.20).
+5. En el sistema de caja (POS), configure la IP de la impresora como "192.168.20.20" en la sección de "Configurar impresoras".
+6. Haga una prueba de impresión desde el sistema.
+
+Para cualquier duda, contacte a su administrador.

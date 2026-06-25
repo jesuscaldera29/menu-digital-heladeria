@@ -43,6 +43,30 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.className = 'toast', 3000);
 }
 
+window.downloadKioskApk = function() {
+  Swal.fire({
+    title: 'Instalador de Kiosko',
+    html: `
+      <div style="text-align:center; margin-bottom:15px;">
+        <p style="font-size:14px; color:#555;">El Kiosko es una <b>Web App Nativa (PWA)</b>. Para instalarla como APK en la Tablet, sigue estos pasos:</p>
+      </div>
+      <ol style="font-size:13px; text-align:left; color:#333; line-height:1.6; background:#f9f9f9; padding:15px; border-radius:10px;">
+        <li><b>1.</b> Abre <b>Google Chrome</b> en la Tablet.</li>
+        <li><b>2.</b> Entra a la dirección: <br><span style="color:#ea580c; font-weight:bold; word-break:break-all;">${window.location.origin}/kiosk.html</span></li>
+        <li><b>3.</b> Toca los tres puntos (⋮) arriba a la derecha.</li>
+        <li><b>4.</b> Selecciona <b>"Instalar Aplicación"</b> o <b>"Añadir a pantalla principal"</b>.</li>
+      </ol>
+      <div style="margin-top:15px;">
+        <span style="font-size:30px;">📱</span>
+        <p style="font-size:12px; color:#666; margin-top:5px;">El ícono se agregará a la pantalla de inicio y abrirá en pantalla completa sin requerir actualizaciones manuales.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido',
+    confirmButtonColor: '#ea580c'
+  });
+};
+
 async function logout() {
     localStorage.clear();
     await supabaseClient.auth.signOut();
