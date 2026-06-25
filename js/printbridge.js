@@ -15,7 +15,8 @@ async function detectPrintBridge() {
     'http://192.168.1.1:9101',
     'http://192.168.0.1:9101',
     'http://192.168.20.10:9101',
-    'http://10.228.201.155:9101' // IP del cliente agregada
+    'http://10.228.201.155:9101', // IP del cliente
+    'http://10.228.201.155:9100'  // Puerto alternativo por si usa el config.json por defecto
   ].filter(Boolean);
 
   for (const url of candidates) {
