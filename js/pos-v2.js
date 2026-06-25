@@ -790,7 +790,7 @@ async function openCheckoutModal() {
     try {
       const { data: activeOrders } = await supabaseClient
         .from('orders')
-        .select('id, address, status, items, created_at')
+        .select('id, address, status, items, created_at, customer_name, customer_phone')
         .eq('business_id', businessId)
         .eq('delivery_method', 'A la mesa')
         .in('status', ['Pendiente', 'En preparación']);
@@ -807,7 +807,7 @@ async function openCheckoutModal() {
         }
       }
       tableSelector.innerHTML = opts;
-      if (prevValue) tableSelector.value = prevValue;
+      if (prevValue) { tableSelector.value = prevValue; window.handleTableSelection(); }
     } catch (e) {
       console.error(e);
       let opts = '<option value="">Seleccionar mesa</option>';
@@ -825,6 +825,35 @@ async function openCheckoutModal() {
     updateCheckoutTotal();
   }
 }
+
+window.handleTableSelection = function() {
+  const tableSelect = document.getElementById('tableNumber');
+  if (!tableSelect) return;
+  const selectedOption = tableSelect.options[tableSelect.selectedIndex];
+  if (!selectedOption) return;
+  
+  const orderId = selectedOption.getAttribute('data-order-id');
+  if (orderId && window.currentActiveOrders) {
+    const order = window.currentActiveOrders.find(o => String(o.id) === String(orderId));
+    if (order) {
+      currentOpenOrderId = order.id;
+      const cn = document.getElementById('customerName');
+      if (cn) cn.value = order.customer_name === 'Venta Rápida' ? '' : (order.customer_name || '');
+      
+      const cp = document.getElementById('customerPhone');
+      if (cp) cp.value = (order.customer_phone === 'N/A' || !order.customer_phone) ? '' : order.customer_phone;
+      return;
+    }
+  }
+  
+  // If not occupied or no order found
+  currentOpenOrderId = null;
+  // Clear fields if it was previously occupied
+  const cn = document.getElementById('customerName');
+  if (cn && !cn.value.includes('Venta Rápida')) cn.value = '';
+  const cp = document.getElementById('customerPhone');
+  if (cp) cp.value = '';
+};
 
 function updateCheckoutTotal() {
   let total = getCartTotal();
