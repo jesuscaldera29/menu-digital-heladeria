@@ -235,7 +235,7 @@ async function loadKioskSettings() {
         try {
           const { data: activeOrders } = await supabaseClient
             .from('orders')
-            .select('id, address')
+            .select('id, address, customer_name, customer_phone')
             .eq('business_id', currentBusinessId)
             .eq('delivery_method', 'A la mesa')
             .in('status', ['Pendiente', 'En preparación']);
@@ -244,12 +244,46 @@ async function loadKioskSettings() {
           for (let i = 1; i <= data.table_count; i++) {
             const order = (activeOrders || []).find(o => String(o.address) === `Mesa ${i}`);
             if (order) {
-              options += `<option value="${i}" data-order-id="${order.id}">Mesa ${i} (Ocupada)</option>`;
+              const nameSafe = (order.customer_name || '').replace(/"/g, '&quot;');
+              const phoneSafe = (order.customer_phone || '').replace(/"/g, '&quot;');
+              options += `<option value="${i}" data-order-id="${order.id}" data-name="${nameSafe}" data-phone="${phoneSafe}">Mesa ${i} (Ocupada por ${nameSafe})</option>`;
             } else {
               options += `<option value="${i}">Mesa ${i} (Libre)</option>`;
             }
           }
           tableSelect.innerHTML = options;
+          
+          // Add listener to auto-fill customer info if table is occupied
+          tableSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const nameEl = document.getElementById('kCustomerName');
+            const phoneEl = document.getElementById('kCustomerPhone');
+            
+            if (selectedOption && selectedOption.getAttribute('data-order-id')) {
+              if (nameEl) {
+                nameEl.value = selectedOption.getAttribute('data-name') || '';
+                nameEl.readOnly = true;
+                nameEl.classList.add('bg-gray-100', 'text-gray-500');
+              }
+              if (phoneEl) {
+                phoneEl.value = selectedOption.getAttribute('data-phone') || '';
+                phoneEl.readOnly = true;
+                phoneEl.classList.add('bg-gray-100', 'text-gray-500');
+              }
+              showToast('Mesa ocupada: Datos autocompletados');
+            } else {
+              if (nameEl) {
+                nameEl.value = '';
+                nameEl.readOnly = false;
+                nameEl.classList.remove('bg-gray-100', 'text-gray-500');
+              }
+              if (phoneEl) {
+                phoneEl.value = '';
+                phoneEl.readOnly = false;
+                phoneEl.classList.remove('bg-gray-100', 'text-gray-500');
+              }
+            }
+          });
         } catch (e) {
           console.error(e);
           let options = '<option value="">Selecciona tu Mesa</option>';
