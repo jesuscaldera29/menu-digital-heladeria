@@ -72,6 +72,40 @@ function resetInactivityTimer() {
 window.addEventListener('click', resetInactivityTimer);
 window.addEventListener('touchstart', resetInactivityTimer);
 
+// PWA Installation Logic
+let kioskDeferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  kioskDeferredPrompt = e;
+  
+  // Si abrimos la URL con ?install=true, mostrar la pantalla de instalación
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('install') === 'true') {
+    const installScreen = document.getElementById('kioskInstallScreen');
+    if (installScreen) installScreen.classList.remove('hidden');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnInstall = document.getElementById('btnRealInstallKiosk');
+  if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+      if (kioskDeferredPrompt) {
+        kioskDeferredPrompt.prompt();
+        const { outcome } = await kioskDeferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast('✅ Instalación iniciada');
+        }
+        kioskDeferredPrompt = null;
+        document.getElementById('kioskInstallScreen').classList.add('hidden');
+      } else {
+        showToast('⚠️ La instalación ya se realizó o no está soportada', 'error');
+      }
+    });
+  }
+});
+
 // Resolve business
 async function initKioskBusiness() {
   // 1. Check URL Parameter ?slug=xxx

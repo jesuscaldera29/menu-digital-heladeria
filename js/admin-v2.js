@@ -44,35 +44,7 @@ function showToast(msg, type = 'success') {
 }
 
 window.downloadKioskApk = function() {
-    const text = `========================================
-   INSTALADOR DE KIOSKO (APK / PWA)
-========================================
-
-El Kiosko funciona como una Aplicacion Web Progresiva. 
-Para instalarlo en la tablet, sigue estos 4 pasos:
-
-1. Abre Google Chrome en tu Tablet Android.
-2. Ingresa a esta direccion exacta: 
-   ${window.location.origin}/kiosk.html
-
-3. Toca los tres puntos (Menu) arriba a la derecha.
-4. Toca en "Instalar Aplicacion" o "Agregar a pantalla principal".
-
-¡Listo! Eso creara el icono del Kiosko en tu tablet.
-Cuando lo abras, estara en pantalla completa y se auto-actualizara siempre.
-========================================`;
-
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Instalar_Kiosko.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast('Descargando instalador...');
+    window.open(window.location.origin + '/kiosk.html?slug=' + businessSlug + '&install=true', '_blank');
 };
 
 async function logout() {

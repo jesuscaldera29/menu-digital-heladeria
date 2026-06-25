@@ -92,6 +92,21 @@
     <p class="text-gray-300 font-bold tracking-widest uppercase text-sm animate-pulse">Preparando tu Kiosko...</p>
   </div>
 
+  <!-- PWA INSTALL SCREEN -->
+  <div id="kioskInstallScreen" class="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center hidden p-6 text-center">
+    <div class="w-32 h-32 bg-orange-100 rounded-full flex items-center justify-center mb-6 shadow-lg">
+      <span class="text-6xl">📱</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-black mb-4 text-gray-900">Instalador de Kiosko</h1>
+    <p class="text-gray-500 mb-10 max-w-md mx-auto text-lg">Toca el botón de abajo para instalar el Kiosko como una Aplicación Nativa en tu tablet. No requerirá internet para abrir y se actualizará sola.</p>
+    <button id="btnRealInstallKiosk" class="bg-gradient-to-r from-orange-500 to-red-600 text-white px-10 py-5 rounded-full font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all w-full max-w-sm">
+      ⬇️ INSTALAR APK AHORA
+    </button>
+    <button onclick="document.getElementById('kioskInstallScreen').classList.add('hidden')" class="mt-6 text-gray-400 font-bold hover:text-gray-600">
+      Cancelar
+    </button>
+  </div>
+
   <!-- 1. WELCOME SCREEN (DIBUJADO EN FULLSCREEN) -->
   <div id="kioskWelcome" class="fixed inset-0 z-[100] bg-gradient-to-br from-red-600 via-orange-500 to-yellow-500 flex flex-col items-center justify-center p-8 text-white cursor-pointer" onclick="startOrder()">
     <div class="text-center space-y-6">
@@ -391,6 +406,15 @@
   <script src="js/supabase-config.js?v=1780612854434"></script>
   <script src="js/printbridge.js?v=1780612854434"></script>
   <script src="js/kiosk.js?v=1780612854434"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.log('SW registration failed: ', err);
+        });
+      });
+    }
+  </script>
 </body>
 
 </html>
