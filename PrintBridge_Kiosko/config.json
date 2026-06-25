@@ -4,5 +4,8 @@
   "server_port": 9102,
   "paper_width": 48,
   "auto_cut": true,
-  "beep_on_print": true
+  "beep_on_print": true,
+  "supabase_url": "https://vtckqdbfqcqjtznrsdwx.supabase.co",
+  "supabase_key": "sb_publishable_TkT53yhICY185uhB4Z8IrQ_6nbw4Qc3",
+  "auto_print_kiosk_orders": true
 }
