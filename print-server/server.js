@@ -7,6 +7,7 @@ const path = require('path');
 const os = require('os');
 const Jimp = require('jimp');
 const { buildTicket, buildComanda, buildReport } = require('./escpos-builder');
+global.WebSocket = require('ws');
 const { createClient } = require('@supabase/supabase-js');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
