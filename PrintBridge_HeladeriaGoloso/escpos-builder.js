@@ -223,6 +223,15 @@ function buildReport(d, cfg) {
   b.leftRight('Transferencia:', fmt(d.transfer||0));
   b.doubleSep().bold(true).doubleSize(true).alignCenter();
   b.textLine('TOTAL: ' + fmt(d.total||0)).normalSize().bold(false);
+  
+  b.separator().alignCenter().bold(true).textLine('FLUJO DE EFECTIVO').bold(false).alignLeft();
+  b.leftRight('Fondo Apertura:', '+' + fmt(d.openingCash||0));
+  b.leftRight('Ventas Efectivo:', '+' + fmt(d.cash||0));
+  b.leftRight('Entradas Extra:', '+' + fmt(d.cashIn||0));
+  b.leftRight('Gastos/Retiros:', '-' + fmt(d.cashOut||0));
+  b.doubleSep().bold(true).doubleSize(true).alignCenter();
+  b.textLine('ESPERADO: ' + fmt(d.expectedCash||0)).normalSize().bold(false);
+  
   b.newline().alignCenter().textLine('FIN DEL REPORTE').newline();
   if (cfg.auto_cut) b.cut();
   return b.build();

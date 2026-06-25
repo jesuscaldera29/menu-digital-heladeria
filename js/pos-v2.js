@@ -1936,6 +1936,39 @@ window.openPOSReport = async function() {
 
     if (error) throw error;
 
+    // Fetch opening cash
+    const { data: closings, error: closingsErr } = await supabaseClient
+      .from('cash_closings')
+      .select('opening_amount')
+      .eq('business_id', businessId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .order('created_at', { ascending: true })
+      .limit(1);
+    
+    let openingCash = 0;
+    if (!closingsErr && closings && closings.length > 0) {
+      openingCash = Number(closings[0].opening_amount) || 0;
+    }
+
+    // Fetch cash movements
+    const { data: movements, error: movementsErr } = await supabaseClient
+      .from('cash_movements')
+      .select('type, amount')
+      .eq('business_id', businessId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString());
+      
+    let cashIn = 0;
+    let cashOut = 0;
+    if (!movementsErr && movements) {
+      movements.forEach(m => {
+        const amt = Number(m.amount) || 0;
+        if (m.type === 'deposit') cashIn += amt;
+        else if (m.type === 'withdrawal') cashOut += amt;
+      });
+    }
+
     let totalEfectivo = 0;
     let totalTarjeta = 0;
     let totalTransferencia = 0;
@@ -1989,6 +2022,7 @@ window.openPOSReport = async function() {
     });
 
     const ticketPromedio = orders.length > 0 ? (totalVendido / orders.length) : 0;
+    const expectedCash = openingCash + totalEfectivo + cashIn - cashOut;
 
     window.currentPOSReport = {
       filter,
@@ -1998,26 +2032,57 @@ window.openPOSReport = async function() {
       card: totalTarjeta,
       transfer: totalTransferencia,
       originKiosko, originPOS, originMenu,
-      ticketPromedio
+      ticketPromedio,
+      openingCash,
+      cashIn,
+      cashOut,
+      expectedCash
     };
 
     // Render KPIs
     document.getElementById('posReportKPIs').innerHTML = `
-      <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ingresos Totales</div>
-        <div class="text-3xl font-black text-green-500">$${totalVendido.toLocaleString()}</div>
+      <div class="col-span-1 sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ingresos Totales</div>
+          <div class="text-3xl font-black text-green-500">$${totalVendido.toLocaleString()}</div>
+        </div>
+        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Total Pedidos</div>
+          <div class="text-3xl font-black text-white">${orders.length}</div>
+        </div>
+        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ticket Promedio</div>
+          <div class="text-3xl font-black text-orange-500">$${Math.round(ticketPromedio).toLocaleString()}</div>
+        </div>
       </div>
-      <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Total Pedidos</div>
-        <div class="text-3xl font-black text-white">${orders.length}</div>
-      </div>
-      <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ticket Promedio</div>
-        <div class="text-3xl font-black text-orange-500">$${Math.round(ticketPromedio).toLocaleString()}</div>
-      </div>
-      <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Efectivo en Caja</div>
-        <div class="text-3xl font-black text-white">$${totalEfectivo.toLocaleString()}</div>
+      
+      <!-- Seccion Flujo de Efectivo -->
+      <div class="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222] flex flex-col justify-between">
+        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3 border-b border-[#333] pb-2">Flujo de Efectivo</div>
+        
+        <div class="space-y-2 flex-1">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-400">Apertura</span>
+            <span class="font-bold text-orange-500">+$${openingCash.toLocaleString()}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-400">Ventas (Efec)</span>
+            <span class="font-bold text-green-500">+$${totalEfectivo.toLocaleString()}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-400">Entradas</span>
+            <span class="font-bold text-blue-500">+$${cashIn.toLocaleString()}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-400">Salidas</span>
+            <span class="font-bold text-red-500">-$${cashOut.toLocaleString()}</span>
+          </div>
+        </div>
+        
+        <div class="mt-3 pt-3 border-t border-[#333]">
+          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Esperado en Caja</div>
+          <div class="text-2xl font-black text-white">$${expectedCash.toLocaleString()}</div>
+        </div>
       </div>
     `;
     
@@ -2162,6 +2227,19 @@ window.printPOSReport = async function() {
       <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
         <span>TOTAL VENTAS:</span>
         <span>$${r.total.toLocaleString()}</span>
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
+        <div class="font-bold text-center mb-2">FLUJO DE EFECTIVO</div>
+        <div class="flex"><span>Fondo Apertura:</span> <span>+$${(r.openingCash||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Ventas Efectivo:</span> <span>+$${(r.cash||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Entradas Extra:</span> <span>+$${(r.cashIn||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Gastos/Retiros:</span> <span>-$${(r.cashOut||0).toLocaleString()}</span></div>
+      </div>
+      
+      <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
+        <span>EFECTIVO ESPERADO:</span>
+        <span>$${(r.expectedCash||0).toLocaleString()}</span>
       </div>
       
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
