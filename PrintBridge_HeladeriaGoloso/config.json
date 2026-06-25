@@ -1,5 +1,5 @@
 {
-  "printer_ip": "192.168.20.20",
+  "printer_ip": "192.168.201.20",
   "printer_port": 9100,
   "server_port": 9101,
   "paper_width": 48,
