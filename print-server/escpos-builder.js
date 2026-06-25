@@ -175,7 +175,10 @@ function buildComanda(d, cfg) {
   
   let dt = (d.delivery_method || 'LOCAL').toUpperCase();
   if (dt === 'A LA MESA') { const m = d.address ? d.address.replace(/Mesa\s*/i,'').trim() : ''; dt = m ? 'MESA '+m : 'MESA'; }
-  b.textLine(dt);
+  
+  b.newline();
+  b.doubleSize(true).bold(true).alignCenter().textLine(dt).normalSize().bold(false);
+  b.newline();
   
   b.newline();
   b.alignLeft().textLine(d.time || d.date || new Date().toLocaleString());
