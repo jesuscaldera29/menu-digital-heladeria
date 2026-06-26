@@ -257,7 +257,13 @@ function subscribeToOnlineOrders() {
         // Auto print if enabled
         if (autoPrintEnabled) {
           if (payload.new.notes && payload.new.notes.includes('[ORIGIN:KIOSKO]')) {
-            showToast('🛎️ Nuevo pedido de Kiosko recibido');
+            showToast('🖨️ Imprimiendo nuevo pedido de Kiosko...');
+            printPOSTicket(payload.new);
+            
+            // Si es un pedido nuevo de Kiosko, queremos asegurarnos de imprimir la comanda para cocina
+            if (typeof bridgePrintComanda === 'function') {
+               bridgePrintComanda(payload.new, posSettings);
+            }
           } else {
             showToast('🖨️ Imprimiendo nuevo pedido online...');
             printPOSTicket(payload.new);
