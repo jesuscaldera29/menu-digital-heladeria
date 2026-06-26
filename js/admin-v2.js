@@ -1740,18 +1740,25 @@ function bottomNavClick(sectionId, el) {
 
 async function loadDashboard() {
     if (!businessId) return;
-    const today = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const todayIso = d.toISOString();
+    
+    // Para gastos (que usan fecha YYYY-MM-DD local)
+    const dLocal = new Date();
+    dLocal.setMinutes(dLocal.getMinutes() - dLocal.getTimezoneOffset());
+    const todayLocalStr = dLocal.toISOString().split('T')[0];
     
     try {
         // Today's orders
-        const { data: todayOrders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).gte('created_at', today).neq('status', 'Cancelado');
+        const { data: todayOrders } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).gte('created_at', todayIso).neq('status', 'Cancelado');
         const orders = todayOrders || [];
         const totalSales = orders.reduce((s, o) => s + Number(o.total), 0);
         document.getElementById('dashTodaySales').textContent = '$' + totalSales.toLocaleString();
         document.getElementById('dashTodayOrders').textContent = orders.length;
 
         // Today's expenses
-        const { data: todayExpenses } = await supabaseClient.from('expenses').select('amount').eq('business_id', businessId).gte('date', today);
+        const { data: todayExpenses } = await supabaseClient.from('expenses').select('amount').eq('business_id', businessId).gte('date', todayLocalStr);
         const totalExpenses = (todayExpenses || []).reduce((s, e) => s + Number(e.amount), 0);
         document.getElementById('dashTodayExpenses').textContent = '$' + totalExpenses.toLocaleString();
 
