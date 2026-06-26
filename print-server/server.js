@@ -49,7 +49,7 @@ function sendToPrinter(data, targetIp = null, targetPort = null) {
     const timeout = setTimeout(() => {
       client.destroy();
       reject(new Error('Timeout: No se pudo conectar a la impresora en ' + ip));
-    }, 5000);
+    }, 15000);
 
     client.connect(port, ip, () => {
       clearTimeout(timeout);
