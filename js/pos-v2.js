@@ -273,6 +273,32 @@ function subscribeToOnlineOrders() {
         }
       }
     )
+    .on(
+      'broadcast',
+      { event: 'new_kiosk_order' },
+      async (payload) => {
+        console.log('Broadcast Kiosko recibido:', payload);
+        if (payload.payload && payload.payload.order_id) {
+          // Play notification sound
+          try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
+            audio.volume = 1.0;
+            audio.play().catch(e => console.log('Audio blocked', e));
+          } catch (e) { }
+
+          const { data: newOrder } = await supabaseClient.from('orders').select('*').eq('id', payload.payload.order_id).single();
+          if (newOrder && autoPrintEnabled) {
+            showToast('🖨️ Imprimiendo pedido de Kiosko (Broadcast)...');
+            printPOSTicket(newOrder);
+            if (typeof bridgePrintComanda === 'function') {
+               bridgePrintComanda(newOrder, posSettings);
+            }
+          }
+          // Recargar la tabla de ordenes para que la cajera lo vea
+          if (typeof loadOrders === 'function') loadOrders();
+        }
+      }
+    )
     .subscribe();
 }
 

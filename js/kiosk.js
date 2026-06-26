@@ -1082,6 +1082,19 @@ async function kProcessOrder() {
       }
     }
 
+    // Enviar Broadcast al POS para asegurar notificación y auto-impresión (Incluso si Replication está apagado)
+    try {
+      const posChannel = supabaseClient.channel('pos-online-orders');
+      await posChannel.subscribe();
+      await posChannel.send({
+        type: 'broadcast',
+        event: 'new_kiosk_order',
+        payload: { order_id: orderToPrint.id, business_id: currentBusinessId }
+      });
+    } catch (e) {
+      console.warn('No se pudo enviar broadcast al POS:', e);
+    }
+
     // Stop inactivity timer while showing success ticket
     clearInterval(inactivityTimer);
 
