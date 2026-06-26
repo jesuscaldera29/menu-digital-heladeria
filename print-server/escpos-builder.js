@@ -1,4 +1,4 @@
-// ===== ESC/POS Command Builder for Thermal Printers =====
+﻿// ===== ESC/POS Command Builder for Thermal Printers =====
 const ESC = 0x1B, GS = 0x1D, LF = 0x0A;
 
 class EscPosBuilder {
@@ -80,9 +80,9 @@ class EscPosBuilder {
 function san(t) {
   if (!t) return '';
   return String(t)
-    .replace(/[áà]/g,'a').replace(/[éè]/g,'e').replace(/[íì]/g,'i').replace(/[óò]/g,'o').replace(/[úù]/g,'u')
-    .replace(/[ÁÀ]/g,'A').replace(/[ÉÈ]/g,'E').replace(/[ÍÌ]/g,'I').replace(/[ÓÒ]/g,'O').replace(/[ÚÙ]/g,'U')
-    .replace(/ñ/g,'n').replace(/Ñ/g,'N').replace(/[^\x20-\x7E]/g,'');
+    .replace(/[├í├á]/g,'a').replace(/[├®├¿]/g,'e').replace(/[├¡├¼]/g,'i').replace(/[├│├▓]/g,'o').replace(/[├║├╣]/g,'u')
+    .replace(/[├ü├Ç]/g,'A').replace(/[├ë├ê]/g,'E').replace(/[├ì├î]/g,'I').replace(/[├ô├Æ]/g,'O').replace(/[├Ü├Ö]/g,'U')
+    .replace(/├▒/g,'n').replace(/├æ/g,'N').replace(/[^\x20-\x7E]/g,'');
 }
 function fmt(n) { return '$' + Number(n||0).toLocaleString('es-CO'); }
 
@@ -223,15 +223,6 @@ function buildReport(d, cfg) {
   b.leftRight('Transferencia:', fmt(d.transfer||0));
   b.doubleSep().bold(true).doubleSize(true).alignCenter();
   b.textLine('TOTAL: ' + fmt(d.total||0)).normalSize().bold(false);
-  
-  b.separator().alignCenter().bold(true).textLine('FLUJO DE EFECTIVO').bold(false).alignLeft();
-  b.leftRight('Fondo Apertura:', '+' + fmt(d.openingCash||0));
-  b.leftRight('Ventas Efectivo:', '+' + fmt(d.cash||0));
-  b.leftRight('Entradas Extra:', '+' + fmt(d.cashIn||0));
-  b.leftRight('Gastos/Retiros:', '-' + fmt(d.cashOut||0));
-  b.doubleSep().bold(true).doubleSize(true).alignCenter();
-  b.textLine('ESPERADO: ' + fmt(d.expectedCash||0)).normalSize().bold(false);
-  
   b.newline().alignCenter().textLine('FIN DEL REPORTE').newline();
   if (cfg.auto_cut) b.cut();
   return b.build();
