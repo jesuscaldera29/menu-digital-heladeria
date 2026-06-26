@@ -7,8 +7,6 @@ const path = require('path');
 const os = require('os');
 const Jimp = require('jimp');
 const { buildTicket, buildComanda, buildReport } = require('./escpos-builder');
-global.WebSocket = require('ws');
-const { createClient } = require('@supabase/supabase-js');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -229,109 +227,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('  NO CIERRE ESTA VENTANA');
   console.log('=============================================');
-
-  // Supabase Realtime listener
-  if (config.supabase_url && config.supabase_key && config.auto_print_kiosk_orders) {
-    const supabase = createClient(config.supabase_url, config.supabase_key);
-    console.log('  [Supabase Realtime] Activado - Escuchando ordenes del Kiosko');
-    console.log('=============================================');
-    
-    supabase
-      .channel('kiosk-orders')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
-        const order = payload.new;
-        
-        // Check if it's from Kiosk
-        if (order && order.notes && order.notes.includes('[ORIGIN:KIOSKO]') && order.status === 'Pendiente') {
-          console.log(`\n[Supabase Realtime] Nueva orden de Kiosko detectada: #${order.id}`);
-          
-          try {
-            const { data: settings } = await supabase
-              .from('settings')
-              .select('*')
-              .eq('business_id', order.business_id)
-              .single();
-              
-            if (!settings) {
-              console.error('[Supabase Realtime] No se encontraron settings para el negocio');
-              return;
-            }
-            
-            let targetIp = null;
-            let targetPort = null;
-            if (settings.printers && Array.isArray(settings.printers)) {
-              const receiptPrinter = settings.printers.find(p => p.printReceipts === true || p.printReceipts === 'true');
-              if (receiptPrinter) {
-                targetIp = receiptPrinter.ip;
-                targetPort = parseInt(receiptPrinter.port) || 9100;
-              }
-            }
-
-            let logoImage = null;
-            if (settings.logo_url) {
-              try {
-                logoImage = await Jimp.read(settings.logo_url);
-                logoImage.resize(384, Jimp.AUTO).greyscale().contrast(0.5);
-              } catch (e) {
-                console.error('[Supabase Realtime] Error cargando logo:', e.message);
-              }
-            }
-            
-            const printPayload = {
-               logo_url: settings.logo_url,
-               business_name: settings.business_name || 'MI NEGOCIO',
-               ticket_id: String(order.id).includes('MESA-') ? String(order.id).toUpperCase() : String(order.id).split('-')[0],
-               ticket_data: settings.ticket_data || null,
-               date: new Date(order.created_at).toLocaleString(),
-               customer_name: order.customer_name || 'Mostrador',
-               customer_phone: order.customer_phone || 'N/A',
-               address: order.address || 'N/A',
-               delivery_method: order.delivery_method || order.delivery_type || 'Local',
-               payment_method: order.payment_method || 'Pendiente',
-               items: order.items || [],
-               total: order.total || 0,
-               discount: order.discount || 0,
-               delivery_fee: order.delivery_fee || 0,
-               tip: order.tip || 0,
-               cash_received: order.total || 0,
-               footer: 'Gracias por su compra!'
-            };
-            
-            const data = buildTicket(printPayload, config, logoImage);
-            await sendToPrinter(data, targetIp, targetPort);
-            console.log('[Supabase Realtime] Orden de Kiosko impresa correctamente!');
-            
-            // Also print comanda? Usually kiosk needs ticket. But wait, if they need comanda we could print it.
-            // Let's print Comanda as well if configured!
-            let comandaTargetIp = null;
-            let comandaTargetPort = null;
-            if (settings.printers && Array.isArray(settings.printers)) {
-              const comandaPrinter = settings.printers.find(p => p.printOrders === true || p.printOrders === 'true');
-              if (comandaPrinter) {
-                comandaTargetIp = comandaPrinter.ip;
-                comandaTargetPort = parseInt(comandaPrinter.port) || 9100;
-              }
-            }
-            if (comandaTargetIp) {
-              console.log(`[Supabase Realtime] Imprimiendo comanda de Kiosko a ${comandaTargetIp}...`);
-              const comandaPayload = {
-                ticket_id: printPayload.ticket_id,
-                time: new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                customer_name: printPayload.customer_name,
-                customer_phone: printPayload.customer_phone,
-                delivery_method: printPayload.delivery_method,
-                address: printPayload.address,
-                items: printPayload.items,
-                delivery_fee: printPayload.delivery_fee,
-              };
-              const comandaData = buildComanda(comandaPayload, config);
-              await sendToPrinter(comandaData, comandaTargetIp, comandaTargetPort);
-            }
-          } catch (err) {
-            console.error('[Supabase Realtime] Error imprimiendo orden de kiosko:', err.message);
-          }
-        }
-      })
-      .subscribe();
-  }
 });
