@@ -1198,7 +1198,36 @@ resetKiosk = function() {
 };
 
 async function printKioskTicket(o) {
-  // Try PrintBridge first (silent network print - works from Android!)
+  // 1. Android APK bridge (nativo, sin restricciones de navegador)
+  if (window.AndroidPrint) {
+    try {
+      const settings = window.kioskSettings || {};
+      const data = {
+        logo_url: settings.logo_url || null,
+        business_name: settings.business_name || 'MI NEGOCIO',
+        ticket_id: String(o.id).includes('MESA-') ? String(o.id).toUpperCase() : String(o.id).split('-')[0],
+        ticket_data: settings.ticket_data || null,
+        date: new Date().toLocaleString(),
+        customer_name: o.customer_name || 'Mostrador',
+        customer_phone: o.customer_phone || 'N/A',
+        address: o.address || 'N/A',
+        delivery_method: o.delivery_method || 'Local',
+        payment_method: o.payment_method || 'Pendiente',
+        items: o.items || [],
+        total: o.total || 0,
+        discount: o.discount || 0,
+        delivery_fee: o.delivery_fee || 0,
+        footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!'
+      };
+      const result = window.AndroidPrint.printTicket(JSON.stringify(data));
+      console.log('[Kiosk] Ticket enviado via Android PrintBridge:', result);
+      return;
+    } catch (e) {
+      console.error('[Kiosk] Error Android print:', e);
+    }
+  }
+
+  // 2. PrintBridge Windows (HTTP fetch)
   if (typeof bridgePrintTicket === 'function') {
     const ok = await bridgePrintTicket(o, window.kioskSettings || {});
     if (ok) { console.log('[Kiosk] Ticket impreso via PrintBridge'); return; }
@@ -1254,6 +1283,49 @@ window.handleLogoClick = function() {
   logoClicks++;
   if (logoClicks >= 5) {
     logoClicks = 0;
+
+    // Android APK config mode
+    if (window.AndroidConfig) {
+      try {
+        const current = JSON.parse(window.AndroidConfig.getConfig());
+        const option = prompt(
+          "⚙️ Configuración Kiosko Android:\n" +
+          "1 = Cambiar IP impresora (actual: " + current.printer_ip + ")\n" +
+          "2 = Cambiar URL del kiosko\n" +
+          "3 = Prueba de impresión\n" +
+          "4 = Recargar app",
+          "1"
+        );
+        if (option === '1') {
+          const newIP = prompt("IP de la impresora térmica:", current.printer_ip);
+          if (newIP) {
+            const newPort = prompt("Puerto (normalmente 9100):", String(current.printer_port));
+            window.AndroidConfig.setConfig(newIP, parseInt(newPort) || 9100);
+            alert("✅ Impresora configurada: " + newIP + ":" + (newPort || 9100));
+            // Auto test print
+            const testResult = window.AndroidPrint.testPrint();
+            alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+          }
+        } else if (option === '2') {
+          const newUrl = prompt("URL del kiosko:", current.kiosk_url);
+          if (newUrl) {
+            window.AndroidConfig.setKioskUrl(newUrl);
+            alert("✅ URL actualizada. Recargando...");
+            window.AndroidConfig.reloadApp();
+          }
+        } else if (option === '3') {
+          const testResult = window.AndroidPrint.testPrint();
+          alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+        } else if (option === '4') {
+          window.AndroidConfig.reloadApp();
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+      return;
+    }
+
+    // PrintBridge Windows config (existing)
     const currentIP = localStorage.getItem('printbridge_url') || 'http://192.168.1.100:9101';
     const newIP = prompt("⚙️ Configuración del Servidor de Impresión (PrintBridge):\nIngrese la dirección IP y puerto del servidor del PC (ej. http://192.168.1.100:9101):", currentIP);
     if (newIP !== null) {
