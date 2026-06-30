@@ -107,7 +107,7 @@ function san(t) {
 }
 function fmt(n) { return '$' + Number(n||0).toLocaleString('es-CO'); }
 
-function buildTicket(d, cfg, logoImage = null) {
+function buildTicket(d, cfg, logoImage = null, qrImage = null) {
   const b = new EscPosBuilder(cfg.paper_width || 48);
   b.init().alignCenter();
   if (logoImage) b.image(logoImage);
@@ -184,7 +184,11 @@ function buildTicket(d, cfg, logoImage = null) {
   
   if (d.tracking_url) {
     b.alignCenter().textLine('ESCANEA PARA SEGUIR TU PEDIDO:');
-    b.qrCode(d.tracking_url);
+    if (qrImage) {
+      b.image(qrImage);
+    } else {
+      b.qrCode(d.tracking_url);
+    }
   }
   
   if (cfg.beep_on_print) b.beep(2, 3);

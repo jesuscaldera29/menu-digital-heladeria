@@ -161,6 +161,11 @@ class EscPosBuilder(private val w: Int = 48) {
                 .textLine(san(d.optString("footer", "Gracias por su compra!")))
                 .newline()
 
+            if (d.has("tracking_url") && d.optString("tracking_url").isNotEmpty()) {
+                b.alignCenter().textLine("ESCANEA PARA SEGUIR TU PEDIDO:")
+                b.qrCode(d.optString("tracking_url"))
+            }
+
             if (config.getBeepOnPrint()) b.beep(2, 3)
             if (config.getAutoCut()) b.cut()
 
@@ -287,6 +292,28 @@ class EscPosBuilder(private val w: Int = 48) {
     fun cut(): EscPosBuilder {
         newline(3)
         return p(GS, 0x56, 0)
+    }
+
+    fun qrCode(url: String?): EscPosBuilder {
+        if (url.isNullOrEmpty()) return this
+        val storeLen = url.length + 3
+        val pL = storeLen and 0xFF
+        val pH = (storeLen shr 8) and 0xFF
+
+        alignCenter()
+        // Model 2
+        p(GS, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00)
+        // Size 6
+        p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06)
+        // Error Correction L (48)
+        p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30)
+        // Store Data
+        p(GS, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30)
+        t(url)
+        // Print
+        p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30)
+        newline(2)
+        return this
     }
 
     fun build(): ByteArray = ByteArray(buf.size) { buf[it].toByte() }
