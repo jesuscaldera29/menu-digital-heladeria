@@ -539,45 +539,26 @@ async function handleCloneMenu(event) {
   btn.disabled = true;
 
   try {
-    // 1. Obtener productos del origen
-    const { data: sourceProducts, error: fetchErr } = await supabaseClient
-      .from('products')
-      .select('*')
-      .eq('business_id', sourceId);
-
-    if (fetchErr) throw fetchErr;
-
-    if (!sourceProducts || sourceProducts.length === 0) {
-      showToast('⚠️ El restaurante Origen no tiene productos para clonar.');
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      return;
-    }
-
-    // 2. Preparar los productos para insertar (limpiar id y cambiar business_id)
-    const clonedProducts = sourceProducts.map(p => {
-      const { id, created_at, ...cleanProduct } = p; // Removemos ID y created_at
-      return {
-        ...cleanProduct,
-        business_id: targetId
-      };
+    // 1. Llamar a la función RPC que clona los productos de forma segura (Bypass RLS)
+    const { error: cloneErr } = await supabaseClient.rpc('clone_menu', {
+      p_source_business_id: sourceId,
+      p_target_business_id: targetId
     });
 
-    // 3. Insertar los nuevos productos en el destino
-    const { error: insertErr } = await supabaseClient
-      .from('products')
-      .insert(clonedProducts);
+    if (cloneErr) throw cloneErr;
 
-    if (insertErr) throw insertErr;
-
-    showToast(`✅ ¡Éxito! ${clonedProducts.length} productos clonados a ${targetName}.`);
+    showToast(`✅ ¡Éxito! Menú clonado a ${targetName}.`);
     
     // Recargar para actualizar los contadores
     await loadBusinesses();
 
   } catch (err) {
     console.error(err);
-    showToast('❌ Error al clonar: ' + err.message);
+    if (err.message.includes('No function matches')) {
+      showToast('❌ Error: Falta ejecutar el script SQL en Supabase para habilitar esta función.');
+    } else {
+      showToast('❌ Error al clonar: ' + err.message);
+    }
   } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
