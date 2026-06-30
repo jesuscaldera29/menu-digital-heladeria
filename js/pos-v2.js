@@ -2502,7 +2502,10 @@ window.notifRegisterPayment = async function(orderId) {
   }
 };
 
-window.openCheckoutForOrder = function(order) {
+window.openCheckoutForOrder = async function(order) {
+  // Close notifications modal instantly
+  closeNotificationsModal();
+  
   clearCart();
   currentOpenOrderId = order.id;
 
@@ -2524,12 +2527,8 @@ window.openCheckoutForOrder = function(order) {
 
   updateCartUI();
 
-  // Populate customer info
-  const cn = document.getElementById('customerName');
-  if(cn) cn.value = order.customer_name || '';
-  
-  const cp = document.getElementById('customerPhone');
-  if(cp) cp.value = order.customer_phone || '';
+  // Open the real checkout modal and wait for it to initialize (like fetching tables)
+  await openCheckoutModal();
 
   // Select order type based on what was chosen in Kiosk
   let oType = 'A la mesa';
@@ -2545,21 +2544,28 @@ window.openCheckoutForOrder = function(order) {
     document.getElementById('orderType').value = oType;
   }
 
-  // Populate table or address
+  // Populate customer info
+  const cn = document.getElementById('customerName');
+  if(cn) cn.value = order.customer_name || '';
+  
+  const cp = document.getElementById('customerPhone');
+  if(cp) cp.value = order.customer_phone || '';
+
+  // Populate table or address AFTER a tiny delay to ensure select options are built
   if (oType === 'A la mesa' && order.address) {
-    const tableNum = String(order.address).replace(/\\D/g, ''); 
+    const tableNum = String(order.address).replace(/\D/g, ''); 
     const tableSelect = document.getElementById('tableNumber');
     if (tableSelect && tableNum) {
-       setTimeout(() => { tableSelect.value = tableNum; }, 100);
+       setTimeout(() => { 
+         tableSelect.value = tableNum; 
+         // Do NOT call handleTableSelection() here because it would overwrite the name/phone 
+         // with whatever is currently in the DB for this table, ruining the Kiosk data.
+       }, 300);
     }
   } else if (oType === 'Domicilio') {
     const addr = document.getElementById('deliveryAddress');
     if (addr) addr.value = order.address || '';
   }
-
-  // Close notifications modal and open the real checkout modal
-  closeNotificationsModal();
-  openCheckoutModal();
 };
 
 // Push incoming realtime orders into notifications
