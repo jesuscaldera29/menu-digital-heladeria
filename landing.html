@@ -878,7 +878,21 @@
 
     function copyDemoText(text) {
       navigator.clipboard.writeText(text);
-      alert(text + " copiado al portapapeles.");
+      
+      // Mostrar toast elegante en el centro
+      const toast = document.getElementById('copyToast');
+      const toastText = document.getElementById('copyToastText');
+      toastText.innerText = `'${text}' copiado exitosamente`;
+      
+      toast.classList.remove('hidden');
+      toast.classList.remove('opacity-0', 'scale-95');
+      toast.classList.add('opacity-100', 'scale-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'scale-100');
+        toast.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => toast.classList.add('hidden'), 300); // Esperar a que termine la transición
+      }, 3000);
     }
 
     function submitLead(e) {
@@ -1046,6 +1060,14 @@
         <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500"></div>
       </div>
       <iframe id="demoIframe" src="" class="absolute inset-0 w-full h-full z-10 bg-transparent pointer-events-auto" frameborder="0" scrolling="yes"></iframe>
+    </div>
+  </div>
+
+  <!-- TOAST DE COPIADO ELEGANTE -->
+  <div id="copyToast" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[2000] transition-all duration-300 opacity-0 scale-95 pointer-events-none">
+    <div class="bg-[#111]/90 backdrop-blur-xl border border-green-500/30 shadow-2xl shadow-green-500/20 px-6 py-4 rounded-2xl flex flex-col items-center gap-2">
+      <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-2xl">✓</div>
+      <p id="copyToastText" class="text-white font-bold text-center"></p>
     </div>
   </div>
 
