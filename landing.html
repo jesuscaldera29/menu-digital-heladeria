@@ -290,7 +290,7 @@
             class="btn-gradient hover:animate-none text-center px-8 py-4.5 rounded-2xl text-lg flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20">
             🚀 Ver Planes Disponibles
           </a>
-          <a href="https://menu-digital-administrable.vercel.app/demo" target="_blank"
+          <a href="#" onclick="openDemoModal(event)"
             class="px-8 py-4.5 rounded-2xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/20 text-center text-lg flex items-center justify-center gap-2">
             👀 Ver Demo Interactiva
           </a>
@@ -510,11 +510,11 @@
         </div>
         <div
           class="max-w-4xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative group cursor-pointer"
-          onclick="window.open('https://menu-digital-administrable.vercel.app/demo', '_blank')">
+          onclick="openDemoModal(event)">
           <div
             class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-10">
-            <span class="bg-white text-black font-black px-6 py-3 rounded-xl shadow-2xl">👀 O clic aquí para ver
-              Demo</span>
+            <span class="bg-white text-black font-black px-6 py-3 rounded-xl shadow-2xl">👀 Clic aquí para ver
+              Opciones de Demo</span>
           </div>
           <img id="qrImage" src="img/qr_table.png" alt="Mesa de restaurante con QR" class="w-full relative z-0">
         </div>
@@ -837,6 +837,15 @@
       document.getElementById('leadModal').classList.add('hidden');
     }
 
+    function openDemoModal(e) {
+      e.preventDefault();
+      document.getElementById('demoModal').classList.remove('hidden');
+    }
+
+    function closeDemoModal() {
+      document.getElementById('demoModal').classList.add('hidden');
+    }
+
     function submitLead(e) {
       e.preventDefault();
       const person = document.getElementById('leadPersonName').value;
@@ -908,6 +917,50 @@
           Activar mi menú
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE DEMOS -->
+  <div id="demoModal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeDemoModal()"></div>
+    <div class="relative bg-[#111] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl flex flex-col">
+      <div class="flex justify-between items-center mb-6 shrink-0">
+        <h3 class="text-xl font-black text-white">Elige qué Demo quieres ver</h3>
+        <button onclick="closeDemoModal()" class="text-gray-400 hover:text-white p-2 -mr-2">✕</button>
+      </div>
+      <p class="text-gray-400 text-sm mb-6">Explora todo el ecosistema interactuando con las diferentes plataformas en tiempo real.</p>
+      
+      <div class="space-y-4">
+        <!-- Menu -->
+        <a href="https://menu-digital-administrable.vercel.app/demo" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-orange-500 hover:bg-orange-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-orange-500/20 text-orange-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">📱</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Menú Digital</h4>
+            <p class="text-gray-400 text-xs mt-1">Así pedirán tus clientes desde sus celulares, sin instalar apps.</p>
+          </div>
+          <div class="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+
+        <!-- Admin -->
+        <a href="https://menu-digital-administrable.vercel.app/login.html" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">💻</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Panel Administrador</h4>
+            <p class="text-gray-400 text-xs mt-1">Mira cómo se gestionan los pedidos, mesas y métricas de tu negocio.</p>
+          </div>
+          <div class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+
+        <!-- Kiosko -->
+        <a href="https://menu-digital-administrable.vercel.app/kiosk.html?slug=demo" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">🏧</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Kiosko Autoservicio</h4>
+            <p class="text-gray-400 text-xs mt-1">Experiencia ideal para pantallas táctiles (tótems) de autoservicio en local.</p>
+          </div>
+          <div class="text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+      </div>
     </div>
   </div>
 
