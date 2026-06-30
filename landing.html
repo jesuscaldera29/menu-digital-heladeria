@@ -286,13 +286,13 @@
         </p>
 
         <div data-aos="fade-up" data-aos-delay="300" class="flex flex-col sm:flex-row gap-4 pt-2">
-          <a href="#" onclick="openLeadModal(event)"
-            class="btn-gradient animate-pulse hover:animate-none text-center px-8 py-4.5 rounded-2xl text-lg flex items-center justify-center gap-2">
-            🚀 Crear Mi Menú Ahora
+          <a href="#planes"
+            class="btn-gradient hover:animate-none text-center px-8 py-4.5 rounded-2xl text-lg flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20">
+            🚀 Ver Planes Disponibles
           </a>
-          <a href="#interconexion"
-            class="px-8 py-4.5 rounded-2xl font-bold text-gray-400 hover:text-white transition-colors border border-white/10 hover:border-white/20 text-center text-lg flex items-center justify-center gap-2">
-            Ver Funcionamiento
+          <a href="https://menu-digital-administrable.vercel.app/demo" target="_blank"
+            class="px-8 py-4.5 rounded-2xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/20 text-center text-lg flex items-center justify-center gap-2">
+            👀 Ver Demo Interactiva
           </a>
         </div>
 
@@ -680,43 +680,62 @@
     </div>
   </section>
 
-  <!-- CTA FINAL -->
-  <section class="py-16 md:py-24 px-4 md:px-6 relative z-10 border-t border-white/5 bg-black/40 overflow-hidden">
-    <div class="max-w-4xl mx-auto text-center">
-      <div data-aos="zoom-in" class="feature-card !p-8 md:!p-16 !rounded-[36px]"
-        style="background: linear-gradient(135deg, rgba(255, 95, 109, 0.08) 0%, rgba(255, 195, 113, 0.08) 100%)">
-        <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight">¿Listo para llevar tu menú al siguiente nivel?
-        </h2>
-        <p class="text-gray-400 text-base md:text-lg mb-6 max-w-xl mx-auto">Digitaliza tu carta, recibe comandos directo
-          en WhatsApp y controla tu negocio como un profesional.</p>
+  <!-- PRICING (PLANES SaaS) -->
+  <section id="planes" class="py-24 px-6 relative z-10 border-t border-white/5 bg-black/40 overflow-hidden">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight">Planes diseñados para crecer, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">Sin Contratos</span></h2>
+        <p class="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">Selecciona el plan mensual que mejor se adapte a las necesidades de tu negocio y empieza a recibir pedidos hoy mismo.</p>
+      </div>
 
-        <div
-          class="mb-8 p-6 rounded-3xl bg-white/5 border border-white/10 w-full sm:w-auto inline-block shadow-lg relative overflow-hidden">
-          <div
-            class="absolute top-0 right-0 bg-red-600 text-white text-[9px] md:text-[10px] font-black px-2 py-1 md:px-3 md:py-1 rounded-bl-lg uppercase tracking-widest animate-pulse z-10"
-            id="displaySpotsLeft">
-            🔥 Solo 3 cupos restantes
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+        
+        <!-- Plan Básico -->
+        <div class="bg-white/5 border border-white/10 rounded-[32px] p-8 flex flex-col hover:bg-white/10 transition-colors shadow-2xl relative text-left">
+          <h3 class="text-2xl font-black text-white mb-2">Plan Basic</h3>
+          <p class="text-gray-400 text-sm mb-6 h-10">Ideal para pequeños negocios y comidas rápidas que están empezando.</p>
+          <div class="mb-6">
+            <span class="text-4xl font-black text-white">$46.900</span> <span class="text-sm text-gray-500 font-bold tracking-widest uppercase">COP</span>
+            <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">/ Mes a Mes</p>
           </div>
-          <p class="text-orange-400 text-xs md:text-sm font-black uppercase tracking-widest mb-2 mt-3">Pago Único (Sin
-            Mensualidades)</p>
-          <div class="flex items-center justify-center gap-2 md:gap-4">
-            <span class="text-xl md:text-2xl text-gray-500 line-through font-bold" id="displayOldPrice">$150</span>
-            <span
-              class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400"
-              id="displayCurrentPrice">$49</span>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Menú Digital 100% Interactivo</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Pedidos Ilimitados por WhatsApp</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Panel de Control Autoadministrable</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Código QR General de Acceso</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Actualización de Precios en Tiempo Real</li>
+            <li class="flex items-start gap-3 text-sm text-gray-500 line-through"><span class="text-gray-600 font-bold">✕</span> Gestión Multi-mesas y POS</li>
+          </ul>
+          <a href="#" onclick="openLeadModal(event, 'Plan Basic ($46.900/mes)')" class="block text-center w-full bg-white/10 hover:bg-white/20 text-white font-bold py-4 rounded-2xl transition-all border border-white/20">Contratar Basic</a>
+        </div>
+
+        <!-- Plan Pro (Destacado) -->
+        <div class="bg-[#111] border-2 border-orange-500 rounded-[32px] p-8 flex flex-col transform md:-translate-y-4 shadow-[0_20px_50px_rgba(249,115,22,0.15)] relative text-left">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full shadow-lg">
+            Recomendado
           </div>
-          <p class="text-[10px] md:text-xs text-gray-400 mt-3 font-semibold">* Incluye instalación y configuración
-            completa.</p>
+          <h3 class="text-2xl font-black text-white mb-2 mt-2">Plan Pro</h3>
+          <p class="text-gray-400 text-sm mb-6 h-10">La solución completa para restaurantes con mesas y mayor volumen de ventas.</p>
+          <div class="mb-6">
+            <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">$74.900</span> <span class="text-sm text-gray-500 font-bold tracking-widest uppercase">COP</span>
+            <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">/ Mes a Mes</p>
+          </div>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Todo lo incluido en Plan Basic</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> <strong class="text-white">Códigos QR Individuales por Mesa</strong></li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Sistema POS de Facturación Interna</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Impresión Térmica y Control de Caja</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> KDS (Pantalla Digital para Cocina)</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Soporte Técnico Prioritario 24/7</li>
+          </ul>
+          <a href="#" onclick="openLeadModal(event, 'Plan Pro ($74.900/mes)')" class="btn-gradient block text-center w-full py-4 rounded-2xl transition-all">Seleccionar Pro</a>
         </div>
-        <br>
-        <a href="#" onclick="openLeadModal(event)"
-          class="btn-gradient animate-pulse hover:animate-none text-sm md:text-lg w-full sm:w-auto px-6 py-4 md:px-10 md:py-5 rounded-2xl inline-flex justify-center items-center gap-2">
-          🚀 Pedir Mi Menú en WhatsApp
-        </a>
-        <div class="mt-6 flex items-center justify-center gap-2 text-gray-400">
-          <span class="text-xl">🛡️</span>
-          <p class="text-sm font-medium">Garantía de Satisfacción de 7 días. Si no te gusta, te devolvemos el 100%.</p>
-        </div>
+
+      </div>
+
+      <div class="mt-12 flex items-center justify-center gap-2 text-gray-400">
+        <span class="text-xl">🛡️</span>
+        <p class="text-sm font-medium">Puedes cancelar tu suscripción en cualquier momento.</p>
       </div>
     </div>
   </section>
@@ -802,8 +821,15 @@
 
 
     // Modal Logic
-    function openLeadModal(e) {
+    let currentSelectedPlan = 'Plan Pro ($74.900/mes)';
+
+    function openLeadModal(e, planName = null) {
       e.preventDefault();
+      if (planName) {
+        currentSelectedPlan = planName;
+        const planInput = document.getElementById('leadSelectedPlan');
+        if (planInput) planInput.value = planName;
+      }
       document.getElementById('leadModal').classList.remove('hidden');
     }
 
@@ -815,13 +841,11 @@
       e.preventDefault();
       const person = document.getElementById('leadPersonName').value;
       const biz = document.getElementById('leadBizName').value;
-      const budget = document.getElementById('leadBudget').value;
+      const plan = document.getElementById('leadSelectedPlan').value || currentSelectedPlan;
 
-      let msg = `Hola! Soy *${person}* y me interesa el menú digital para mi negocio: *${biz}*.\n\n`;
-      if (budget) {
-        msg += `Mi rango de presupuesto es: *${budget}*\n\n`;
-      }
-      msg += `Quedo atento para recibir más información y comenzar la activación.`;
+      let msg = `🚀 *Nuevo Lead - MenuPro*\n\n`;
+      msg += `Hola! Soy *${person}* y quiero activar el *${plan}* para mi negocio: *${biz}*.\n\n`;
+      msg += `Quedo atento para coordinar el pago y comenzar la instalación.`;
 
       // FB Pixel tracking
       if (typeof fbq === 'function') {
@@ -871,15 +895,9 @@
             placeholder="Ej: La Pizzería" required>
         </div>
         <div>
-          <label class="text-gray-400 text-xs font-bold uppercase block mb-2">Presupuesto (Opcional -
-            Negociable)</label>
-          <select id="leadBudget"
-            class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-orange-500 focus:bg-white/10 transition-all shadow-inner appearance-none">
-            <option value="" class="text-black">Selecciona una opción</option>
-            <option value="Menos de $100.000" class="text-black">$200.000 (Negociable)</option>
-            <option value="$100.000 - $300.000" class="text-black">$250.000 - $300.000</option>
-            <option value="Más de $300.000" class="text-black">Más de $300.000</option>
-          </select>
+          <label class="text-gray-400 text-xs font-bold uppercase block mb-2">Plan Seleccionado</label>
+          <input type="text" id="leadSelectedPlan" readonly value="Plan Pro ($74.900/mes)"
+            class="w-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold rounded-xl p-4 text-sm outline-none shadow-inner cursor-not-allowed">
         </div>
         <button type="submit"
           class="w-full mt-2 bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-lg shadow-green-500/20 text-white font-black py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all flex justify-center items-center gap-2 text-sm uppercase tracking-wide">
