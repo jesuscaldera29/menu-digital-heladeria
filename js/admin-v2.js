@@ -145,6 +145,7 @@ window.changeGlobalBranch = async function() {
     if (b) {
         localStorage.setItem('business_slug', b.slug);
         localStorage.setItem('business_id', b.id);
+        localStorage.setItem('override_business_id', b.id);
         window.location.reload();
     }
 };

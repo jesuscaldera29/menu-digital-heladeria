@@ -273,12 +273,12 @@ async function loadKioskSettings() {
               showToast('Mesa ocupada: Datos autocompletados');
             } else {
               if (nameEl) {
-                nameEl.value = '';
+                if (nameEl.readOnly) nameEl.value = '';
                 nameEl.readOnly = false;
                 nameEl.classList.remove('bg-gray-100', 'text-gray-500');
               }
               if (phoneEl) {
-                phoneEl.value = '';
+                if (phoneEl.readOnly) phoneEl.value = '';
                 phoneEl.readOnly = false;
                 phoneEl.classList.remove('bg-gray-100', 'text-gray-500');
               }

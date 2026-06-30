@@ -1018,7 +1018,8 @@ function calculateChange() {
 }
 
 async function confirmSale() {
-  if (!activeCashClosingId) {
+  const staffRole = localStorage.getItem('staff_role');
+  if (!activeCashClosingId && staffRole !== 'Mesero') {
     showToast('⚠️ Debes abrir la caja antes de procesar ventas', 'error');
     openCashModal();
     return;

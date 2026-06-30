@@ -42,12 +42,12 @@ class ConfigManager(context: Context) {
     fun getKioskUrl(): String = prefs.getString(KEY_KIOSK_URL, DEFAULT_KIOSK_URL) ?: DEFAULT_KIOSK_URL
 
     // === Setters ===
-    fun setPrinterIp(ip: String) = prefs.edit().putString(KEY_PRINTER_IP, ip).apply()
-    fun setPrinterPort(port: Int) = prefs.edit().putInt(KEY_PRINTER_PORT, port).apply()
-    fun setPaperWidth(width: Int) = prefs.edit().putInt(KEY_PAPER_WIDTH, width).apply()
-    fun setAutoCut(enabled: Boolean) = prefs.edit().putBoolean(KEY_AUTO_CUT, enabled).apply()
-    fun setBeepOnPrint(enabled: Boolean) = prefs.edit().putBoolean(KEY_BEEP_ON_PRINT, enabled).apply()
-    fun setKioskUrl(url: String) = prefs.edit().putString(KEY_KIOSK_URL, url).apply()
+    fun setPrinterIp(ip: String) = prefs.edit().putString(KEY_PRINTER_IP, ip).commit()
+    fun setPrinterPort(port: Int) = prefs.edit().putInt(KEY_PRINTER_PORT, port).commit()
+    fun setPaperWidth(width: Int) = prefs.edit().putInt(KEY_PAPER_WIDTH, width).commit()
+    fun setAutoCut(enabled: Boolean) = prefs.edit().putBoolean(KEY_AUTO_CUT, enabled).commit()
+    fun setBeepOnPrint(enabled: Boolean) = prefs.edit().putBoolean(KEY_BEEP_ON_PRINT, enabled).commit()
+    fun setKioskUrl(url: String) = prefs.edit().putString(KEY_KIOSK_URL, url).commit()
 
     // === Get full config as JSON string ===
     fun toJson(): String {
