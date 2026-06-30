@@ -293,6 +293,16 @@ async function loadKioskSettings() {
           tableSelect.innerHTML = options;
         }
       }
+
+      // Hide coupon container if disabled in settings
+      const couponContainer = document.getElementById('kioskCouponContainer');
+      if (couponContainer) {
+        if (data.enable_coupons === false) {
+          couponContainer.classList.add('hidden');
+        } else {
+          couponContainer.classList.remove('hidden');
+        }
+      }
     }
   } catch (err) {
     console.error('Error loading kiosk settings:', err);
