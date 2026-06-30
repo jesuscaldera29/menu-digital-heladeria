@@ -45,6 +45,7 @@ async function initPOS() {
   document.getElementById('cashierName').textContent = '👤 ' + (staffName || 'Cajero').toUpperCase();
   await loadSettings();
   await loadCustomers();
+  await loadDrivers();
   await reloadAllDataAndRender();
 
   // Init Auto-Print
@@ -2852,5 +2853,43 @@ async function performLogout() {
   localStorage.removeItem('staff_id');
   localStorage.removeItem('staff_name');
   window.location.href = 'login.html';
+}
+
+async function loadDrivers() {
+  const select = document.getElementById('deliveryDriver');
+  if (!select) return;
+  try {
+    const { data } = await supabaseClient
+      .from('staff')
+      .select('name')
+      .eq('business_id', businessId)
+      .eq('role', 'Repartidor');
+    
+    let html = '<option value="">Seleccionar Repartidor...</option>';
+    if (data) {
+      data.forEach(d => {
+        html += `<option value="${d.name}">${d.name}</option>`;
+      });
+    }
+    html += '<option value="OTRO">Otro repartidor...</option>';
+    select.innerHTML = html;
+    
+    select.addEventListener('change', function() {
+      if (this.value === 'OTRO') {
+        const customName = prompt("Ingresa el nombre del repartidor:");
+        if (customName && customName.trim() !== '') {
+           const newOpt = document.createElement('option');
+           newOpt.value = customName.trim();
+           newOpt.text = customName.trim();
+           this.add(newOpt, this.options[this.length - 1]);
+           this.value = customName.trim();
+        } else {
+           this.value = '';
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Error loading drivers', err);
+  }
 }
 
