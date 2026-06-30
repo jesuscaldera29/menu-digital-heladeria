@@ -857,6 +857,7 @@
       e.preventDefault();
       closeDemoModal();
       document.getElementById('iframeOverlay').classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Evita que el fondo (landing) haga scroll
       document.getElementById('demoIframe').src = url;
       
       const credsBar = document.getElementById('demoCredentialsBar');
@@ -871,6 +872,7 @@
 
     function closeIframeDemo() {
       document.getElementById('iframeOverlay').classList.add('hidden');
+      document.body.style.overflow = ''; // Restaura el scroll de la landing
       document.getElementById('demoIframe').src = '';
     }
 
@@ -998,7 +1000,7 @@
   </div>
 
   <!-- IFRAME OVERLAY (NUEVO MODO DEMO) -->
-  <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col">
+  <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col overscroll-none touch-none">
     <!-- Header flotante elegante -->
     <div class="bg-[#111] border-b border-white/10 p-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative z-20">
       
@@ -1043,7 +1045,7 @@
       <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
         <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500"></div>
       </div>
-      <iframe id="demoIframe" src="" class="w-full h-full relative z-10 bg-transparent pointer-events-auto" frameborder="0" scrolling="yes"></iframe>
+      <iframe id="demoIframe" src="" class="absolute inset-0 w-full h-full z-10 bg-transparent pointer-events-auto" frameborder="0" scrolling="yes"></iframe>
     </div>
   </div>
 
