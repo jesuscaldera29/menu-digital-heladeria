@@ -1211,7 +1211,7 @@ async function printKioskTicket(o) {
         customer_name: o.customer_name || 'Mostrador',
         customer_phone: o.customer_phone || 'N/A',
         address: o.address || 'N/A',
-        delivery_method: o.delivery_method || 'Local',
+        delivery_method: ((o.delivery_method || 'Local') + ' - ' + (o.customer_name && o.customer_name !== 'VENTA RAPIDA' ? o.customer_name : 'Mostrador')).toUpperCase(),
         payment_method: o.payment_method || 'Pendiente',
         items: o.items || [],
         total: o.total || 0,
