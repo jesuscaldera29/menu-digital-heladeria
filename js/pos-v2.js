@@ -924,10 +924,15 @@ function selectOrderType(type, el) {
   el.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
 
   document.getElementById('tableSelector').classList.toggle('hidden', type !== 'A la mesa');
-  document.getElementById('addressField').classList.toggle('hidden', type !== 'Domicilio');
+  const addressField = document.getElementById('addressField');
+  if (addressField) addressField.classList.toggle('hidden', type !== 'Domicilio');
+  
   const neighborhoodField = document.getElementById('neighborhoodField');
   if (neighborhoodField) neighborhoodField.classList.toggle('hidden', type !== 'Domicilio');
-  document.getElementById('phoneField').classList.toggle('hidden', type !== 'Domicilio');
+  
+  const phoneField = document.getElementById('phoneField');
+  if (phoneField) phoneField.classList.toggle('hidden', type !== 'Domicilio');
+  
   const driverField = document.getElementById('driverField');
   if (driverField) driverField.classList.toggle('hidden', type !== 'Domicilio');
   const btnSave = document.getElementById('btnSaveTable');
