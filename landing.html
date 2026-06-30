@@ -868,9 +868,9 @@
       document.getElementById('demoIframe').src = '';
     }
 
-    function copyDemoCreds() {
-      navigator.clipboard.writeText("demo@menupro.com");
-      alert("Correo 'demo@menupro.com' copiado. La contraseña es 123456.");
+    function copyDemoText(text) {
+      navigator.clipboard.writeText(text);
+      alert(text + " copiado al portapapeles.");
     }
 
     function submitLead(e) {
@@ -994,42 +994,53 @@
   <!-- IFRAME OVERLAY (NUEVO MODO DEMO) -->
   <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col">
     <!-- Header flotante elegante -->
-    <div class="bg-[#111] border-b border-white/10 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative z-20">
-      <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+    <div class="bg-[#111] border-b border-white/10 p-3 sm:p-4 flex flex-col gap-3 shrink-0 shadow-2xl relative z-20">
+      
+      <!-- Fila Superior: Título y Botones Principales -->
+      <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-2">
           <span class="animate-pulse w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
-          <span class="text-white font-black text-sm tracking-widest uppercase">Modo Demo</span>
+          <span class="text-white font-black text-xs sm:text-sm tracking-widest uppercase">Modo Demo</span>
         </div>
         
-        <!-- Credenciales Demo (Admin) -->
-        <div id="demoCredentialsBar" class="hidden items-center gap-3 bg-blue-500/10 border border-blue-500/30 px-3 py-2 rounded-xl">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs">
-            <span class="text-blue-200">Email: <strong class="text-white tracking-wider">demo@menupro.com</strong></span>
-            <span class="text-blue-200">Clave: <strong class="text-white tracking-wider">123456</strong></span>
-          </div>
-          <button onclick="copyDemoCreds()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-lg shadow-blue-500/20 active:scale-95">Copiar</button>
+        <div class="flex items-center gap-2">
+          <a href="#" onclick="contactWhatsApp(event)" class="bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white px-3 py-1.5 rounded-lg font-bold text-[10px] sm:text-xs shadow-lg shadow-green-500/20 flex items-center gap-1">
+            💬 <span class="hidden sm:inline">Contactar</span>
+          </a>
+          <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-3 py-1.5 rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1">
+            ✕ <span class="hidden sm:inline">Cerrar</span>
+          </button>
         </div>
-
-        <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-4 py-2 rounded-xl text-xs flex sm:hidden">✕ Cerrar Demo</button>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar">
+      <!-- Fila Inferior: Scrollable badges and buttons -->
+      <div class="flex items-center gap-2 overflow-x-auto w-full hide-scrollbar pb-1">
         <!-- CEO Badge -->
-        <div class="flex items-center gap-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-orange-500/30 px-4 py-2 rounded-xl whitespace-nowrap">
-          <span class="text-xl">👨🏻‍💻</span>
-          <span class="text-orange-400 font-bold text-xs uppercase tracking-wider">CEO: Jesus Caldera</span>
+        <div class="flex items-center gap-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-orange-500/30 px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0">
+          <span class="text-sm">👨🏻‍💻</span>
+          <span class="text-orange-400 font-bold text-[10px] sm:text-xs uppercase tracking-wider">CEO: Jesus Caldera</span>
         </div>
+        
         <!-- Ver Planes -->
-        <button onclick="closeIframeDemo(); document.getElementById('planes').scrollIntoView({behavior:'smooth'})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all shadow-lg">
+        <button onclick="closeIframeDemo(); document.getElementById('planes').scrollIntoView({behavior:'smooth'})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-lg font-bold text-[10px] sm:text-xs whitespace-nowrap transition-all shrink-0">
           📋 Ver Planes
         </button>
-        <!-- Contactame -->
-        <a href="#" onclick="contactWhatsApp(event)" class="bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all shadow-lg shadow-green-500/20 flex items-center gap-2 hover:scale-105">
-          💬 Contáctame
-        </a>
-        <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-4 py-2 rounded-xl text-xs hidden sm:flex hover:bg-white/20 transition-colors">
-          ✕ Cerrar
-        </button>
+
+        <!-- Credenciales Demo (Admin) -->
+        <div id="demoCredentialsBar" class="hidden items-center gap-3 bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 rounded-lg shrink-0">
+          <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+            <span class="text-blue-200">Email:</span>
+            <strong class="text-white tracking-wider">demo@menupro.com</strong>
+            <button onclick="copyDemoText('demo@menupro.com')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-[10px] transition-colors shadow-sm active:scale-95">Copiar</button>
+          </div>
+          <div class="w-px h-4 bg-blue-500/30"></div>
+          <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+            <span class="text-blue-200">Clave:</span>
+            <strong class="text-white tracking-wider">123456</strong>
+            <button onclick="copyDemoText('123456')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-[10px] transition-colors shadow-sm active:scale-95">Copiar</button>
+          </div>
+        </div>
+
       </div>
     </div>
     
