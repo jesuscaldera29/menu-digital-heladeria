@@ -847,16 +847,30 @@
     }
 
     // Iframe Demo Logic
-    function openIframeDemo(e, url) {
+    function openIframeDemo(e, url, showCreds = false) {
       e.preventDefault();
       closeDemoModal();
       document.getElementById('iframeOverlay').classList.remove('hidden');
       document.getElementById('demoIframe').src = url;
+      
+      const credsBar = document.getElementById('demoCredentialsBar');
+      if (showCreds) {
+        credsBar.classList.remove('hidden');
+        credsBar.classList.add('flex');
+      } else {
+        credsBar.classList.add('hidden');
+        credsBar.classList.remove('flex');
+      }
     }
 
     function closeIframeDemo() {
       document.getElementById('iframeOverlay').classList.add('hidden');
       document.getElementById('demoIframe').src = '';
+    }
+
+    function copyDemoCreds() {
+      navigator.clipboard.writeText("demo@menupro.com");
+      alert("Correo 'demo@menupro.com' copiado. La contraseña es 123456.");
     }
 
     function submitLead(e) {
@@ -955,7 +969,7 @@
         </a>
 
         <!-- Admin -->
-        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-administrable.vercel.app/login.html?demo=true&email=demo@menupro.com&pass=123456')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-administrable.vercel.app/login.html', true)" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
           <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">💻</div>
           <div class="flex-1">
             <h4 class="text-white font-bold text-lg">Ver Panel Administrador</h4>
@@ -981,11 +995,21 @@
   <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col">
     <!-- Header flotante elegante -->
     <div class="bg-[#111] border-b border-white/10 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative z-20">
-      <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
         <div class="flex items-center gap-2">
           <span class="animate-pulse w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
           <span class="text-white font-black text-sm tracking-widest uppercase">Modo Demo</span>
         </div>
+        
+        <!-- Credenciales Demo (Admin) -->
+        <div id="demoCredentialsBar" class="hidden items-center gap-3 bg-blue-500/10 border border-blue-500/30 px-3 py-2 rounded-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs">
+            <span class="text-blue-200">Email: <strong class="text-white tracking-wider">demo@menupro.com</strong></span>
+            <span class="text-blue-200">Clave: <strong class="text-white tracking-wider">123456</strong></span>
+          </div>
+          <button onclick="copyDemoCreds()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-lg shadow-blue-500/20 active:scale-95">Copiar</button>
+        </div>
+
         <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-4 py-2 rounded-xl text-xs flex sm:hidden">✕ Cerrar Demo</button>
       </div>
 
