@@ -1009,17 +1009,17 @@
       </div>
 
       <!-- Centro: Credenciales (Solo visible si es Admin) -->
-      <div id="demoCredentialsBar" class="hidden items-center justify-center gap-4 bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl w-full md:w-auto">
-        <div class="flex items-center gap-2 text-xs sm:text-sm">
+      <div id="demoCredentialsBar" class="hidden flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl w-full md:w-auto">
+        <div class="flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto justify-between sm:justify-start">
           <span class="text-blue-200">Email:</span>
-          <strong class="text-white tracking-wider">demo@menupro.com</strong>
-          <button onclick="copyDemoText('demo@menupro.com')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95">Copiar</button>
+          <strong class="text-white tracking-wider truncate max-w-[120px] sm:max-w-none">demo@menupro.com</strong>
+          <button onclick="copyDemoText('demo@menupro.com')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95 shrink-0">Copiar</button>
         </div>
-        <div class="w-px h-5 bg-blue-500/30"></div>
-        <div class="flex items-center gap-2 text-xs sm:text-sm">
+        <div class="hidden sm:block w-px h-5 bg-blue-500/30"></div>
+        <div class="flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto justify-between sm:justify-start">
           <span class="text-blue-200">Clave:</span>
           <strong class="text-white tracking-wider">123456</strong>
-          <button onclick="copyDemoText('123456')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95">Copiar</button>
+          <button onclick="copyDemoText('123456')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95 shrink-0">Copiar</button>
         </div>
       </div>
       
@@ -1038,12 +1038,12 @@
     </div>
     
     <!-- Contenedor Iframe -->
-    <div class="flex-1 w-full bg-[#0a0a0a] relative overflow-hidden">
+    <div class="flex-1 w-full bg-[#0a0a0a] relative overflow-hidden" style="-webkit-overflow-scrolling: touch;">
       <!-- Loading spinner behind iframe -->
-      <div class="absolute inset-0 flex items-center justify-center z-0">
+      <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
         <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500"></div>
       </div>
-      <iframe id="demoIframe" src="" class="w-full h-full relative z-10 bg-transparent" frameborder="0"></iframe>
+      <iframe id="demoIframe" src="" class="w-full h-full relative z-10 bg-transparent pointer-events-auto" frameborder="0" scrolling="yes"></iframe>
     </div>
   </div>
 
