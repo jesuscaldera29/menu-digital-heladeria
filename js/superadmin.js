@@ -76,6 +76,7 @@ async function loadBusinesses() {
 
     allBusinesses = data || [];
     renderBusinesses();
+    populateCloneDropdowns();
     updateStats();
   } catch (err) {
     showToast('❌ Error cargando restaurantes');
@@ -479,6 +480,106 @@ async function saveLandingPrices(event) {
     showToast('❌ Error: ' + err.message);
   } finally {
     btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+// ==========================================
+// LÓGICA PARA CLONADOR DE MENÚS (NUEVO)
+// ==========================================
+
+function populateCloneDropdowns() {
+  const sourceSelect = document.getElementById('cloneSourceSelect');
+  const targetSelect = document.getElementById('cloneTargetSelect');
+  
+  // Guardar selecciones actuales si existen
+  const currentSource = sourceSelect.value;
+  const currentTarget = targetSelect.value;
+
+  let optionsHtml = '<option value="">Selecciona restaurante...</option>';
+  
+  // Ordenar alfabéticamente
+  const sortedBiz = [...allBusinesses].sort((a, b) => a.business_name.localeCompare(b.business_name));
+  
+  sortedBiz.forEach(b => {
+    optionsHtml += `<option value="${b.id}">${b.business_name} (/${b.slug})</option>`;
+  });
+
+  sourceSelect.innerHTML = optionsHtml;
+  targetSelect.innerHTML = optionsHtml;
+
+  // Restaurar selecciones si es posible
+  if (currentSource) sourceSelect.value = currentSource;
+  if (currentTarget) targetSelect.value = currentTarget;
+}
+
+async function handleCloneMenu(event) {
+  event.preventDefault();
+  
+  const sourceId = document.getElementById('cloneSourceSelect').value;
+  const targetId = document.getElementById('cloneTargetSelect').value;
+  const btn = document.getElementById('btnCloneMenu');
+
+  if (!sourceId || !targetId) {
+    return showToast('⚠️ Selecciona Origen y Destino primero');
+  }
+
+  if (sourceId === targetId) {
+    return showToast('⚠️ El Origen y Destino no pueden ser el mismo');
+  }
+
+  const sourceName = document.getElementById('cloneSourceSelect').options[document.getElementById('cloneSourceSelect').selectedIndex].text;
+  const targetName = document.getElementById('cloneTargetSelect').options[document.getElementById('cloneTargetSelect').selectedIndex].text;
+
+  const confirmMsg = `¿Estás seguro de copiar TODOS los productos de:\n\nOrigen: ${sourceName}\nDestino: ${targetName}\n\nNota: Los productos no se borrarán del destino, sino que se agregarán a los existentes.`;
+  if (!confirm(confirmMsg)) return;
+
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span>⏳ Clonando...</span>';
+  btn.disabled = true;
+
+  try {
+    // 1. Obtener productos del origen
+    const { data: sourceProducts, error: fetchErr } = await supabaseClient
+      .from('products')
+      .select('*')
+      .eq('business_id', sourceId);
+
+    if (fetchErr) throw fetchErr;
+
+    if (!sourceProducts || sourceProducts.length === 0) {
+      showToast('⚠️ El restaurante Origen no tiene productos para clonar.');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      return;
+    }
+
+    // 2. Preparar los productos para insertar (limpiar id y cambiar business_id)
+    const clonedProducts = sourceProducts.map(p => {
+      const { id, created_at, ...cleanProduct } = p; // Removemos ID y created_at
+      return {
+        ...cleanProduct,
+        business_id: targetId
+      };
+    });
+
+    // 3. Insertar los nuevos productos en el destino
+    const { error: insertErr } = await supabaseClient
+      .from('products')
+      .insert(clonedProducts);
+
+    if (insertErr) throw insertErr;
+
+    showToast(`✅ ¡Éxito! ${clonedProducts.length} productos clonados a ${targetName}.`);
+    
+    // Recargar para actualizar los contadores
+    await loadBusinesses();
+
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error al clonar: ' + err.message);
+  } finally {
+    btn.innerHTML = originalText;
     btn.disabled = false;
   }
 }
