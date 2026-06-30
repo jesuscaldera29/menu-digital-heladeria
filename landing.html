@@ -846,6 +846,19 @@
       document.getElementById('demoModal').classList.add('hidden');
     }
 
+    // Iframe Demo Logic
+    function openIframeDemo(e, url) {
+      e.preventDefault();
+      closeDemoModal();
+      document.getElementById('iframeOverlay').classList.remove('hidden');
+      document.getElementById('demoIframe').src = url;
+    }
+
+    function closeIframeDemo() {
+      document.getElementById('iframeOverlay').classList.add('hidden');
+      document.getElementById('demoIframe').src = '';
+    }
+
     function submitLead(e) {
       e.preventDefault();
       const person = document.getElementById('leadPersonName').value;
@@ -932,7 +945,7 @@
       
       <div class="space-y-4">
         <!-- Menu -->
-        <a href="https://menu-digital-administrable.vercel.app/demo" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-orange-500 hover:bg-orange-500/10 transition-all p-4 rounded-2xl group">
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-administrable.vercel.app/demo')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-orange-500 hover:bg-orange-500/10 transition-all p-4 rounded-2xl group">
           <div class="w-12 h-12 bg-orange-500/20 text-orange-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">📱</div>
           <div class="flex-1">
             <h4 class="text-white font-bold text-lg">Ver Menú Digital</h4>
@@ -942,7 +955,7 @@
         </a>
 
         <!-- Admin -->
-        <a href="https://menu-digital-administrable.vercel.app/login.html?demo=true&email=demo@menupro.com&pass=123456" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-administrable.vercel.app/login.html?demo=true&email=demo@menupro.com&pass=123456')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
           <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">💻</div>
           <div class="flex-1">
             <h4 class="text-white font-bold text-lg">Ver Panel Administrador</h4>
@@ -952,7 +965,7 @@
         </a>
 
         <!-- Kiosko -->
-        <a href="https://menu-digital-administrable.vercel.app/kiosk.html?slug=demo" target="_blank" onclick="closeDemoModal()" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all p-4 rounded-2xl group">
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-administrable.vercel.app/kiosk.html?slug=demo')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all p-4 rounded-2xl group">
           <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">🏧</div>
           <div class="flex-1">
             <h4 class="text-white font-bold text-lg">Ver Kiosko Autoservicio</h4>
@@ -961,6 +974,48 @@
           <div class="text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
         </a>
       </div>
+    </div>
+  </div>
+
+  <!-- IFRAME OVERLAY (NUEVO MODO DEMO) -->
+  <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col">
+    <!-- Header flotante elegante -->
+    <div class="bg-[#111] border-b border-white/10 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative z-20">
+      <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+        <div class="flex items-center gap-2">
+          <span class="animate-pulse w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
+          <span class="text-white font-black text-sm tracking-widest uppercase">Modo Demo</span>
+        </div>
+        <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-4 py-2 rounded-xl text-xs flex sm:hidden">✕ Cerrar Demo</button>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar">
+        <!-- CEO Badge -->
+        <div class="flex items-center gap-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-orange-500/30 px-4 py-2 rounded-xl whitespace-nowrap">
+          <span class="text-xl">👨🏻‍💻</span>
+          <span class="text-orange-400 font-bold text-xs uppercase tracking-wider">CEO: Jesus Caldera</span>
+        </div>
+        <!-- Ver Planes -->
+        <button onclick="closeIframeDemo(); document.getElementById('planes').scrollIntoView({behavior:'smooth'})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all shadow-lg">
+          📋 Ver Planes
+        </button>
+        <!-- Contactame -->
+        <a href="#" onclick="contactWhatsApp(event)" class="bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all shadow-lg shadow-green-500/20 flex items-center gap-2 hover:scale-105">
+          💬 Contáctame
+        </a>
+        <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 px-4 py-2 rounded-xl text-xs hidden sm:flex hover:bg-white/20 transition-colors">
+          ✕ Cerrar
+        </button>
+      </div>
+    </div>
+    
+    <!-- Contenedor Iframe -->
+    <div class="flex-1 w-full bg-[#0a0a0a] relative overflow-hidden">
+      <!-- Loading spinner behind iframe -->
+      <div class="absolute inset-0 flex items-center justify-center z-0">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500"></div>
+      </div>
+      <iframe id="demoIframe" src="" class="w-full h-full relative z-10 bg-transparent" frameborder="0"></iframe>
     </div>
   </div>
 
