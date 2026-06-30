@@ -226,50 +226,52 @@ function subscribeToOnlineOrders() {
     .on(
       'postgres_changes',
       {
-        event: 'INSERT',
+        event: '*',
         schema: 'public',
         table: 'orders',
         filter: `business_id=eq.${businessId}`
       },
       (payload) => {
-        // Play notification sound (Pleasant Chime)
-        try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
-          audio.volume = 1.0;
-          audio.play().catch(e => console.log('Audio blocked', e));
-        } catch (e) { }
+        if (payload.eventType === 'INSERT') {
+          // Play notification sound
+          try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
+            audio.volume = 1.0;
+            audio.play().catch(e => console.log('Audio blocked', e));
+          } catch (e) { }
 
-        // Push to notifications panel and animate badge
-        if (typeof pushToNotifications === 'function') {
-          pushToNotifications(payload.new);
-          
-          // Make the badge bounce to call attention
-          const badge = document.getElementById('notifBadge');
-          if (badge) {
-            badge.classList.remove('animate-pulse');
-            badge.classList.add('animate-bounce');
-            setTimeout(() => {
-              badge.classList.remove('animate-bounce');
-            }, 3000);
-          }
-        }
-
-        // Auto print if enabled
-        if (autoPrintEnabled) {
-          if (payload.new.notes && payload.new.notes.includes('[ORIGIN:KIOSKO]')) {
-            showToast('🖨️ Imprimiendo nuevo pedido de Kiosko...');
-            printPOSTicket(payload.new);
+          // Push to notifications panel and animate badge
+          if (typeof pushToNotifications === 'function') {
+            pushToNotifications(payload.new);
             
-            // Si es un pedido nuevo de Kiosko, queremos asegurarnos de imprimir la comanda para cocina
-            if (typeof bridgePrintComanda === 'function') {
-               bridgePrintComanda(payload.new, posSettings);
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+              badge.classList.remove('animate-pulse');
+              badge.classList.add('animate-bounce');
+              setTimeout(() => { badge.classList.remove('animate-bounce'); }, 3000);
+            }
+          }
+
+          // Auto print if enabled
+          if (typeof autoPrintEnabled !== 'undefined' && autoPrintEnabled) {
+            if (payload.new.notes && payload.new.notes.includes('[ORIGIN:KIOSKO]')) {
+              showToast('🖨️ Imprimiendo nuevo pedido de Kiosko...');
+              if (typeof printPOSTicket === 'function') printPOSTicket(payload.new);
+              
+              if (typeof bridgePrintComanda === 'function') {
+                 bridgePrintComanda(payload.new, posSettings);
+              }
+            } else {
+              showToast('🖨️ Imprimiendo nuevo pedido online...');
+              if (typeof printPOSTicket === 'function') printPOSTicket(payload.new);
             }
           } else {
-            showToast('🖨️ Imprimiendo nuevo pedido online...');
-            printPOSTicket(payload.new);
+            showToast('🛎️ Nuevo pedido online recibido');
           }
-        } else {
-          showToast('🛎️ Nuevo pedido online recibido');
+        } else if (payload.eventType === 'UPDATE') {
+          if (typeof updateNotificationStatus === 'function') {
+            updateNotificationStatus(payload.new);
+          }
         }
       }
     )

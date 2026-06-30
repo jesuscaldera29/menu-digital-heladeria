@@ -1111,16 +1111,16 @@ function renderOrders() {
                 </td>
                 <td>
                     <div class="flex items-center gap-2">
-                        <select onchange="updateOrderStatus(${o.id}, this.value)" class="bg-gray-50 border border-gray-250 text-gray-950 text-xs font-bold rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500">
-                            <option value="Pendiente" ${status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
-                            <option value="Confirmado" ${status === 'Confirmado' ? 'selected' : ''}>✅ Confirmado</option>
-                            <option value="Preparando" ${status === 'Preparando' ? 'selected' : ''}>👨‍🍳 Preparando</option>
+                        <select onchange="updateOrderStatus('${o.id}', this.value, '${status}')" class="bg-gray-50 border border-gray-250 text-gray-950 text-xs font-bold rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                            <option value="Pendiente" ${status === 'Pendiente' ? 'selected' : ''} ${['Confirmado', 'Preparando', 'Entregado'].includes(status) ? 'disabled' : ''}>⏳ Pendiente</option>
+                            <option value="Confirmado" ${status === 'Confirmado' ? 'selected' : ''} ${['Preparando', 'Entregado'].includes(status) ? 'disabled' : ''}>✅ Confirmado</option>
+                            <option value="Preparando" ${status === 'Preparando' ? 'selected' : ''} ${['Entregado'].includes(status) ? 'disabled' : ''}>👨‍🍳 Preparando</option>
                             <option value="Entregado" ${status === 'Entregado' ? 'selected' : ''}>🚚 Entregado</option>
                             <option value="Cancelado" ${status === 'Cancelado' ? 'selected' : ''}>❌ Cancelado</option>
                         </select>
-                        <button onclick="viewOrderDetail(${o.id})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">Ver detalles</button>
-                        <button onclick="printOrderTicket(${o.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm" title="Imprimir Ticket">🖨️</button>
-                        <button onclick="deleteOrder(${o.id})" class="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1.5 rounded-lg text-xs transition-all shadow-sm" title="Eliminar Pedido">🗑️</button>
+                        <button onclick="viewOrderDetail('${o.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">Ver detalles</button>
+                        <button onclick="printOrderTicket('${o.id}')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm" title="Imprimir Ticket">🖨️</button>
+                        <button onclick="deleteOrder('${o.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1.5 rounded-lg text-xs transition-all shadow-sm" title="Eliminar Pedido">🗑️</button>
                     </div>
                 </td>
             </tr>
@@ -1193,8 +1193,18 @@ function filterOrdersByStatus(status) {
 }
 
 // Update order status in Supabase
-async function updateOrderStatus(orderId, newStatus) {
+async function updateOrderStatus(orderId, newStatus, currentStatus) {
     try {
+        // Double check status regression
+        const statusOrder = { 'Pendiente': 1, 'Confirmado': 2, 'Preparando': 3, 'Entregado': 4, 'Cancelado': 5 };
+        if (currentStatus && newStatus !== 'Cancelado') {
+            if (statusOrder[newStatus] < statusOrder[currentStatus]) {
+                showToast('❌ No se puede retroceder el estado del pedido', 'error');
+                renderOrders(); // Re-render to revert the select value
+                return;
+            }
+        }
+
         const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', orderId);
         if (error) throw error;
 
