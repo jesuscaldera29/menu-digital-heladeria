@@ -146,6 +146,9 @@
       </div>
       <h1 class="text-white text-2xl font-black tracking-tight">Bienvenido de vuelta</h1>
       <p class="text-gray-500 text-sm mt-1">Ingresa a tu panel de administración</p>
+      <div id="demoNotice" class="hidden mt-4 bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-bold py-2 px-4 rounded-xl">
+        Modo Demo Activado. Haz clic en Iniciar Sesión.
+      </div>
     </div>
 
     <!-- Form -->
@@ -231,6 +234,16 @@
       if (loader) {
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 300);
+      }
+
+      // Demo Auto-fill
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('demo') === 'true') {
+        const demoEmail = urlParams.get('email') || 'demo@menupro.com';
+        const demoPass = urlParams.get('pass') || '123456';
+        document.getElementById('email').value = demoEmail;
+        document.getElementById('password').value = demoPass;
+        document.getElementById('demoNotice').classList.remove('hidden');
       }
     })();
 
