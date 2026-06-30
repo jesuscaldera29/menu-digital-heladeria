@@ -1227,7 +1227,8 @@ async function printKioskTicket(o) {
         total: o.total || 0,
         discount: o.discount || 0,
         delivery_fee: o.delivery_fee || 0,
-        footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!'
+        footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!',
+        tracking_url: window.location.origin + '/order-status.html?id=' + o.id
       };
       const result = window.AndroidPrint.printTicket(JSON.stringify(data));
       console.log('[Kiosk] Ticket enviado via Android PrintBridge:', result);

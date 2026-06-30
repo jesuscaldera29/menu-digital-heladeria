@@ -119,6 +119,7 @@ async function bridgePrintTicket(order, settings) {
     tip: order.tip || 0,
     cash_received: order.split_payments?.cash_received || 0,
     footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!',
+    tracking_url: window.location.origin + '/order-status.html?id=' + order.id,
     target_ip: target_ip,
     target_port: target_port
   };

@@ -1,4 +1,4 @@
-﻿// ===== ESC/POS Command Builder for Thermal Printers =====
+// ===== ESC/POS Command Builder for Thermal Printers =====
 const ESC = 0x1B, GS = 0x1D, LF = 0x0A;
 
 class EscPosBuilder {
@@ -72,6 +72,27 @@ class EscPosBuilder {
       }
     }
     this.newline();
+    return this;
+  }
+  qrCode(url) {
+    if (!url) return this;
+    const store_len = url.length + 3;
+    const pL = store_len & 0xFF;
+    const pH = (store_len >> 8) & 0xFF;
+    
+    this.alignCenter();
+    // Model 2
+    this._p(GS, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00);
+    // Size (6)
+    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06);
+    // Error correction (48 = L)
+    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30);
+    // Store data
+    this._p(GS, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30);
+    this._t(url);
+    // Print
+    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30);
+    this.newline(2);
     return this;
   }
   build() { return Buffer.from(this.buf); }
@@ -160,6 +181,12 @@ function buildTicket(d, cfg, logoImage = null) {
   
   b.separator('-');
   b.newline().alignCenter().textLine(san(d.footer || 'Gracias por su compra!')).newline();
+  
+  if (d.tracking_url) {
+    b.alignCenter().textLine('ESCANEA PARA SEGUIR TU PEDIDO:');
+    b.qrCode(d.tracking_url);
+  }
+  
   if (cfg.beep_on_print) b.beep(2, 3);
   if (cfg.auto_cut) b.cut();
   return b.build();
@@ -217,10 +244,21 @@ function buildReport(d, cfg) {
   b.leftRight('Caja (POS):', fmt(d.originPOS||0));
   b.leftRight('Kiosko:', fmt(d.originKiosko||0));
   b.leftRight('Menu QR:', fmt(d.originMenu||0));
+  
   b.separator().alignCenter().bold(true).textLine('DESGLOSE DE PAGOS').bold(false).alignLeft();
   b.leftRight('Efectivo:', fmt(d.cash||0));
   b.leftRight('Tarjeta:', fmt(d.card||0));
   b.leftRight('Transferencia:', fmt(d.transfer||0));
+  
+  b.separator().alignCenter().bold(true).textLine('FLUJO DE EFECTIVO').bold(false).alignLeft();
+  b.leftRight('Fondo Apertura:', '+' + fmt(d.openingCash||0));
+  b.leftRight('Ventas Efectivo:', '+' + fmt(d.cash||0));
+  b.leftRight('Entradas:', '+' + fmt(d.cashIn||0));
+  b.leftRight('Salidas:', '-' + fmt(d.cashOut||0));
+  
+  b.separator().alignCenter().bold(true).textLine('ESPERADO EN CAJA').bold(false).alignLeft();
+  b.bold(true).leftRight('TOTAL EFECTIVO:', fmt(d.expectedCash||0)).bold(false);
+
   b.doubleSep().bold(true).doubleSize(true).alignCenter();
   b.textLine('TOTAL: ' + fmt(d.total||0)).normalSize().bold(false);
   b.newline().alignCenter().textLine('FIN DEL REPORTE').newline();
