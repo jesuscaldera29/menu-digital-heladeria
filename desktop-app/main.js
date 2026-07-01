@@ -28,11 +28,30 @@ function createWindow() {
   // Remove the default menu bar for a cleaner "app" look
   Menu.setApplicationMenu(null);
 
+  // Add keyboard shortcuts for reload and devtools
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.control && input.key.toLowerCase() === 'r') {
+      mainWindow.reload();
+      event.preventDefault();
+    }
+    if (input.key === 'F5') {
+      mainWindow.reload();
+      event.preventDefault();
+    }
+    if (input.key === 'F12') {
+      mainWindow.webContents.toggleDevTools();
+      event.preventDefault();
+    }
+  });
+
   // Maximize the window automatically
   mainWindow.maximize();
 
-  // Load the live Vercel production URL
-  mainWindow.loadURL('https://menu-digital-pro.vercel.app/login.html');
+  // Clear cache and load the live Vercel production URL
+  mainWindow.webContents.session.clearCache().then(() => {
+    console.log('Cache cleared successfully');
+    mainWindow.loadURL('https://menu-digital-pro.vercel.app/login.html');
+  });
 
   mainWindow.on('closed', function () {
     mainWindow = null;
