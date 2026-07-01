@@ -1444,10 +1444,6 @@ function showTicketPreview(o) {
       <div style="text-align:center;border-top:1px dashed #000;font-size:12px;margin-top:16px;padding-top:8px;white-space:pre-wrap;">
         ${customFooter}
       </div>
-      <div style="text-align:center;margin-top:16px;">
-        <div style="font-weight:bold;font-size:12px;margin-bottom:6px;">ESCANEA PARA SEGUIR TU PEDIDO:</div>
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/order-status.html?id=' + o.id)}" style="width:100px;height:100px;margin:0 auto;display:block;">
-      </div>
     </div>
   `;
 
@@ -1586,10 +1582,6 @@ async function printPOSTicket(o) {
       ${paymentDetailsHtml}
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px; white-space: pre-wrap;">
         ${customFooter}
-      </div>
-      <div class="text-center" style="margin-top:20px;">
-        <div class="font-bold" style="font-size:14px;margin-bottom:8px;">ESCANEA PARA SEGUIR TU PEDIDO:</div>
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/order-status.html?id=' + o.id)}" style="width:120px;height:120px;margin:0 auto;display:block;">
       </div>
       <script>
         let printed = false;

@@ -217,8 +217,28 @@ function testPrinterConnection() {
     const btn = document.querySelector('button[onclick="testPrinterConnection()"]');
     if (btn) btn.disabled = true;
 
-    // Real attempt to connect (will likely fail due to browser security or protocol mismatch on raw 9100)
-    // but satisfies the "make it functional" request as a real network probe.
+    // Si estamos en Electron Desktop, hacer test real via TCP nativo
+    if (window.DesktopPrint) {
+        // Temporarily set config to test IP, then restore
+        const originalConfig = window.DesktopPrint.getConfig();
+        window.DesktopPrint.setConfig(ip, parseInt(port) || 9100);
+        window.DesktopPrint.testPrint().then(result => {
+            // Restore original config
+            const orig = JSON.parse(originalConfig);
+            window.DesktopPrint.setConfig(orig.printer_ip, orig.printer_port);
+            
+            if (result === 'OK') {
+                showToast('✅ Conexión exitosa - Impresora respondió');
+            } else {
+                showToast('❌ ' + result, 'error');
+            }
+            if (btn) btn.disabled = false;
+            checkNewPrinterForm();
+        });
+        return;
+    }
+
+    // Fallback: HTTP probe (will likely fail in browser on raw 9100)
     fetch(`http://${ip}:${port}`, { mode: 'no-cors', cache: 'no-cache' })
         .then(() => {
             showToast('✅ Conexión establecida con éxito');
@@ -227,10 +247,9 @@ function testPrinterConnection() {
         })
         .catch(err => {
             console.error('Printer connection error:', err);
-            // It will almost always fail in a standard browser environment on port 9100 without a proxy.
             showToast(`⚠️ No se pudo verificar la conexión. Verifica la IP.`, 'error');
             if (btn) btn.disabled = false;
-            checkNewPrinterForm(); // still allow them to save it anyway
+            checkNewPrinterForm();
         });
 }
 

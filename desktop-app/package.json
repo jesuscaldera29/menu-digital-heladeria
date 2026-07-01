@@ -1,8 +1,8 @@
 {
   "name": "menu-digital-pro",
   "productName": "Menu Digital Pro",
-  "version": "1.0.0",
-  "description": "Sistema de Punto de Venta para Heladería",
+  "version": "2.0.0",
+  "description": "Sistema de Punto de Venta con Impresion Integrada",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -10,15 +10,11 @@
   },
   "build": {
     "appId": "com.heladeria.pos",
-    "extraResources": [
-      {
-        "from": "../print-server/PrintBridge.exe",
-        "to": "PrintBridge.exe"
-      },
-      {
-        "from": "../print-server/config.json",
-        "to": "config.json"
-      }
+    "files": [
+      "main.js",
+      "preload.js",
+      "escpos-builder.js",
+      "build/**/*"
     ],
     "win": {
       "target": "nsis",

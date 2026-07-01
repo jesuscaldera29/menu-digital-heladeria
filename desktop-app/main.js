@@ -1,38 +1,26 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
-const fs = require('fs');
-const { spawn } = require('child_process');
 
 let mainWindow;
-let printBridgeProcess;
 
-function startPrintBridge() {
-  const exePath = app.isPackaged 
-    ? path.join(process.resourcesPath, 'PrintBridge.exe')
-    : path.join(__dirname, '..', 'print-server', 'PrintBridge.exe');
-
-  if (fs.existsSync(exePath)) {
-    console.log('Iniciando motor de impresion en segundo plano...');
-    printBridgeProcess = spawn(exePath, [], {
-      windowsHide: true,
-      stdio: 'ignore'
-    });
-
-    printBridgeProcess.on('error', (err) => {
-      console.error('Error al iniciar PrintBridge:', err);
-    });
-  }
-}
+// ===== IPC: Provide userData path to preload =====
+// El preload necesita saber donde guardar la config de impresora por PC
+ipcMain.on('get-user-data-path', (event) => {
+  event.returnValue = app.getPath('userData');
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    icon: path.join(__dirname, 'build', 'icon.png'), // Icon for the window
+    icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, // THIS IS THE MAGIC FIX: Disables CORS and Mixed Content blocks
+      // PRELOAD: Este es el puente que conecta el WebView con la impresora TCP
+      // Hace que window.DesktopPrint este disponible en la pagina web
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: false, // Disables CORS and Mixed Content blocks
       allowRunningInsecureContent: true
     }
   });
@@ -64,7 +52,8 @@ app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
 app.on('ready', () => {
-  startPrintBridge();
+  // Ya no necesitamos iniciar PrintBridge.exe como proceso separado
+  // La impresion TCP esta integrada directamente via preload.js
   createWindow();
 });
 
@@ -77,11 +66,5 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   if (mainWindow === null) {
     createWindow();
-  }
-});
-
-app.on('will-quit', () => {
-  if (printBridgeProcess) {
-    printBridgeProcess.kill();
   }
 });

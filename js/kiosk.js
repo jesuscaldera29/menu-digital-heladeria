@@ -1122,13 +1122,6 @@ async function kProcessOrder() {
 
     document.getElementById('kTRecTotal').textContent = `$${Number(orderToPrint.total).toLocaleString()}`;
     
-    // Set QR code image src for tracking
-    const trackingUrl = window.location.origin + '/order-status.html?id=' + orderToPrint.id;
-    const qrImg = document.getElementById('kKioskQrImage');
-    if (qrImg) {
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(trackingUrl)}`;
-    }
-
     // Show ticket modal
     document.getElementById('kTicketModal').classList.remove('hidden');
     document.getElementById('kTicketModal').classList.add('flex');
@@ -1227,8 +1220,7 @@ async function printKioskTicket(o) {
         total: o.total || 0,
         discount: o.discount || 0,
         delivery_fee: o.delivery_fee || 0,
-        footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!',
-        tracking_url: window.location.origin + '/order-status.html?id=' + o.id
+        footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!'
       };
       const result = window.AndroidPrint.printTicket(JSON.stringify(data));
       console.log('[Kiosk] Ticket enviado via Android PrintBridge:', result);
@@ -1336,7 +1328,15 @@ window.handleLogoClick = function() {
       return;
     }
 
-    // PrintBridge Windows config (existing)
+    // Electron Desktop config mode (impresion TCP integrada)
+    if (window.DesktopPrint) {
+      if (typeof configureDesktopPrinter === 'function') {
+        configureDesktopPrinter();
+      }
+      return;
+    }
+
+    // PrintBridge HTTP config (navegadores sin Electron ni Android)
     const currentIP = localStorage.getItem('printbridge_url') || 'http://192.168.1.100:9101';
     const newIP = prompt("⚙️ Configuración del Servidor de Impresión (PrintBridge):\nIngrese la dirección IP y puerto del servidor del PC (ej. http://192.168.1.100:9101):", currentIP);
     if (newIP !== null) {

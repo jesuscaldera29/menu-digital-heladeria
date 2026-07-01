@@ -1,12 +1,30 @@
 // ===== PRINTBRIDGE CLIENT — Modulo de impresion directa por red =====
 // Este archivo se incluye en pos.html y kiosk.html
-// Conecta con el servidor PrintBridge corriendo en la PC del local
+//
+// PRIORIDAD DE IMPRESION:
+//   1. window.DesktopPrint  (Electron .exe con TCP integrado)
+//   2. window.AndroidPrint  (APK Android con TCP integrado)
+//   3. HTTP PrintBridge     (Servidor externo para navegadores)
+//   4. Fallback navegador   (window.print() dialog)
 
 // Default: tries localhost first, then falls back to configured IP
 let PRINTBRIDGE_URL = localStorage.getItem('printbridge_url') || '';
 
-// Auto-detect PrintBridge on common addresses
+// ===== DESKTOP PRINT (Electron Native TCP) =====
+// Si estamos dentro del .exe de Electron, window.DesktopPrint existe
+// y podemos imprimir directamente sin servidor externo
+function isDesktopApp() {
+  return typeof window.DesktopPrint !== 'undefined';
+}
+
+// Auto-detect PrintBridge on common addresses (solo para navegadores, no para Desktop/Android)
 async function detectPrintBridge() {
+  // Si estamos en Electron o Android, no necesitamos buscar PrintBridge HTTP
+  if (isDesktopApp() || window.AndroidPrint) {
+    console.log('[PrintBridge] Modo nativo detectado (' + (isDesktopApp() ? 'Desktop' : 'Android') + '). No se necesita servidor HTTP.');
+    return true;
+  }
+
   const candidates = [
     PRINTBRIDGE_URL,
     'http://localhost:9100',
@@ -42,6 +60,7 @@ async function detectPrintBridge() {
 
 // Check if PrintBridge is available
 async function isPrintBridgeOnline() {
+  if (isDesktopApp()) return true; // Desktop siempre tiene impresion disponible
   if (!PRINTBRIDGE_URL) return false;
   try {
     const resp = await fetch(PRINTBRIDGE_URL + '/status', { signal: AbortSignal.timeout(2000) });
@@ -55,7 +74,7 @@ async function isPrintBridgeOnline() {
   return false;
 }
 
-// Send print job to PrintBridge
+// Send print job to PrintBridge HTTP (solo para navegadores)
 async function printViaBridge(endpoint, data) {
   if (!PRINTBRIDGE_URL) {
     const found = await detectPrintBridge();
@@ -88,20 +107,15 @@ async function printViaBridge(endpoint, data) {
 
 // === HIGH-LEVEL PRINT FUNCTIONS ===
 
-// Print a ticket/receipt via PrintBridge
-async function bridgePrintTicket(order, settings) {
-  let target_ip = null;
-  let target_port = null;
+// Build the standard ticket data payload (shared between Desktop and HTTP modes)
+function _buildTicketPayload(order, settings) {
+  let validPrinters = [];
   
   if (settings && settings.printers && Array.isArray(settings.printers)) {
-    const receiptPrinter = settings.printers.find(p => p.printReceipts === true || p.printReceipts === 'true');
-    if (receiptPrinter) {
-      target_ip = receiptPrinter.ip;
-      target_port = parseInt(receiptPrinter.port) || 9100;
-    }
+    validPrinters = settings.printers.filter(p => p.printReceipts === true || p.printReceipts === 'true');
   }
 
-  const data = {
+  const payload = {
     logo_url: settings?.logo_url || null,
     business_name: settings?.business_name || 'MI NEGOCIO',
     ticket_id: String(order.id).includes('MESA-') ? String(order.id).toUpperCase() : String(order.id).split('-')[0],
@@ -118,28 +132,21 @@ async function bridgePrintTicket(order, settings) {
     delivery_fee: order.delivery_fee || 0,
     tip: order.tip || 0,
     cash_received: order.split_payments?.cash_received || 0,
-    footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!',
-    tracking_url: window.location.origin + '/order-status.html?id=' + order.id,
-    target_ip: target_ip,
-    target_port: target_port
+    footer: localStorage.getItem('receipt_cash_footer') || 'Gracias por su compra!'
   };
-  return await printViaBridge('/print/ticket', data);
+
+  return { payload, validPrinters };
 }
 
-// Print a comanda (kitchen order) via PrintBridge
-async function bridgePrintComanda(order, settings) {
-  let target_ip = null;
-  let target_port = null;
+// Build the standard comanda data payload
+function _buildComandaPayload(order, settings) {
+  let validPrinters = [];
   
   if (settings && settings.printers && Array.isArray(settings.printers)) {
-    const comandaPrinter = settings.printers.find(p => p.printOrders === true || p.printOrders === 'true');
-    if (comandaPrinter) {
-      target_ip = comandaPrinter.ip;
-      target_port = parseInt(comandaPrinter.port) || 9100;
-    }
+    validPrinters = settings.printers.filter(p => p.printOrders === true || p.printOrders === 'true');
   }
 
-  const data = {
+  const payload = {
     ticket_id: String(order.id).includes('MESA-') ? String(order.id).toUpperCase() : String(order.id).split('-')[0].toUpperCase(),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     customer_name: order.customer_name || 'Mostrador',
@@ -147,11 +154,71 @@ async function bridgePrintComanda(order, settings) {
     delivery_method: ((order.delivery_method || order.delivery_type || 'Local') + (order.address && (order.delivery_method === 'A la mesa' || order.delivery_type === 'A la mesa') ? ' ' + String(order.address).replace('Mesa ', '#') : '') + ' - ' + (order.customer_name && order.customer_name !== 'VENTA RAPIDA' ? order.customer_name : 'Mostrador')).toUpperCase(),
     address: order.address || '',
     items: order.items || [],
-    delivery_fee: order.delivery_fee || 0,
-    target_ip: target_ip,
-    target_port: target_port
+    delivery_fee: order.delivery_fee || 0
   };
-  return await printViaBridge('/print/comanda', data);
+
+  return { payload, validPrinters };
+}
+
+// Print a ticket/receipt
+async function bridgePrintTicket(order, settings) {
+  const { payload, validPrinters } = _buildTicketPayload(order, settings);
+  
+  // Create an array with at least one null target if no printers are set (fallback to local config)
+  const targets = validPrinters.length > 0 ? validPrinters : [{ ip: null, port: null }];
+
+  for (const printer of targets) {
+    payload.target_ip = printer.ip;
+    payload.target_port = parseInt(printer.port) || 9100;
+
+    // 1. Electron Desktop (TCP nativo integrado)
+    if (isDesktopApp()) {
+      try {
+        const result = await window.DesktopPrint.printTicket(JSON.stringify(payload));
+        if (result === 'OK') return true;
+        console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
+      } catch (e) {
+        console.error('[DesktopPrint] Excepción:', e);
+      }
+    } else {
+      // 2. HTTP PrintBridge (navegadores)
+      const success = await printViaBridge('/print/ticket', payload);
+      if (success) return true;
+      console.warn('[PrintBridge] Error con IP:', printer.ip);
+    }
+  }
+  
+  return false;
+}
+
+// Print a comanda (kitchen order)
+async function bridgePrintComanda(order, settings) {
+  const { payload, validPrinters } = _buildComandaPayload(order, settings);
+
+  const targets = validPrinters.length > 0 ? validPrinters : [{ ip: null, port: null }];
+
+  for (const printer of targets) {
+    payload.target_ip = printer.ip;
+    payload.target_port = parseInt(printer.port) || 9100;
+
+    // 1. Electron Desktop (TCP nativo integrado)
+    if (isDesktopApp()) {
+      try {
+        const result = await window.DesktopPrint.printComanda(JSON.stringify(payload));
+        if (result === 'OK') return true;
+        console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
+      } catch (e) {
+        console.error('[DesktopPrint] Excepción:', e);
+      }
+    } else {
+      // 2. HTTP PrintBridge (navegadores)
+      const success = await printViaBridge('/print/comanda', payload);
+      if (success) return true;
+      console.warn('[PrintBridge] Error con IP:', printer.ip);
+    }
+  }
+
+  return false;
 }
 
 // Print a report via PrintBridge
@@ -161,18 +228,81 @@ async function bridgePrintReport(reportData, settings) {
     date: new Date().toLocaleString(),
     ...reportData
   };
+
+  // 1. Electron Desktop
+  if (isDesktopApp()) {
+    try {
+      const result = await window.DesktopPrint.printReport(JSON.stringify(data));
+      return result === 'OK';
+    } catch (e) {
+      console.error('[DesktopPrint] Error reporte:', e);
+      return false;
+    }
+  }
+
+  // 2. HTTP PrintBridge
   return await printViaBridge('/print/report', data);
 }
 
 // Test print
 async function bridgeTestPrint() {
+  // 1. Electron Desktop
+  if (isDesktopApp()) {
+    try {
+      const result = await window.DesktopPrint.testPrint();
+      return result === 'OK';
+    } catch (e) {
+      console.error('[DesktopPrint] Error test:', e);
+      return false;
+    }
+  }
+
+  // 2. HTTP PrintBridge
   return await printViaBridge('/print/test', {});
 }
 
-// Configure PrintBridge URL manually
+// Configure PrintBridge URL manually (only for HTTP mode)
 function setPrintBridgeURL(url) {
   PRINTBRIDGE_URL = url;
   localStorage.setItem('printbridge_url', url);
+}
+
+// ===== DESKTOP PRINTER CONFIG (via prompt, similar to Android 5-clicks) =====
+// Esta funcion se llama desde el menu de configuracion (5 clicks en logo)
+function configureDesktopPrinter() {
+  if (!isDesktopApp()) return false;
+  
+  try {
+    const current = JSON.parse(window.DesktopPrint.getConfig());
+    const option = prompt(
+      "⚙️ Configuración de Impresora (Desktop):\n" +
+      "1 = Cambiar IP impresora (actual: " + current.printer_ip + ":" + current.printer_port + ")\n" +
+      "2 = Prueba de impresión\n" +
+      "3 = Cancelar",
+      "1"
+    );
+
+    if (option === '1') {
+      const newIP = prompt("IP de la impresora térmica:", current.printer_ip);
+      if (newIP) {
+        const newPort = prompt("Puerto (normalmente 9100):", String(current.printer_port));
+        window.DesktopPrint.setConfig(newIP, parseInt(newPort) || 9100);
+        alert("✅ Impresora configurada: " + newIP + ":" + (newPort || 9100) + "\n\nEsta configuración se guarda en este PC.\nOtro PC con el mismo programa puede tener otra IP.");
+        // Auto test print
+        window.DesktopPrint.testPrint().then(result => {
+          alert(result === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + result);
+        });
+      }
+    } else if (option === '2') {
+      window.DesktopPrint.testPrint().then(result => {
+        alert(result === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + result);
+      });
+    }
+    return true;
+  } catch (e) {
+    alert('Error: ' + e.message);
+    return false;
+  }
 }
 
 // Auto-detect on page load

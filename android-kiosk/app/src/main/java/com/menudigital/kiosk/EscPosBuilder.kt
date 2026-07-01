@@ -161,11 +161,6 @@ class EscPosBuilder(private val w: Int = 48) {
                 .textLine(san(d.optString("footer", "Gracias por su compra!")))
                 .newline()
 
-            if (d.has("tracking_url") && d.optString("tracking_url").isNotEmpty()) {
-                b.alignCenter().textLine("ESCANEA PARA SEGUIR TU PEDIDO:")
-                b.qrCode(d.optString("tracking_url"))
-            }
-
             if (config.getBeepOnPrint()) b.beep(2, 3)
             if (config.getAutoCut()) b.cut()
 

@@ -135,19 +135,7 @@ app.post('/print/ticket', async (req, res) => {
       }
     }
 
-    let qrImage = null;
-    if (req.body.tracking_url) {
-      try {
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(req.body.tracking_url)}`;
-        qrImage = await Jimp.read(qrUrl);
-        // Ensure it's sharp for thermal printing
-        qrImage.greyscale().contrast(0.5);
-      } catch (e) {
-        console.error('[TICKET] No se pudo cargar el QR:', e.message);
-      }
-    }
-
-    const data = buildTicket(req.body, config, logoImage, qrImage);
+    const data = buildTicket(req.body, config, logoImage);
     const result = await sendToPrinter(data, targetIp, targetPort);
     console.log('[TICKET] OK');
     res.json(result);
