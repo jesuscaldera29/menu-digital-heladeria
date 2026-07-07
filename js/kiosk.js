@@ -173,6 +173,16 @@ async function loadKioskSettings() {
       .eq('business_id', currentBusinessId)
       .single();
 
+    let branchName = null;
+    if (currentBusinessSlug) {
+      const { data: branchData } = await supabaseClient
+        .from('branches')
+        .select('name')
+        .eq('slug', currentBusinessSlug)
+        .single();
+      if (branchData) branchName = branchData.name;
+    }
+
     if (data) {
       window.kioskSettings = data;
       currency = data.currency || 'COP';
@@ -181,14 +191,37 @@ async function loadKioskSettings() {
       // Update names and logos on interface
       const welcomeName = document.getElementById('kioskWelcomeName');
       const headerName = document.getElementById('kioskHeaderName');
-      if (welcomeName) welcomeName.textContent = data.business_name || businessName;
-      if (headerName) headerName.textContent = data.business_name || businessName;
+      
+      let validSettingsName = data.business_name;
+      if (validSettingsName === "Mi Negocio") validSettingsName = null;
+      
+      const displayName = branchName || validSettingsName || businessName || "Mi Negocio";
+      
+      if (welcomeName) welcomeName.textContent = displayName;
+      if (headerName) headerName.textContent = displayName;
 
-      if (data.logo_url) {
+      // If branch doesn't have a logo, try to inherit from the main business
+      let finalLogoUrl = data.logo_url;
+      if (!finalLogoUrl) {
+        try {
+          const { data: biz } = await supabaseClient.from('businesses').select('owner_id').eq('id', currentBusinessId).single();
+          if (biz && biz.owner_id) {
+            const { data: mainBiz } = await supabaseClient.from('businesses').select('id').eq('owner_id', biz.owner_id).order('created_at', { ascending: true }).limit(1).single();
+            if (mainBiz && mainBiz.id !== currentBusinessId) {
+              const { data: mainSettings } = await supabaseClient.from('settings').select('logo_url').eq('business_id', mainBiz.id).single();
+              if (mainSettings && mainSettings.logo_url) {
+                finalLogoUrl = mainSettings.logo_url;
+              }
+            }
+          }
+        } catch(e) { console.warn('No se pudo heredar el logo:', e); }
+      }
+
+      if (finalLogoUrl) {
         const welcomeIcon = document.getElementById('kioskWelcomeIcon');
         const headerIcon = document.getElementById('kioskHeaderIcon');
-        if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-contain p-2">`;
-        if (headerIcon) headerIcon.outerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-12 h-12 object-contain bg-white rounded-full">`;
+        if (welcomeIcon) welcomeIcon.outerHTML = `<img src="${finalLogoUrl}" alt="Logo" id="kioskWelcomeIcon" class="w-full h-full object-contain p-2">`;
+        if (headerIcon) headerIcon.outerHTML = `<img src="${finalLogoUrl}" alt="Logo" id="kioskHeaderIcon" class="w-12 h-12 object-contain bg-white rounded-full">`;
 
         let link = document.querySelector("link[rel~='icon']");
         if (!link) {
@@ -196,7 +229,7 @@ async function loadKioskSettings() {
           link.rel = 'icon';
           document.head.appendChild(link);
         }
-        link.href = data.logo_url;
+        link.href = finalLogoUrl;
       }
 
       // 4. Inject Dynamic PWA Manifest for Kiosk App Installation

@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.menudigital.kiosk.app-debug-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.menudigital.kiosk.app-main-6:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.menudigital.kiosk.app-debug-4:/layout_activity_main.xml.flat",
+        "source": "com.menudigital.kiosk.app-main-6:/layout/activity_main.xml"
+    }
+]

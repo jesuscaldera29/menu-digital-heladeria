@@ -1,3 +1,6 @@
 node_modules/
 *.exe
 .env
+.dev/
+.main/
+*.zip

@@ -207,7 +207,7 @@ function openImportModal(type) {
     document.getElementById('importModalDesc').textContent = 'Formato CSV: nombre, teléfono, dirección, barrio';
   } else {
     document.getElementById('importModalTitle').textContent = '📤 Importar Productos';
-    document.getElementById('importModalDesc').textContent = 'Formato CSV: nombre, precio, categoría, descripción';
+    document.getElementById('importModalDesc').textContent = 'Soporta archivos CSV y JSON.\n\nFormato CSV: nombre, precio, categoría, descripción, imagen_url, acompañamientos, límite_acompañamientos\n\nFormato JSON: Soporta "extras" anidados.';
   }
   document.getElementById('importModal').style.display = 'flex';
 }
@@ -216,24 +216,166 @@ async function confirmImport() {
   const file = document.getElementById('importFile').files[0];
   if (!file) return showToast('⚠️ Selecciona un archivo', 'error');
   const text = await file.text();
-  const lines = text.split('\n').filter(l => l.trim());
-  if (lines.length < 2) return showToast('⚠️ Archivo vacío', 'error');
+  const fileName = file.name.toLowerCase();
   const btn = document.getElementById('btnImportConfirm'); btn.disabled = true; btn.textContent = '⏳...';
+  
   try {
     if (importType === 'customers') {
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) throw new Error('Archivo CSV vacío o sin datos');
       const rows = lines.slice(1).map(l => { const cols = l.split(','); return { business_id: businessId, name: (cols[0] || '').trim(), phone: (cols[1] || '').trim(), address: (cols[2] || '').trim(), neighborhood: (cols[3] || '').trim() }; }).filter(r => r.name && r.phone);
       const { error } = await supabaseClient.from('customers').upsert(rows, { onConflict: 'business_id,phone' });
       if (error) throw error;
       showToast(`✅ ${rows.length} clientes importados`); loadCustomers();
     } else {
-      const rows = lines.slice(1).map(l => { const cols = l.split(','); return { business_id: businessId, name: (cols[0] || '').trim(), price: parseFloat(cols[1]) || 0, category: (cols[2] || 'General').trim(), description: (cols[3] || '').trim() }; }).filter(r => r.name);
-      const { error } = await supabaseClient.from('products').insert(rows);
-      if (error) throw error;
-      showToast(`✅ ${rows.length} productos importados`); loadProducts();
+      let parsedProducts = [];
+      
+      if (fileName.endsWith('.json')) {
+        let jsonData = JSON.parse(text);
+        if (!Array.isArray(jsonData)) jsonData = [jsonData];
+        parsedProducts = jsonData;
+      } else {
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) throw new Error('Archivo CSV vacío o sin datos');
+        parsedProducts = lines.slice(1).map(l => { 
+          const cols = l.split(','); 
+          return { 
+            name: (cols[0] || '').trim(), 
+            price: parseFloat(cols[1]) || 0, 
+            category: (cols[2] || 'General').trim(), 
+            description: (cols[3] || '').trim(),
+            image_url: (cols[4] || '').trim() || null,
+            accompaniments: (cols[5] || '').trim() || null,
+            accompaniments_limit: parseInt(cols[6]) || null
+          }; 
+        });
+      }
+      
+      const rows = parsedProducts.filter(r => r.name).map(p => ({
+        business_id: businessId,
+        name: p.name,
+        price: Number(p.price) || 0,
+        category: p.category || 'General',
+        description: p.description || null,
+        image_url: p.image_url || null,
+        accompaniments: p.accompaniments || null,
+        accompaniments_limit: p.accompaniments_limit || null,
+        _extras: p.extras || null // Temporary field for JSON processing
+      }));
+      
+      // Skip existing products
+      const { data: existingProducts } = await supabaseClient.from('products').select('name').eq('business_id', businessId);
+      const existingNames = new Set(existingProducts?.map(p => p.name.toLowerCase()) || []);
+      const newRows = rows.filter(r => !existingNames.has(r.name.toLowerCase()));
+      
+      if (newRows.length > 0) {
+        // Prepare rows without _extras for insertion
+        const rowsToInsert = newRows.map(r => {
+          const { _extras, ...rest } = r;
+          return rest;
+        });
+        
+        const { data: insertedProducts, error } = await supabaseClient.from('products').insert(rowsToInsert).select('id, name');
+        if (error) throw error;
+        
+        // Insert product extras if provided in JSON
+        let extrasToInsert = [];
+        insertedProducts.forEach(insertedProd => {
+          const originalRow = newRows.find(r => r.name.toLowerCase() === insertedProd.name.toLowerCase());
+          if (originalRow && originalRow._extras && Array.isArray(originalRow._extras)) {
+            originalRow._extras.forEach(extra => {
+              extrasToInsert.push({
+                business_id: businessId,
+                product_id: insertedProd.id,
+                name: extra.name,
+                price: Number(extra.price) || 0,
+                image_url: extra.image_url || null
+              });
+            });
+          }
+        });
+        
+        if (extrasToInsert.length > 0) {
+          const { error: extrasError } = await supabaseClient.from('product_extras').insert(extrasToInsert);
+          if (extrasError) console.error('Error importing product extras:', extrasError);
+        }
+      }
+      showToast(`✅ ${newRows.length} productos importados (${rows.length - newRows.length} omitidos)`); loadProducts();
     }
     document.getElementById('importModal').style.display = 'none';
   } catch (err) { showToast('❌ ' + err.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = '✅ Importar'; }
+}
+
+async function exportProductsToCSV(event) {
+  if (event) event.stopPropagation();
+  
+  if (typeof businessId === 'undefined' || !businessId) {
+    return showToast('Error: No hay sucursal seleccionada', 'error');
+  }
+
+  try {
+    const btn = event ? event.currentTarget : null;
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    
+    // Fetch products
+    const { data: products, error } = await supabaseClient
+      .from('products')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('category', { ascending: true });
+      
+    if (error) throw error;
+    if (!products || products.length === 0) {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      return showToast('No hay productos para exportar', 'error');
+    }
+
+    // Fetch product_extras
+    const { data: extrasData, error: extrasError } = await supabaseClient
+      .from('product_extras')
+      .select('*')
+      .eq('business_id', businessId);
+      
+    if (extrasError) console.error("Error fetching extras:", extrasError);
+    const allExtras = extrasData || [];
+
+    // Assemble JSON
+    const exportData = products.map(p => {
+      const pExtras = allExtras.filter(e => e.product_id === p.id).map(e => ({
+        name: e.name,
+        price: Number(e.price) || 0,
+        image_url: e.image_url || null
+      }));
+      
+      return {
+        name: p.name || '',
+        price: Number(p.price) || 0,
+        category: p.category || 'General',
+        description: p.description || '',
+        image_url: p.image_url || null,
+        accompaniments: p.accompaniments || null,
+        accompaniments_limit: p.accompaniments_limit || null,
+        extras: pExtras.length > 0 ? pExtras : null
+      };
+    });
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `menu_export_${businessId.substring(0,6)}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('✅ Menú exportado correctamente en formato JSON');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  } catch (err) {
+    showToast('❌ Error al exportar: ' + err.message, 'error');
+  }
 }
 
 // --- ASIGNAR REPARTIDOR ---

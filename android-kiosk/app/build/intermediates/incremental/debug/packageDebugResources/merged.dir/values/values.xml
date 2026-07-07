@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="orange_dark">#C2410C</color>
+    <color name="orange_primary">#EA580C</color>
+    <color name="white">#FFFFFF</color>
+    <string name="app_name">Kiosko</string>
+    <style name="Theme.KioskPrintBridge" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#EA580C</item>
+        <item name="colorPrimaryVariant">#C2410C</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

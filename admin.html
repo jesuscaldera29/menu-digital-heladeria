@@ -553,7 +553,7 @@
               <p class="text-[10px] text-gray-400">Abastece inventario</p>
             </div>
           </div>
-          <div class="dash-card flex items-center gap-4" onclick="showSection('expenses',event)">
+          <div class="dash-card flex items-center gap-4" onclick="showSection('expenses',event); setTimeout(() => showCajaView('gastos'), 100)">
             <div class="dash-icon bg-red-50 text-red-600">💰</div>
             <div>
               <p class="font-black text-sm">Nuevo Gasto</p>
@@ -853,9 +853,17 @@
         <div class="card">
           <div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('addProductContainer').classList.toggle('hidden')">
             <h2 class="text-xl font-black text-gray-800">🍔 Productos</h2>
-            <button class="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-orange-100 transition-all flex items-center gap-2 border border-orange-200 shadow-sm">
-              <span>➕</span> <span class="hidden sm:inline">Nuevo Producto</span>
-            </button>
+            <div class="flex gap-2">
+              <button onclick="exportProductsToCSV(event)" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-xl font-bold text-xs hover:bg-gray-200 transition-all flex items-center gap-1 border border-gray-200 shadow-sm">
+                <span>📥</span> <span class="hidden sm:inline">JSON</span>
+              </button>
+              <button onclick="openImportModal('products'); event.stopPropagation();" class="bg-purple-50 text-purple-600 px-3 py-2 rounded-xl font-bold text-xs hover:bg-purple-100 transition-all flex items-center gap-1 border border-purple-200 shadow-sm">
+                <span>📤</span> <span class="hidden sm:inline">Importar</span>
+              </button>
+              <button class="bg-orange-50 text-orange-600 px-3 py-2 rounded-xl font-bold text-xs hover:bg-orange-100 transition-all flex items-center gap-1 border border-orange-200 shadow-sm pointer-events-none">
+                <span>➕</span> <span class="hidden sm:inline">Nuevo Producto</span>
+              </button>
+            </div>
           </div>
           
           <div id="addProductContainer" class="hidden mt-6 pt-6 border-t border-gray-100">
@@ -984,7 +992,6 @@
           <div class="flex gap-2 flex-wrap">
             <button onclick="openNewCustomerModal()" class="btn bg-green-600 hover:bg-green-700 text-white !w-auto !py-2 !px-4 !text-sm">➕ Nuevo Cliente</button>
             <button onclick="openImportModal('customers')" class="btn bg-blue-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar CSV</button>
-            <button onclick="openImportModal('products')" class="btn bg-purple-600 text-white !w-auto !py-2 !px-4 !text-sm">📤 Importar Productos CSV</button>
             <button onclick="deleteSelectedCustomers()"
               class="btn btn-danger !w-auto !py-2 !px-6 !text-sm flex items-center gap-2">🗑️ Eliminar Seleccionados</button>
           </div>
@@ -1522,28 +1529,7 @@
       </div>
     </div>
 
-    <!-- SECTION: SUCURSALES -->
-    <div id="section-branches" class="section-content">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-4">
-          <div class="card">
-            <h2 class="text-xl font-bold mb-5">🏪 Nueva Sucursal</h2>
-            <p class="text-xs text-gray-500 mb-4">Crea un nuevo local. Tendrá su propio enlace, inventario y ventas.</p>
-            <input type="text" id="branchName" class="input" placeholder="Nombre (Ej: Goloso Sur)">
-            <input type="text" id="branchSlug" class="input" placeholder="Enlace corto (Ej: goloso-sur)">
-            <input type="email" id="branchEmail" class="input" placeholder="Correo de administrador">
-            <input type="password" id="branchPassword" class="input" placeholder="Contraseña">
-            <button class="btn btn-primary mt-4" onclick="createBranch(event)">🏪 Crear Sucursal</button>
-          </div>
-        </div>
-        <div class="lg:col-span-8">
-          <div class="card">
-            <h2 class="text-2xl font-black mb-6">📋 Mis Sucursales</h2>
-            <div id="branchesList" class="space-y-4"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- SECTION: MORE (Opciones) -->
     <div id="section-more" class="section-content px-4 py-6 md:px-8 max-w-4xl mx-auto">
@@ -2409,12 +2395,12 @@
     </div>
   </div>
 
-  <!-- MODAL: IMPORTAR CSV -->
+  <!-- MODAL: IMPORTAR CSV/JSON -->
   <div id="importModal" class="fixed inset-0 bg-black/60 items-start justify-center z-[200] p-4 overflow-y-auto backdrop-blur-sm" style="display:none">
     <div class="bg-white w-full max-w-md rounded-[32px] p-8 my-10 shadow-2xl">
       <h2 class="text-2xl font-black mb-2" id="importModalTitle">📤 Importar</h2>
-      <p class="text-sm text-gray-500 mb-4" id="importModalDesc"></p>
-      <input type="file" id="importFile" accept=".csv" class="input">
+      <p class="text-sm text-gray-500 mb-4 whitespace-pre-line" id="importModalDesc"></p>
+      <input type="file" id="importFile" accept=".csv,.json" class="input">
       <div id="importPreview" class="mt-4 max-h-40 overflow-y-auto text-xs"></div>
       <div class="grid grid-cols-2 gap-4 mt-6">
         <button id="btnImportConfirm" class="btn btn-primary" onclick="confirmImport()">✅ Importar</button>
@@ -2804,7 +2790,7 @@
 
   <!-- CREATE BRANCH MODAL -->
   <div id="createBranchModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] backdrop-blur-sm p-4">
-    <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+    <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <button onclick="document.getElementById('createBranchModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-black">❌</button>
       <h3 class="text-xl font-black mb-1">🏪 Nueva Sucursal</h3>
       <p class="text-xs text-gray-500 mb-4">Crea un espacio independiente para una nueva sede.</p>
@@ -2812,7 +2798,7 @@
       <div class="space-y-4">
         <div>
           <label class="font-bold text-xs text-gray-500 uppercase">Nombre de la Sucursal</label>
-          <input type="text" id="branchName" class="input !mt-1" placeholder="Ej: Sede Centro">
+          <input type="text" id="branchName" class="input !mt-1" placeholder="Ej: Sede Centro" oninput="document.getElementById('branchSlug').value = this.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');">
         </div>
         <div>
           <label class="font-bold text-xs text-gray-500 uppercase">URL / Slug</label>
@@ -2827,6 +2813,15 @@
           <label class="font-bold text-xs text-gray-500 uppercase">Contraseña</label>
           <input type="password" id="branchPassword" class="input !mt-1" placeholder="Contraseña segura">
         </div>
+        
+        <div class="flex items-center gap-2 mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+          <input type="checkbox" id="copyProductsCheckbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" checked>
+          <div>
+            <label for="copyProductsCheckbox" class="font-bold text-sm text-blue-800 cursor-pointer">Copiar productos actuales</label>
+            <p class="text-[10px] text-blue-600">Duplica el catálogo (categorías y productos) a la nueva sucursal.</p>
+          </div>
+        </div>
+
         <button id="btnSubmitBranch" class="btn btn-primary w-full mt-4" onclick="createBranch(event)">Crear Sucursal</button>
       </div>
     </div>

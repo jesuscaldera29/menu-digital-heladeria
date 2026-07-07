@@ -1,0 +1,8 @@
+{
+  "printer_ip": "192.168.20.200",
+  "printer_port": 9100,
+  "server_port": 9101,
+  "paper_width": 48,
+  "auto_cut": true,
+  "beep_on_print": true
+}
