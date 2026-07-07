@@ -97,6 +97,15 @@ async function initAdmin() {
     if (staffRole === 'Repartidor') {
         window.location.href = 'driver.html';
         return false;
+    } else if (staffRole === 'Mesero') {
+        window.location.href = 'pos.html';
+        return false;
+    } else if (staffRole === 'Cocina') {
+        window.location.href = 'kds.html';
+        return false;
+    } else if (staffRole === 'Kiosko') {
+        window.location.href = 'kiosk.html';
+        return false;
     } else if (staffRole === 'Cajero') {
         // Hide tabs Cajero has no access to
         const restrictedTabs = ['tab-products', 'tab-staff', 'tab-coupons', 'tab-recipes', 'tab-reports'];
@@ -1097,8 +1106,8 @@ function renderOrders() {
             <tr>
                 <td class="font-bold text-orange-600">#${String(o.id).padStart(4, '0')}</td>
                 <td>
-                    <div class="font-bold">${o.customer_name}</div>
-                    <div class="text-xs text-gray-400">${o.customer_phone}</div>
+                    <div class="font-bold">${escapeHTML(o.customer_name)}</div>
+                    <div class="text-xs text-gray-400">${escapeHTML(o.customer_phone)}</div>
                 </td>
                 <td class="text-xs">${new Date(o.created_at).toLocaleString()}</td>
                 <td class="font-black">$${Number(o.total).toLocaleString()}</td>
@@ -1344,12 +1353,12 @@ window.printOrderTicket = function(id) {
         
         <div class="mb-2" style="margin-top:10px;">
           <strong>Fecha:</strong> ${new Date(o.created_at).toLocaleString()}<br>
-          <strong>Cliente:</strong> ${o.customer_name}<br>
-          <strong>Tel:</strong> ${o.customer_phone}<br>
+          <strong>Cliente:</strong> ${escapeHTML(o.customer_name)}<br>
+          <strong>Tel:</strong> ${escapeHTML(o.customer_phone)}<br>
           <strong>Tipo:</strong> ${o.delivery_method}<br>
-          <strong>Dir:</strong> ${o.address || '-'}<br>
+          <strong>Dir:</strong> ${escapeHTML(o.address) || '-'}<br>
           <strong>Pago:</strong> ${o.payment_method}<br>
-          <strong>Notas:</strong> ${o.notes || 'Ninguna'}
+          <strong>Notas:</strong> ${escapeHTML(o.notes) || 'Ninguna'}
         </div>
         
         <div class="border-t border-b mb-2" style="margin-top:10px;">
@@ -1416,9 +1425,9 @@ async function loadCustomers() {
                 <td class="text-center">
                   <input type="checkbox" class="customer-checkbox w-5 h-5 accent-red-500 rounded cursor-pointer" value="${c.id}">
                 </td>
-                <td class="font-bold">${c.name}</td>
-                <td><a href="https://wa.me/${cleanP}" target="_blank" class="text-green-600 font-bold">📱 ${c.phone}</a></td>
-                <td class="text-xs text-gray-500">${c.address || 'Sin dirección'}</td>
+                <td class="font-bold">${escapeHTML(c.name)}</td>
+                <td><a href="https://wa.me/${cleanP}" target="_blank" class="text-green-600 font-bold">📱 ${escapeHTML(c.phone)}</a></td>
+                <td class="text-xs text-gray-500">${escapeHTML(c.address) || 'Sin dirección'}</td>
                 <td class="text-xs">${new Date(c.created_at).toLocaleDateString()}</td>
                 <td class="text-center">
                   <button onclick="deleteCustomer('${c.id}')" class="text-red-500 hover:text-red-700 font-bold p-2 bg-red-50 hover:bg-red-100 rounded-xl transition-all">🗑️ Eliminar</button>
@@ -1858,10 +1867,10 @@ async function loadSuppliers() {
             return;
         }
         tbody.innerHTML = allSuppliers.map(s => `<tr>
-            <td class="font-bold">${s.name}</td>
-            <td>${s.phone || '-'}</td>
-            <td class="text-sm">${s.email || '-'}</td>
-            <td class="text-xs text-gray-500">${s.notes || '-'}</td>
+            <td class="font-bold">${escapeHTML(s.name)}</td>
+            <td>${escapeHTML(s.phone) || '-'}</td>
+            <td class="text-sm">${escapeHTML(s.email) || '-'}</td>
+            <td class="text-xs text-gray-500">${escapeHTML(s.notes) || '-'}</td>
             <td><button onclick="deleteSupplier('${s.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
         </tr>`).join('');
     } catch (err) {
@@ -2115,6 +2124,7 @@ window.openVisualExtrasModal = function(productId) {
 function closeVisualExtrasModal() {
     document.getElementById('visualExtrasModal').style.display = 'none';
     currentVeProductId = null;
+    loadProducts(); // Fix Issue #7: Reload products to reflect limit/extras changes in UI
 }
 
 async function loadVisualExtras(productId) {

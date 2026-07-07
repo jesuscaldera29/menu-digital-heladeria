@@ -194,7 +194,7 @@ function renderOrders() {
           ${o.notes ? `
             <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
               <p class="text-xs font-black text-yellow-500 uppercase tracking-widest mb-1">Nota del Cliente</p>
-              <p class="text-sm text-yellow-100 font-medium italic">${o.notes}</p>
+              <p class="text-sm text-yellow-100 font-medium italic">${escapeHTML(o.notes)}</p>
             </div>
           ` : ''}
         </div>

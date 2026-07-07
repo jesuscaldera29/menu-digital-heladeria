@@ -13,6 +13,21 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================================
 
 /**
+ * Saneamiento de cadenas HTML para prevenir XSS.
+ * @param {string} str Cadena a limpiar
+ * @returns {string} Cadena segura
+ */
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Extrae el slug del pathname de la URL actual.
  * Ej: "/tronco-e-filo" → "tronco-e-filo"
  * Ej: "/" → null

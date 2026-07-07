@@ -68,10 +68,10 @@ async function initPOS() {
     const btnCashMgmt = document.getElementById('btnCashMgmt');
     if (btnCashMgmt) btnCashMgmt.classList.add('hidden');
     
-    // Hide 'Corte de Caja' and 'Cerrar Turno' in the more menu
+    // Hide 'Gestión de Caja', 'Corte de Caja' in the more menu
     const menuButtons = document.querySelectorAll('#posMoreMenu button');
     menuButtons.forEach(btn => {
-      if (btn.innerText.includes('Corte de Caja') || btn.innerText.includes('Cerrar Turno')) {
+      if (btn.innerText.includes('Gestión de Caja') || btn.innerText.includes('Corte de Caja')) {
         btn.classList.add('hidden');
       }
     });
@@ -989,9 +989,8 @@ function getCheckoutTotal() {
 function calculateSplitTotal() {
   const total = getCheckoutTotal();
   const c = parseFloat(document.getElementById('splitCash').value) || 0;
-  const t = parseFloat(document.getElementById('splitCard').value) || 0;
   const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
-  const sum = c + t + f;
+  const sum = c + f;
 
   const remainingEl = document.getElementById('splitRemaining');
   if (sum === total) {
@@ -1005,6 +1004,23 @@ function calculateSplitTotal() {
     remainingEl.className = 'text-lg font-black text-red-500';
   }
 }
+
+window.setCashAmount = function(amount) {
+  const input = document.getElementById('cashReceived');
+  if (input) {
+    const current = parseFloat(input.value) || 0;
+    input.value = current + amount;
+    calculateChange();
+  }
+};
+
+window.setExactCash = function() {
+  const input = document.getElementById('cashReceived');
+  if (input) {
+    input.value = getCheckoutTotal();
+    calculateChange();
+  }
+};
 
 function calculateChange() {
   const total = getCheckoutTotal();
@@ -1056,16 +1072,15 @@ async function confirmSale() {
   let splitPaymentsJSON = {};
   if (paymentMethod === 'Dividido') {
     const c = parseFloat(document.getElementById('splitCash').value) || 0;
-    const t = parseFloat(document.getElementById('splitCard').value) || 0;
     const f = parseFloat(document.getElementById('splitTransfer').value) || 0;
-    const sum = c + t + f;
+    const sum = c + f;
     const total = getCheckoutTotal();
 
     if (sum !== total) {
       showToast('⚠️ La suma dividida debe ser exactamente igual al total ($' + total.toLocaleString() + ')', 'error');
       return;
     }
-    splitPaymentsJSON = { cash: c, card: t, transfer: f };
+    splitPaymentsJSON = { cash: c, card: 0, transfer: f };
   } else if (paymentMethod === 'Efectivo') {
     const received = parseFloat(document.getElementById('cashReceived').value) || 0;
     const total = getCheckoutTotal();
@@ -2032,7 +2047,7 @@ window.openPOSReport = async function() {
         totalTransferencia += Number(o.split_payments.transfer || 0);
       } else if (o.payment_method === 'Efectivo') {
         totalEfectivo += total;
-      } else if (o.payment_method === 'Tarjeta') {
+      } else if (o.payment_method === 'NEQUI') {
         totalTarjeta += total;
       } else if (o.payment_method === 'Transferencia' || o.payment_method === 'Nequi') {
         totalTransferencia += total;
@@ -2159,7 +2174,7 @@ window.openPOSReport = async function() {
     window.chartPaymentInstance = new Chart(ctxPayment, {
       type: 'doughnut',
       data: {
-        labels: ['Efectivo', 'Tarjeta', 'Transf / Nequi'],
+        labels: ['Efectivo', 'NEQUI', 'Transf.'],
         datasets: [{
           data: [totalEfectivo, totalTarjeta, totalTransferencia],
           backgroundColor: ['#22c55e', '#3b82f6', '#a855f7'],
@@ -2261,7 +2276,7 @@ window.printPOSReport = async function() {
       <div class="border-t mb-2 mt-2" style="padding-top:10px;">
         <div class="font-bold text-center mb-2">DESGLOSE DE PAGOS</div>
         <div class="flex"><span>Efectivo:</span> <span>$${r.cash.toLocaleString()}</span></div>
-        <div class="flex"><span>Tarjeta:</span> <span>$${r.card.toLocaleString()}</span></div>
+        <div class="flex"><span>NEQUI:</span> <span>$${r.card.toLocaleString()}</span></div>
         <div class="flex"><span>Transferencia:</span> <span>$${r.transfer.toLocaleString()}</span></div>
       </div>
       
@@ -2439,9 +2454,9 @@ function renderNotifications() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Cliente</p>
-              <p class="text-sm font-bold text-white">${o.customer_name || 'Sin nombre'}</p>
-              <p class="text-xs text-gray-400">${o.customer_phone || 'N/A'}</p>
-              <p class="text-xs text-gray-400 mt-1">${o.delivery_method || 'N/A'} — ${o.address || 'N/A'}</p>
+              <p class="text-sm font-bold text-white">${escapeHTML(o.customer_name) || 'Sin nombre'}</p>
+              <p class="text-xs text-gray-400">${escapeHTML(o.customer_phone) || 'N/A'}</p>
+              <p class="text-xs text-gray-400 mt-1">${o.delivery_method || 'N/A'} — ${escapeHTML(o.address) || 'N/A'}</p>
             </div>
             <div>
               <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Productos</p>
@@ -2792,7 +2807,7 @@ window.submitBlindClose = async function() {
       orders.forEach(o => {
         if (o.status !== 'Cancelado') {
           if (o.payment_method === 'Efectivo') cashSales += Number(o.total);
-          else if (o.payment_method === 'Tarjeta') cardSales += Number(o.total);
+          else if (o.payment_method === 'NEQUI') cardSales += Number(o.total);
           else if (o.payment_method === 'Transferencia') transferSales += Number(o.total);
         }
       });

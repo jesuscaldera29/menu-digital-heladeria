@@ -233,7 +233,7 @@
       }
 
       try {
-        const { data: order, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+        const { data: order, error } = await supabaseClient.rpc('get_order_status_secure', { p_order_id: orderId }).single();
         
         if (error || !order) {
           document.getElementById('loadingScreen').classList.add('hidden');

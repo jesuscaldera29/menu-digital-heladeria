@@ -225,7 +225,7 @@ function renderPendingList() {
           <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Dirección de entrega</p>
           <p class="text-sm font-black text-slate-800">${o.address || 'N/A'}</p>
           ${o.neighborhood ? `<p class="text-xs font-bold text-orange-600">Barrio: ${o.neighborhood}</p>` : ''}
-          ${o.notes ? `<p class="text-xs italic text-slate-500 mt-2">📝 "${o.notes}"</p>` : ''}
+          ${o.notes ? `<p class="text-xs italic text-slate-500 mt-2">📝 "${escapeHTML(o.notes)}"</p>` : ''}
         </div>
 
         <!-- PAYMENTS -->
