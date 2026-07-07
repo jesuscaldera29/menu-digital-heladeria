@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MenuPro | Tu Menú Digital Profesional y Autoadministrable</title>
+  <meta name="description"
+    content="Digitaliza tu restaurante en minutos. Menú digital premium con pedidos por WhatsApp, gestión de mesas con QR y panel de administración en tiempo real.">
+
+  <!-- Manifest & Favicons -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ea580c">
+
+  <!-- Preconnect para acelerar la carga (DNS Resolution & TCP Handshake) -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://vtckqdbfqcqjtznrsdwx.supabase.co">
+
+  <!-- Google Fonts: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- AOS Animation CSS -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);
+      --dark-bg: #0a0a0a;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.06);
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+      position: relative;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--dark-bg);
+      color: #ffffff;
+    }
+
+    /* Glow Effects */
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(150px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-1 {
+      top: -200px;
+      left: -100px;
+      background: #ff5f6d;
+    }
+
+    .glow-2 {
+      top: 40%;
+      right: -200px;
+      background: #ffc371;
+    }
+
+    .glow-3 {
+      bottom: -200px;
+      left: 10%;
+      background: #7c3aed;
+      opacity: 0.1;
+    }
+
+    /* Custom utilities */
+    .glass-nav {
+      background: rgba(10, 10, 10, 0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 36px 32px;
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .feature-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-gradient {
+      background: var(--primary-gradient);
+      color: #fff;
+      font-weight: 800;
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      box-shadow: 0 10px 30px rgba(255, 95, 109, 0.25);
+    }
+
+    .btn-gradient:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(255, 95, 109, 0.35);
+    }
+
+    .btn-gradient:active {
+      transform: translateY(0);
+    }
+
+    .mockup-container {
+      position: relative;
+    }
+
+    .mockup-shadow {
+      filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.6));
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-12px);
+      }
+    }
+
+    .float-anim {
+      animation: float 5s ease-in-out infinite;
+    }
+
+    /* Scrollbar style */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #222;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #333;
+    }
+  </style>
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function (f, b, e, v, n, t, s) {
+      if (f.fbq) return; n = f.fbq = function () {
+        n.callMethod ?
+        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+      };
+      if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+      n.queue = []; t = b.createElement(e); t.async = !0;
+      t.src = v; s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s)
+    }(window, document, 'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1349298980387004');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1349298980387004&ev=PageView&noscript=1" /></noscript>
+  <!-- End Meta Pixel Code -->
+
+</head>
+
+<body class="relative">
+  <!-- Glow Elements -->
+  <div class="hero-glow glow-1"></div>
+  <div class="hero-glow glow-2"></div>
+  <div class="hero-glow glow-3"></div>
+
+  <!-- NAVIGATION -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass-nav px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div
+          class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md">
+          <span class="text-lg sm:text-xl">🍽️</span>
+        </div>
+        <span
+          class="text-xl sm:text-2xl font-black bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">MenuPro</span>
+      </div>
+
+      <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-400">
+        <a href="#funciones" class="hover:text-white transition-colors">Funciones</a>
+        <a href="#interconexion" class="hover:text-white transition-colors">Menú + Control</a>
+        <a href="#como-funciona" class="hover:text-white transition-colors">Cómo funciona</a>
+        <a href="#faq" class="hover:text-white transition-colors">Preguntas</a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-4 shrink-0">
+        <a href="login.html"
+          class="text-sm font-bold text-gray-300 hover:text-white transition-colors px-4 py-2">Ingresar</a>
+        <a href="#" onclick="openLeadModal(event)"
+          class="inline-flex bg-white/10 hover:bg-white/15 text-white text-xs font-bold px-4 py-3 rounded-xl border border-white/10 hover:border-white/20 transition-all uppercase tracking-wider text-center whitespace-nowrap">
+          Pedir Menú
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <div
+    class="md:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 px-2 pt-2 flex justify-between items-end shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+    style="padding-bottom: env(safe-area-inset-bottom, 12px);">
+    <a href="#" class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors w-16 mb-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+        </path>
+      </svg>
+      <span class="text-[10px] font-bold">Inicio</span>
+    </a>
+    <a href="#funciones"
+      class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors w-16 mb-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+        </path>
+      </svg>
+      <span class="text-[10px] font-bold">Funciones</span>
+    </a>
+
+    <a href="#" onclick="openLeadModal(event)"
+      class="flex flex-col items-center gap-1 text-orange-400 hover:text-orange-300 relative -top-4 w-20">
+      <div
+        class="bg-gradient-to-br from-red-500 to-orange-500 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_10px_20px_rgba(249,115,22,0.4)] border-4 border-[#0a0a0a]">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+      </div>
+      <span class="text-[11px] font-black uppercase tracking-wider text-white mt-1">Pedir</span>
+    </a>
+
+    <a href="#como-funciona"
+      class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors w-16 mb-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+        </path>
+      </svg>
+      <span class="text-[10px] font-bold">Ayuda</span>
+    </a>
+    <a href="login.html"
+      class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors w-16 mb-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+      </svg>
+      <span class="text-[10px] font-bold">Panel</span>
+    </a>
+  </div>
+
+  <!-- HERO SECTION -->
+  <section class="min-h-screen flex items-center pt-28 pb-16 px-6 relative">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-6 space-y-6">
+        <div data-aos="fade-right"
+          class="inline-block bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-full px-4 py-2 text-xs font-extrabold text-orange-400 uppercase tracking-widest">
+          ✨ MENÚ Y ADMINISTRACIÓN EN TIEMPO REAL
+        </div>
+        <h1 data-aos="fade-right" data-aos-delay="100"
+          class="text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
+          Tu menú digital <br>
+          <span class="bg-gradient-to-r from-red-500 to-orange-400 bg-clip-text text-transparent">profesional</span> y
+          autoadministrable
+        </h1>
+        <p data-aos="fade-right" data-aos-delay="200" class="text-gray-400 text-lg leading-relaxed max-w-lg">
+          Permite que tus clientes pidan cómodamente desde su móvil. Recibe las comandas directo en tu WhatsApp e
+          instántaneamente en tu panel de administración. Todo sincronizado.
+        </p>
+
+        <div data-aos="fade-up" data-aos-delay="300" class="flex flex-col sm:flex-row gap-4 pt-2">
+          <a href="#planes"
+            class="btn-gradient hover:animate-none text-center px-8 py-4.5 rounded-2xl text-lg flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20">
+            🚀 Ver Planes Disponibles
+          </a>
+          <a href="#" onclick="openDemoModal(event)"
+            class="px-8 py-4.5 rounded-2xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/20 text-center text-lg flex items-center justify-center gap-2">
+            👀 Ver Demo Interactiva
+          </a>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6 pt-8 border-t border-white/5 max-w-md">
+          <div>
+            <p class="text-3xl font-black text-white">100%</p>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Sincronizado</p>
+          </div>
+          <div>
+            <p class="text-3xl font-black text-white">0%</p>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Comisiones</p>
+          </div>
+          <div>
+            <p class="text-3xl font-black text-white">1 Min</p>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Puesta en Marcha</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-6 flex justify-center mockup-container">
+        <img id="heroImage" src="img/hero_showcase.png" alt="MenuPro Dispositivos" fetchpriority="high" decoding="async"
+          class="mockup-shadow float-anim rounded-2xl w-full max-w-lg border border-white/5">
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES (FUNCIONES) -->
+  <section id="funciones" class="py-24 px-6 relative z-10 border-t border-white/5 bg-black/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-20">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Todo lo que necesitas para tu local</h2>
+        <p class="text-gray-400 text-lg">Una plataforma diseñada para optimizar tu servicio y aumentar tus ventas sin
+          complicaciones.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div data-aos="fade-up" data-aos-delay="0" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-6">
+            📱</div>
+          <h3 class="text-xl font-bold mb-3">Menú Digital Premium</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Catálogo interactivo optimizado para móviles. Categorías,
+            fotos vibrantes de tus platos y precios siempre actualizados al instante.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div data-aos="fade-up" data-aos-delay="100" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-2xl mb-6">
+            📲</div>
+          <h3 class="text-xl font-bold mb-3">Pedidos a WhatsApp</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Los pedidos de tus clientes se estructuran automáticamente y
+            se envían a tu celular con un solo clic. Rápido y sin errores.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div data-aos="fade-up" data-aos-delay="200" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl mb-6">
+            👨‍🍳</div>
+          <h3 class="text-xl font-bold mb-3">Administración Web</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Gestiona tu menú, añade categorías, activa o desactiva
+            productos en segundos y controla todos tus pedidos en tiempo real.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div data-aos="fade-up" data-aos-delay="300" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-2xl mb-6">
+            📊</div>
+          <h3 class="text-xl font-bold mb-3">Reportes y Estadísticas</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Visualiza el resumen de ventas del período, conteo de pedidos
+            y tu ticket promedio directamente en tu panel administrativo.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div data-aos="fade-up" data-aos-delay="400" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl mb-6">
+            🖨️</div>
+          <h3 class="text-xl font-bold mb-3">QR para Mesas</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Genera códigos QR específicos para cada mesa de tu local. El
+            cliente escanea, pide y tú sabes exactamente de qué mesa viene.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div data-aos="fade-up" data-aos-delay="500" class="feature-card">
+          <div
+            class="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-2xl mb-6">
+            📢</div>
+          <h3 class="text-xl font-bold mb-3">Generador de Posts</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Crea posts publicitarios listos para tus redes sociales a
+            partir de tus productos con un solo clic. Promociona tus ofertas fácilmente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERCONNEXIÓN MENÚ + CONTROL (ADMIN & PUBLIC MENU SYNC) -->
+  <section id="interconexion" class="py-24 px-6 relative">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-20">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Menú y Administración <span
+            class="bg-gradient-to-r from-red-500 to-orange-400 bg-clip-text text-transparent">Interconectados</span>
+        </h2>
+        <p class="text-gray-400 text-lg">Olvídate de sistemas aislados. La experiencia de compra de tu cliente y tu
+          control operativo viven en perfecta armonía.</p>
+      </div>
+
+      <!-- Preview 1: Admin Dashboard -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-24">
+        <div data-aos="fade-right" class="lg:col-span-5 space-y-6 order-2 lg:order-1">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-xl">📊</div>
+          <h3 class="text-2xl md:text-3xl font-black">Panel de control autoadministrable</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Controla todo tu negocio desde una plataforma limpia y veloz. Aquí puedes subir productos con fotos,
+            modificar precios instantáneamente y observar cómo tu menú público se actualiza sin demoras.
+          </p>
+          <ul class="space-y-3 text-sm text-gray-300 font-semibold">
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Activación/Desactivación rápida de
+              productos</li>
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Control de estado de pedidos
+              (Confirmado, Preparando, Entregado)</li>
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Base de datos de clientes
+              automatizada</li>
+          </ul>
+        </div>
+        <div data-aos="fade-left" class="lg:col-span-7 flex justify-center order-1 lg:order-2">
+          <img id="adminImage" src="img/dashboard_preview.png" alt="MenuPro Admin Panel" loading="lazy" decoding="async"
+            class="mockup-shadow rounded-2xl border border-white/5 max-w-full">
+        </div>
+      </div>
+
+      <!-- Preview 2: Mobile Menu & WhatsApp Checkout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div data-aos="fade-right" class="lg:col-span-7 flex justify-center">
+          <img id="mobileImage" src="img/mobile_order.png" alt="MenuPro Mobile" loading="lazy" decoding="async"
+            class="mockup-shadow rounded-2xl border border-white/5 max-w-full float-anim" style="animation-delay: 0.5s">
+        </div>
+        <div data-aos="fade-left" class="lg:col-span-5 space-y-6">
+          <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-xl">📱</div>
+          <h3 class="text-2xl md:text-3xl font-black">Pedidos del cliente directo a tu mesa</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Tus clientes no tienen que instalar absolutamente nada. Escanean el código QR en su mesa o abren tu enlace
+            en redes sociales, seleccionan su comida favorita y envían el pedido directo. Tú recibes una notificación en
+            tu panel y un mensaje estructurado de WhatsApp.
+          </p>
+          <ul class="space-y-3 text-sm text-gray-300 font-semibold">
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Selección de domicilio o consumo
+              en local</li>
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Selección de métodos de pago
+              (Efectivo, Transf, Tarjeta)</li>
+            <li class="flex items-center gap-3"><span class="text-green-500">✓</span> Generación de ticket virtual
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Preview 3: QR Menu -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mt-24">
+        <div data-aos="fade-right" class="lg:col-span-5 space-y-6">
+          <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-xl">🖨️</div>
+          <h3 class="text-2xl md:text-3xl font-black">Escanea y pide, sin contacto</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Genera un código QR único para cada mesa. Cuando tu cliente escanee, el sistema sabrá exactamente dónde llevar la comida. Reduce los tiempos de espera y aumenta la rotación de tus mesas.
+          </p>
+        </div>
+        <div data-aos="fade-left" class="lg:col-span-7 flex justify-center">
+          <img id="qrImage" src="img/qr_table.png" alt="MenuPro QR" loading="lazy" decoding="async"
+            class="mockup-shadow rounded-2xl border border-white/5 max-w-sm w-full mx-auto float-anim"
+            style="animation-delay: 1s">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CÓMO FUNCIONA -->
+  <section id="como-funciona" class="py-24 px-6 border-t border-white/5 bg-black/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-20">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">¿Cómo funciona?</h2>
+        <p class="text-gray-400 text-lg">Pon en marcha tu menú digital en tan solo tres simples pasos.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <!-- Paso 1 -->
+        <div class="text-center space-y-4">
+          <div
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center font-black text-xl mx-auto shadow-md">
+            1</div>
+          <h3 class="text-xl font-bold">Carga tus Productos</h3>
+          <p class="text-gray-400 text-sm leading-relaxed px-4">
+            Ingresa a tu panel de administración, define tus categorías de comida y sube tus platos con precios y
+            fotografías atractivas.
+          </p>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="text-center space-y-4">
+          <div
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center font-black text-xl mx-auto shadow-md">
+            2</div>
+          <h3 class="text-xl font-bold">Imprime tus QRs</h3>
+          <p class="text-gray-400 text-sm leading-relaxed px-4">
+            Genera automáticamente códigos QR individuales para tus mesas desde el panel. Tus clientes escanean para
+            entrar directamente al menú.
+          </p>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="text-center space-y-4">
+          <div
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center font-black text-xl mx-auto shadow-md">
+            3</div>
+          <h3 class="text-xl font-bold">Recibe Pedidos</h3>
+          <p class="text-gray-400 text-sm leading-relaxed px-4">
+            Los clientes hacen su pedido. La comanda llega directo a tu panel admin y con todos los detalles a tu
+            WhatsApp de atención.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-20 flex flex-col items-center justify-center mockup-container">
+        <div class="mb-6 flex flex-col items-center">
+          <span
+            class="bg-orange-500/20 text-orange-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-3 animate-bounce">👇
+            Pruébalo tú mismo 👇</span>
+          <p class="text-white font-bold text-lg text-center max-w-md">Toma tu celular y escanea este código QR para ver
+            cómo tus clientes verán el menú.</p>
+        </div>
+        <div
+          class="max-w-4xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative group cursor-pointer"
+          onclick="openDemoModal(event)">
+          <div
+            class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-10">
+            <span class="bg-white text-black font-black px-6 py-3 rounded-xl shadow-2xl">👀 Clic aquí para ver
+              Opciones de Demo</span>
+          </div>
+          <img id="qrImage" src="img/qr_table.png" alt="Mesa de restaurante con QR" class="w-full relative z-0">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRUEBA SOCIAL / TESTIMONIOS -->
+  <section id="testimonios" class="py-24 px-6 relative border-t border-white/5 bg-black/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Negocios que ya están facturando más</h2>
+        <p class="text-gray-400 text-lg">Cientos de restaurantes ya transformaron su manera de recibir pedidos.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Testimonio 1 -->
+        <div class="feature-card relative">
+          <div class="text-orange-500 text-6xl absolute -top-4 left-4 opacity-20 font-serif">"</div>
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center font-bold text-xl border border-orange-500/30">
+              🍕</div>
+            <div>
+              <h4 class="font-bold">Pizzería Bella</h4>
+              <div class="text-yellow-400 text-xs">★★★★★</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed italic relative z-10">"MenuPro nos cambió la vida. Antes
+            perdíamos pedidos por teléfono o WhatsApp por errores manuales. Ahora todo llega organizado y el cliente
+            paga más rápido."</p>
+        </div>
+        <!-- Testimonio 2 -->
+        <div class="feature-card relative">
+          <div class="text-red-500 text-6xl absolute -top-4 left-4 opacity-20 font-serif">"</div>
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center font-bold text-xl border border-red-500/30">
+              🍔</div>
+            <div>
+              <h4 class="font-bold">Burger Point</h4>
+              <div class="text-yellow-400 text-xs">★★★★★</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed italic relative z-10">"A los clientes les encanta escanear el
+            QR en la mesa. Hemos notado un aumento del 20% en el ticket promedio porque piden postres viéndolos en la
+            foto."</p>
+        </div>
+        <!-- Testimonio 3 -->
+        <div class="feature-card relative">
+          <div class="text-yellow-500 text-6xl absolute -top-4 left-4 opacity-20 font-serif">"</div>
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center font-bold text-xl border border-yellow-500/30">
+              🌮</div>
+            <div>
+              <h4 class="font-bold">Tacos El Rey</h4>
+              <div class="text-yellow-400 text-xs">★★★★★</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed italic relative z-10">"La mejor inversión. Pagas una sola vez
+            y te quitas de encima mensualidades de otras apps. El panel admin es rapidísimo y súper fácil de usar."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESARROLLADOR -->
+  <section id="desarrollador" class="py-24 px-6 relative border-t border-white/5 bg-black/40">
+    <div
+      class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 bg-white/5 border border-white/10 p-8 md:p-12 rounded-[36px] shadow-2xl relative overflow-hidden">
+      <!-- Glow effect inside -->
+      <div class="absolute -top-32 -left-32 w-64 h-64 bg-red-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl pointer-events-none">
+      </div>
+
+      <div class="w-48 h-48 md:w-64 md:h-64 shrink-0 relative z-10" data-aos="zoom-in">
+        <img id="developerImage" src="https://ui-avatars.com/api/?name=Dev&background=ff5f6d&color=fff&size=200"
+          alt="Profesional en Mercadeo Digital"
+          class="w-full h-full object-cover rounded-full border-4 border-white/10 shadow-2xl">
+      </div>
+
+      <div class="space-y-4 text-center md:text-left relative z-10" data-aos="fade-left">
+        <div
+          class="inline-block bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full text-xs font-bold text-orange-400 uppercase tracking-widest">
+          Profesional en Mercadeo Digital
+        </div>
+        <h2 class="text-3xl md:text-4xl font-black">Jesús Caldera</h2>
+        <p class="text-gray-400 leading-relaxed text-sm md:text-base">
+          MenuPro no es solo una herramienta, es una estrategia. Está diseñada por profesionales en mercadeo digital y
+          desarrollo de software con el único propósito de aumentar tus conversiones y simplificar tu operación diaria.
+        </p>
+        <p class="text-gray-400 leading-relaxed text-sm md:text-base font-semibold">
+          Nos encargamos de que tu menú no solo se vea bien, sino que esté optimizado para vender más y brindarle una
+          experiencia premium a tus clientes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ (PREGUNTAS) -->
+  <section id="faq" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Preguntas Frecuentes</h2>
+        <p class="text-gray-400">Todo lo que necesitas saber sobre el servicio de MenuPro.</p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Q1 -->
+        <details
+          class="group bg-white/5 border border-white/10 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300">
+          <summary class="flex justify-between items-center font-bold text-lg cursor-pointer text-white">
+            <span>¿Los pedidos tienen algún tipo de comisión por venta?</span>
+            <span class="text-orange-400 group-open:rotate-45 transition-transform duration-200">+</span>
+          </summary>
+          <p class="text-gray-400 text-sm leading-relaxed mt-4">
+            No. MenuPro no cobra comisiones por tus pedidos ni tus ventas. Toda la ganancia de tus platos es 100% tuya.
+            Solo cobramos un costo de activación por habilitarte el sistema.
+          </p>
+        </details>
+
+        <!-- Q2 -->
+        <details
+          class="group bg-white/5 border border-white/10 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300">
+          <summary class="flex justify-between items-center font-bold text-lg cursor-pointer text-white">
+            <span>¿Es necesario instalar una aplicación?</span>
+            <span class="text-orange-400 group-open:rotate-45 transition-transform duration-200">+</span>
+          </summary>
+          <p class="text-gray-400 text-sm leading-relaxed mt-4">
+            No es necesario para el cliente. Tu menú funciona directamente desde el navegador de su celular a través de
+            tu código QR o enlace web. Para el administrador, la plataforma también es web autoadministrable.
+          </p>
+        </details>
+
+        <!-- Q3 -->
+        <details
+          class="group bg-white/5 border border-white/10 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300">
+          <summary class="flex justify-between items-center font-bold text-lg cursor-pointer text-white">
+            <span>¿Cómo se realiza el cobro del pedido?</span>
+            <span class="text-orange-400 group-open:rotate-45 transition-transform duration-200">+</span>
+          </summary>
+          <p class="text-gray-400 text-sm leading-relaxed mt-4">
+            El cliente puede elegir entre Efectivo, Transferencia o Tarjeta al realizar su pedido. El cobro lo realizas
+            tú de forma directa al cliente o al momento de la entrega en el local.
+          </p>
+        </details>
+
+        <!-- Q4 -->
+        <details
+          class="group bg-white/5 border border-white/10 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300">
+          <summary class="flex justify-between items-center font-bold text-lg cursor-pointer text-white">
+            <span>¿Puedo configurar mis propios códigos QR para las mesas?</span>
+            <span class="text-orange-400 group-open:rotate-45 transition-transform duration-200">+</span>
+          </summary>
+          <p class="text-gray-400 text-sm leading-relaxed mt-4">
+            Sí. Desde tu panel de administración puedes indicar cuántas mesas tienes y generar códigos QR independientes
+            para cada una de forma automática. Al escanearlos, el sistema sabe exactamente a qué mesa entregar el
+            pedido.
+          </p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING (PLANES SaaS) -->
+  <section id="planes" class="py-24 px-6 relative z-10 border-t border-white/5 bg-black/40 overflow-hidden">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight">Planes diseñados para crecer, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">Sin Contratos</span></h2>
+        <p class="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">Selecciona el plan mensual que mejor se adapte a las necesidades de tu negocio y empieza a recibir pedidos hoy mismo.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+        
+        <!-- Plan Básico -->
+        <div class="bg-white/5 border border-white/10 rounded-[32px] p-8 flex flex-col hover:bg-white/10 transition-colors shadow-2xl relative text-left">
+          <h3 class="text-2xl font-black text-white mb-2">Plan Basic</h3>
+          <p class="text-gray-400 text-sm mb-6 h-10">Ideal para pequeños negocios y comidas rápidas que están empezando.</p>
+          <div class="mb-6">
+            <span class="text-4xl font-black text-white">$46.900</span> <span class="text-sm text-gray-500 font-bold tracking-widest uppercase">COP</span>
+            <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">/ Mes a Mes</p>
+          </div>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Menú Digital 100% Interactivo</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Pedidos Ilimitados por WhatsApp</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Panel de Control Autoadministrable</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Código QR General de Acceso</li>
+            <li class="flex items-start gap-3 text-sm text-gray-300"><span class="text-orange-500 font-bold">✓</span> Actualización de Precios en Tiempo Real</li>
+            <li class="flex items-start gap-3 text-sm text-gray-500 line-through"><span class="text-gray-600 font-bold">✕</span> Gestión Multi-mesas y POS</li>
+          </ul>
+          <a href="#" onclick="openLeadModal(event, 'Plan Basic ($46.900/mes)')" class="block text-center w-full bg-white/10 hover:bg-white/20 text-white font-bold py-4 rounded-2xl transition-all border border-white/20">Contratar Basic</a>
+        </div>
+
+        <!-- Plan Pro (Destacado) -->
+        <div class="bg-[#111] border-2 border-orange-500 rounded-[32px] p-8 flex flex-col transform md:-translate-y-4 shadow-[0_20px_50px_rgba(249,115,22,0.15)] relative text-left">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full shadow-lg">
+            Recomendado
+          </div>
+          <h3 class="text-2xl font-black text-white mb-2 mt-2">Plan Pro</h3>
+          <p class="text-gray-400 text-sm mb-6 h-10">La solución completa para restaurantes con mesas y mayor volumen de ventas.</p>
+          <div class="mb-6">
+            <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">$74.900</span> <span class="text-sm text-gray-500 font-bold tracking-widest uppercase">COP</span>
+            <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">/ Mes a Mes</p>
+          </div>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Todo lo incluido en Plan Basic</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> <strong class="text-white">Códigos QR Individuales por Mesa</strong></li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Sistema POS de Facturación Interna</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Impresión Térmica y Control de Caja</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> KDS (Pantalla Digital para Cocina)</li>
+            <li class="flex items-start gap-3 text-sm text-gray-200"><span class="text-orange-500 font-bold">✓</span> Soporte Técnico Prioritario 24/7</li>
+          </ul>
+          <a href="#" onclick="openLeadModal(event, 'Plan Pro ($74.900/mes)')" class="btn-gradient block text-center w-full py-4 rounded-2xl transition-all">Seleccionar Pro</a>
+        </div>
+
+      </div>
+
+      <div class="mt-12 flex items-center justify-center gap-2 text-gray-400">
+        <span class="text-xl">🛡️</span>
+        <p class="text-sm font-medium">Puedes cancelar tu suscripción en cualquier momento.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-12 px-6 pb-28 md:pb-12">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-sm">
+          🍽️</div>
+        <span class="font-black text-lg">MenuPro</span>
+      </div>
+      
+      <div class="flex items-center gap-2 bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-orange-500/20 px-4 py-2 rounded-xl">
+        <span class="text-xl">👨🏻‍💻</span>
+        <span class="text-orange-400 font-bold text-xs uppercase tracking-wider">Desarrollado por: CEO Jesus Caldera</span>
+      </div>
+
+      <p class="text-gray-600 text-sm">© 2026 MenuPro. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Supabase Load & Sync Image settings -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js?v=3"></script>
+  <script>
+    function initFBPixel(pixelId) {
+      if (window.fbq) return;
+      !function (f, b, e, v, n, t, s) {
+        if (f.fbq) return; n = f.fbq = function () {
+          n.callMethod ?
+            n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+        };
+        if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+        n.queue = []; t = b.createElement(e); t.async = !0;
+        t.src = v; s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s)
+      }(window, document, 'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', pixelId);
+      fbq('track', 'PageView');
+    }
+
+    let landingWhatsAppNumber = '573015027933';
+    let globalCurrentPrice = '$49';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const { data, error } = await supabaseClient
+          .from('landing_settings')
+          .select('*')
+          .eq('id', 1)
+          .single();
+
+        if (data && !error) {
+          if (data.hero_image_url) document.getElementById('heroImage').src = data.hero_image_url;
+          if (data.admin_image_url) document.getElementById('adminImage').src = data.admin_image_url;
+          if (data.mobile_image_url) document.getElementById('mobileImage').src = data.mobile_image_url;
+          if (data.qr_image_url) document.getElementById('qrImage').src = data.qr_image_url;
+          if (data.developer_image_url) {
+            const devImg = document.getElementById('developerImage');
+            if (devImg) devImg.src = data.developer_image_url;
+          }
+
+          if (data.fb_pixel_id) {
+            initFBPixel(data.fb_pixel_id);
+          }
+          if (data.price_old) {
+            document.getElementById('displayOldPrice').textContent = data.price_old.includes('$') ? data.price_old : '$' + data.price_old;
+          }
+          if (data.price_current) {
+            globalCurrentPrice = data.price_current.includes('$') ? data.price_current : '$' + data.price_current;
+            document.getElementById('displayCurrentPrice').textContent = globalCurrentPrice;
+          }
+          if (data.spots_left) {
+            const spotsEl = document.getElementById('displaySpotsLeft');
+            if (spotsEl) spotsEl.textContent = `🔥 Solo ${data.spots_left} cupos restantes`;
+          }
+          if (data.whatsapp_number) {
+            landingWhatsAppNumber = data.whatsapp_number;
+          }
+        }
+      } catch (err) {
+        console.warn('No se pudieron cargar las imágenes personalizadas de la base de datos, usando locales por defecto.', err);
+      }
+    });
+
+
+
+    // Modal Logic
+    let currentSelectedPlan = 'Plan Pro ($74.900/mes)';
+
+    function openLeadModal(e, planName = null) {
+      e.preventDefault();
+      if (planName) {
+        currentSelectedPlan = planName;
+        const planInput = document.getElementById('leadSelectedPlan');
+        if (planInput) planInput.value = planName;
+      }
+      document.getElementById('leadModal').classList.remove('hidden');
+    }
+
+    function closeLeadModal() {
+      document.getElementById('leadModal').classList.add('hidden');
+    }
+
+    function openDemoModal(e) {
+      e.preventDefault();
+      document.getElementById('demoModal').classList.remove('hidden');
+    }
+
+    function closeDemoModal() {
+      document.getElementById('demoModal').classList.add('hidden');
+    }
+
+    // Iframe Demo Logic
+    function openIframeDemo(e, url, showCreds = false) {
+      e.preventDefault();
+      closeDemoModal();
+      document.getElementById('iframeOverlay').classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Evita que el fondo (landing) haga scroll
+      document.getElementById('demoIframe').src = url;
+      
+      const credsBar = document.getElementById('demoCredentialsBar');
+      if (showCreds) {
+        credsBar.classList.remove('hidden');
+        credsBar.classList.add('flex');
+      } else {
+        credsBar.classList.add('hidden');
+        credsBar.classList.remove('flex');
+      }
+    }
+
+    function closeIframeDemo() {
+      document.getElementById('iframeOverlay').classList.add('hidden');
+      document.body.style.overflow = ''; // Restaura el scroll de la landing
+      document.getElementById('demoIframe').src = '';
+    }
+
+    function copyDemoText(text) {
+      navigator.clipboard.writeText(text);
+      
+      // Mostrar toast elegante en el centro
+      const toast = document.getElementById('copyToast');
+      const toastText = document.getElementById('copyToastText');
+      toastText.innerText = `'${text}' copiado exitosamente`;
+      
+      toast.classList.remove('hidden');
+      toast.classList.remove('opacity-0', 'scale-95');
+      toast.classList.add('opacity-100', 'scale-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'scale-100');
+        toast.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => toast.classList.add('hidden'), 300); // Esperar a que termine la transición
+      }, 3000);
+    }
+
+    function submitLead(e) {
+      e.preventDefault();
+      const person = document.getElementById('leadPersonName').value;
+      const biz = document.getElementById('leadBizName').value;
+      const plan = document.getElementById('leadSelectedPlan').value || currentSelectedPlan;
+
+      let msg = `🚀 *Nuevo Lead - MenuPro*\n\n`;
+      msg += `Hola! Soy *${person}* y quiero activar el *${plan}* para mi negocio: *${biz}*.\n\n`;
+      msg += `Quedo atento para coordinar el pago y comenzar la instalación.`;
+
+      // FB Pixel tracking
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead', { content_name: 'WhatsApp Lead Conversion' });
+      }
+
+      window.open(`https://wa.me/${landingWhatsAppNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+      closeLeadModal();
+    }
+
+    function contactWhatsApp(e) {
+      e.preventDefault();
+      let msg = `Hola! Tengo dudas sobre MenuPro.`;
+
+      // FB Pixel tracking
+      if (typeof fbq === 'function') {
+        fbq('track', 'Contact', { content_name: 'WhatsApp CTA Click' });
+      }
+
+      window.open(`https://wa.me/${landingWhatsAppNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+  </script>
+
+  <!-- MODAL DE REGISTRO (LEAD) -->
+  <div id="leadModal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeLeadModal()"></div>
+    <div
+      class="relative bg-[#111] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+      <div class="flex justify-between items-center mb-4 md:mb-6 shrink-0">
+        <h3 class="text-xl font-black text-white">¡Empecemos tu Menú!</h3>
+        <button onclick="closeLeadModal()" class="text-gray-400 hover:text-white p-2 -mr-2">✕</button>
+      </div>
+      <p class="text-gray-400 text-xs md:text-sm mb-6 shrink-0">Ingresa el nombre de tu negocio para continuar. Nos
+        contactaremos por WhatsApp para darte toda la información y activar tu sistema.</p>
+
+      <form id="leadForm" onsubmit="submitLead(event)" class="space-y-4">
+        <div>
+          <label class="text-gray-400 text-xs font-bold uppercase block mb-2">Tu Nombre</label>
+          <input type="text" id="leadPersonName"
+            class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-orange-500 focus:bg-white/10 transition-all shadow-inner"
+            placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs font-bold uppercase block mb-2">Nombre de tu Negocio</label>
+          <input type="text" id="leadBizName"
+            class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-orange-500 focus:bg-white/10 transition-all shadow-inner"
+            placeholder="Ej: La Pizzería" required>
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs font-bold uppercase block mb-2">Plan Seleccionado</label>
+          <input type="text" id="leadSelectedPlan" readonly value="Plan Pro ($74.900/mes)"
+            class="w-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold rounded-xl p-4 text-sm outline-none shadow-inner cursor-not-allowed">
+        </div>
+        <button type="submit"
+          class="w-full mt-2 bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-lg shadow-green-500/20 text-white font-black py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all flex justify-center items-center gap-2 text-sm uppercase tracking-wide">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-5.824 4.74-10.563 10.564-10.563 5.826 0 10.564 4.741 10.564 10.564 0 5.824-4.74 10.564-10.563 10.563z" />
+          </svg>
+          Activar mi menú
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE DEMOS -->
+  <div id="demoModal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeDemoModal()"></div>
+    <div class="relative bg-[#111] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl flex flex-col">
+      <div class="flex justify-between items-center mb-6 shrink-0">
+        <h3 class="text-xl font-black text-white">Elige qué Demo quieres ver</h3>
+        <button onclick="closeDemoModal()" class="text-gray-400 hover:text-white p-2 -mr-2">✕</button>
+      </div>
+      <p class="text-gray-400 text-sm mb-6">Explora todo el ecosistema interactuando con las diferentes plataformas en tiempo real.</p>
+      
+      <div class="space-y-4">
+        <!-- Menu -->
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-pro.vercel.app/demo')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-orange-500 hover:bg-orange-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-orange-500/20 text-orange-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">📱</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Menú Digital</h4>
+            <p class="text-gray-400 text-xs mt-1">Así pedirán tus clientes desde sus celulares, sin instalar apps.</p>
+          </div>
+          <div class="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+
+        <!-- Admin -->
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-pro.vercel.app/login.html', true)" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">💻</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Panel Administrador</h4>
+            <p class="text-gray-400 text-xs mt-1">Mira cómo se gestionan los pedidos. <span class="text-blue-400 font-bold">(Auto-Login Demo)</span></p>
+          </div>
+          <div class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+
+        <!-- Kiosko -->
+        <a href="#" onclick="openIframeDemo(event, 'https://menu-digital-pro.vercel.app/kiosk.html?slug=demo')" class="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all p-4 rounded-2xl group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">🏧</div>
+          <div class="flex-1">
+            <h4 class="text-white font-bold text-lg">Ver Kiosko Autoservicio</h4>
+            <p class="text-gray-400 text-xs mt-1">Experiencia ideal para pantallas táctiles (tótems) de autoservicio en local.</p>
+          </div>
+          <div class="text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">➔</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- IFRAME OVERLAY (NUEVO MODO DEMO) -->
+  <div id="iframeOverlay" class="hidden fixed inset-0 z-[1000] bg-black flex flex-col overscroll-none touch-none">
+    <!-- Header flotante elegante -->
+    <div class="bg-[#111] border-b border-white/10 p-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative z-20">
+      
+      <!-- Izquierda: Modo Demo -->
+      <div class="flex items-center gap-2 w-full md:w-auto justify-center md:justify-start">
+        <span class="animate-pulse w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
+        <span class="text-white font-black text-sm tracking-widest uppercase">Modo Demo</span>
+      </div>
+
+      <!-- Centro: Credenciales (Solo visible si es Admin) -->
+      <div id="demoCredentialsBar" class="hidden flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl w-full md:w-auto">
+        <div class="flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto justify-between sm:justify-start">
+          <span class="text-blue-200">Email:</span>
+          <strong class="text-white tracking-wider truncate max-w-[120px] sm:max-w-none">demo@menu.com</strong>
+          <button onclick="copyDemoText('demo@menu.com')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95 shrink-0">Copiar</button>
+        </div>
+        <div class="hidden sm:block w-px h-5 bg-blue-500/30"></div>
+        <div class="flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto justify-between sm:justify-start">
+          <span class="text-blue-200">Clave:</span>
+          <strong class="text-white tracking-wider">123456</strong>
+          <button onclick="copyDemoText('123456')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors shadow-sm active:scale-95 shrink-0">Copiar</button>
+        </div>
+      </div>
+      
+      <!-- Derecha: Botones CTA -->
+      <div class="flex items-center justify-center gap-2 w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+        <button onclick="closeIframeDemo(); document.getElementById('planes').scrollIntoView({behavior:'smooth'})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all">
+          📋 Ver Planes
+        </button>
+        <a href="#" onclick="contactWhatsApp(event)" class="bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white px-4 py-2 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all shadow-lg shadow-green-500/20 hover:scale-105">
+          💬 Contáctame
+        </a>
+        <button onclick="closeIframeDemo()" class="text-gray-400 hover:text-white font-bold bg-white/10 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-xl text-xs sm:text-sm transition-colors whitespace-nowrap">
+          ✕ Cerrar
+        </button>
+      </div>
+    </div>
+    
+    <!-- Contenedor Iframe -->
+    <div class="flex-1 w-full bg-[#0a0a0a] relative overflow-hidden" style="-webkit-overflow-scrolling: touch;">
+      <!-- Loading spinner behind iframe -->
+      <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500"></div>
+      </div>
+      <iframe id="demoIframe" src="" class="absolute inset-0 w-full h-full z-10 bg-transparent pointer-events-auto" frameborder="0" scrolling="yes"></iframe>
+    </div>
+  </div>
+
+  <!-- TOAST DE COPIADO ELEGANTE -->
+  <div id="copyToast" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[2000] transition-all duration-300 opacity-0 scale-95 pointer-events-none">
+    <div class="bg-[#111]/90 backdrop-blur-xl border border-green-500/30 shadow-2xl shadow-green-500/20 px-6 py-4 rounded-2xl flex flex-col items-center gap-2">
+      <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-2xl">✓</div>
+      <p id="copyToastText" class="text-white font-bold text-center"></p>
+    </div>
+  </div>
+
+  <!-- BOTÓN FLOTANTE WHATSAPP -->
+  <a href="#" onclick="contactWhatsApp(event)"
+    class="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[100] group flex items-center gap-3">
+    <div
+      class="bg-white text-black px-4 py-2 rounded-xl text-xs font-bold shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity -translate-x-4 group-hover:translate-x-0 pointer-events-none md:flex hidden">
+      ¿Tienes dudas? Escríbenos
+    </div>
+    <div
+      class="w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform"
+      style="animation: float 3s ease-in-out infinite;">
+      <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-5.824 4.74-10.563 10.564-10.563 5.826 0 10.564 4.741 10.564 10.564 0 5.824-4.74 10.564-10.563 10.563z" />
+      </svg>
+    </div>
+  </a>
+
+  <!-- AOS Script -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      once: true,
+      offset: 100,
+    });
+  </script>
+</body>
+
+</html>

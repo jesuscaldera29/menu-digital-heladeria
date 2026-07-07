@@ -28,8 +28,7 @@ function renderStaff() {
         </div>
       </div>
       <div class="flex gap-2">
-        <button onclick="openEditStaffModal('${s.id}')" class="text-blue-500 p-2 text-sm active:scale-95 transition-all" title="Editar">✏️</button>
-        <button onclick="deleteStaff('${s.id}')" class="text-red-500 p-2 text-sm active:scale-95 transition-all" title="Eliminar">🗑️</button>
+        <button onclick="deleteStaff('${s.id}')" class="text-red-500 p-2 text-sm active:scale-95 transition-all">🗑️</button>
       </div>
     </div>`).join('');
 
@@ -91,33 +90,11 @@ async function addStaff(event) {
     });
 
     if (signUpError) {
-      // Si el usuario ya existe en Auth, intentar reutilizar su ID
-      if (signUpError.message && (signUpError.message.includes('already registered') || signUpError.message.includes('already been registered') || signUpError.message.includes('User already registered'))) {
-        // El email ya existe en Auth — verificar si ya tiene entrada en staff
-        const { data: existingStaff } = await supabaseClient.from('staff').select('id').eq('email', email).eq('business_id', businessId).single();
-        if (existingStaff) {
-          if (driverId) {
-            await supabaseClient.from('delivery_drivers').delete().eq('id', driverId);
-          }
-          throw new Error('Este empleado ya está registrado en esta sucursal con ese correo.');
-        }
-        // El usuario existe en Auth pero NO en staff de este negocio — intentar login para obtener el user_id
-        const tempLoginClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-        const { data: loginData, error: loginError } = await tempLoginClient.auth.signInWithPassword({ email, password });
-        if (loginError || !loginData.user) {
-          if (driverId) {
-            await supabaseClient.from('delivery_drivers').delete().eq('id', driverId);
-          }
-          throw new Error('El email ya está registrado pero la contraseña no coincide. Usa la contraseña original o un email diferente.');
-        }
-        signUpData = { user: loginData.user };
-      } else {
-        // Revertir creación de repartidor si falla Auth por otra razón
-        if (driverId) {
-          await supabaseClient.from('delivery_drivers').delete().eq('id', driverId);
-        }
-        throw signUpError;
+      // Revertir creación de repartidor si falla Auth
+      if (driverId) {
+        await supabaseClient.from('delivery_drivers').delete().eq('id', driverId);
       }
+      throw signUpError;
     }
     if (!signUpData.user) throw new Error('No se pudo crear el usuario en Supabase Auth.');
 
@@ -170,131 +147,6 @@ async function deleteStaff(id) {
     }
     await supabaseClient.from('staff').delete().eq('id', id);
     showToast('🗑️ Eliminado');
-    loadStaff();
-  } catch (err) {
-    showToast('❌ ' + err.message, 'error');
-  }
-}
-
-// ===== EDITAR EMPLEADO =====
-function openEditStaffModal(staffId) {
-  const staff = allStaff.find(s => s.id === staffId);
-  if (!staff) return showToast('⚠️ Empleado no encontrado', 'error');
-
-  // Crear modal si no existe
-  let modal = document.getElementById('editStaffModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'editStaffModal';
-    modal.className = 'fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] backdrop-blur-sm p-4';
-    modal.innerHTML = `
-      <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto">
-        <button onclick="closeEditStaffModal()" class="absolute top-3 right-3 text-gray-400 hover:text-black text-lg p-1">❌</button>
-        <h3 class="text-lg font-black mb-3">✏️ Editar Empleado</h3>
-        <input type="hidden" id="editStaffId">
-        
-        <div class="space-y-2">
-          <div>
-            <label class="font-bold text-[10px] text-gray-500 uppercase">Nombre</label>
-            <input type="text" id="editStaffName" class="input !mt-0 !py-1.5 !text-sm" placeholder="Nombre completo">
-          </div>
-          
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-bold text-[10px] text-gray-500 uppercase">Rol</label>
-              <select id="editStaffRole" class="input !mt-0 !py-1.5 !text-sm">
-                <option value="Administrador">Administrador</option>
-                <option value="Cajero">Cajero</option>
-                <option value="Mesero">Mesero</option>
-                <option value="Repartidor">Repartidor</option>
-                <option value="Cocina">Cocina (KDS)</option>
-                <option value="Kiosko">Kiosko</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold text-[10px] text-gray-500 uppercase">Teléfono</label>
-              <input type="tel" id="editStaffPhone" class="input !mt-0 !py-1.5 !text-sm" placeholder="Teléfono">
-            </div>
-          </div>
-          
-          <div class="px-3 py-2 bg-gray-50 rounded-xl">
-            <p class="text-[9px] font-bold text-gray-400 uppercase">Email (no editable)</p>
-            <p id="editStaffEmailDisplay" class="text-xs font-mono text-gray-600 truncate"></p>
-          </div>
-          
-          <div class="p-3 bg-blue-50 rounded-xl space-y-2">
-            <h3 class="text-xs font-black text-blue-700">⏰ Horario de Trabajo</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-[9px] font-bold text-gray-500 uppercase">Entrada</label>
-                <input type="time" id="editStaffScheduleIn" class="input !mt-0 !py-1 !text-xs">
-              </div>
-              <div>
-                <label class="text-[9px] font-bold text-gray-500 uppercase">Salida</label>
-                <input type="time" id="editStaffScheduleOut" class="input !mt-0 !py-1 !text-xs">
-              </div>
-            </div>
-            <div>
-              <label class="text-[9px] font-bold text-gray-500 uppercase">Días Laborales</label>
-              <input type="text" id="editStaffWorkDays" class="input !mt-0 !py-1 !text-xs" placeholder="Ej: Lun-Sáb">
-            </div>
-          </div>
-          
-          <button class="btn btn-primary w-full mt-2 !py-2 !text-sm" onclick="updateStaff()">💾 Guardar Cambios</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-
-  // Llenar campos con datos actuales
-  document.getElementById('editStaffId').value = staff.id;
-  document.getElementById('editStaffName').value = staff.name || '';
-  document.getElementById('editStaffRole').value = staff.role || 'Empleado';
-  document.getElementById('editStaffPhone').value = staff.phone || '';
-  document.getElementById('editStaffEmailDisplay').textContent = staff.email || 'Sin email';
-  document.getElementById('editStaffScheduleIn').value = staff.schedule_in || '08:00';
-  document.getElementById('editStaffScheduleOut').value = staff.schedule_out || '17:00';
-  document.getElementById('editStaffWorkDays').value = staff.work_days || 'Lun-Sáb';
-
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
-}
-
-function closeEditStaffModal() {
-  const modal = document.getElementById('editStaffModal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-  }
-}
-
-async function updateStaff() {
-  const id = document.getElementById('editStaffId').value;
-  const name = document.getElementById('editStaffName').value.trim();
-  const role = document.getElementById('editStaffRole').value;
-  const phone = document.getElementById('editStaffPhone').value.trim();
-  const scheduleIn = document.getElementById('editStaffScheduleIn').value;
-  const scheduleOut = document.getElementById('editStaffScheduleOut').value;
-  const workDays = document.getElementById('editStaffWorkDays').value.trim();
-
-  if (!name) return showToast('⚠️ El nombre es requerido', 'error');
-
-  try {
-    const { error } = await supabaseClient.from('staff').update({
-      name,
-      role,
-      phone,
-      schedule_in: scheduleIn,
-      schedule_out: scheduleOut,
-      work_days: workDays
-    }).eq('id', id);
-
-    if (error) throw error;
-
-    showToast('✅ Empleado actualizado');
-    document.getElementById('editStaffModal').classList.add('hidden');
-    document.getElementById('editStaffModal').style.display = 'none';
     loadStaff();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');

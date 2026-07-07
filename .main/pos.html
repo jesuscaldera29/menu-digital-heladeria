@@ -150,7 +150,7 @@
     .light-mode .bg-\[\#1f1f1f\] { background-color: #fffbeb !important; border-color: #f59e0b !important; }
   </style>
 </head>
-<body class="h-screen flex flex-col light-mode">
+<body class="h-screen flex flex-col">
 
   <!-- LOADING SCREEN -->
   <div id="loadingBizScreen" class="fixed inset-0 bg-[#0a0a0a] z-[999] flex flex-col items-center justify-center transition-opacity duration-300">
@@ -194,7 +194,7 @@
             <span>🖨️</span> <span id="autoPrintText">Auto-Print: OFF</span>
           </button>
           <button onclick="toggleTheme(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span id="themeIcon">🌙</span> Cambiar Tema
+            <span id="themeIcon">☀️</span> Cambiar Tema
           </button>
           <button onclick="window.location.reload()" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
             <span>🔄</span> Recargar POS
@@ -474,7 +474,8 @@
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de Pago</label>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="paymentButtonsGrid">
             <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">💵 Efectivo</button>
-            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">🏦 Transf.</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Tarjeta', this)">💳 Tarjeta</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">📱 Transf.</button>
             <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">✂️ Dividir</button>
             <button id="btnContraEntrega" class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs hidden" onclick="selectPayment('Contra Entrega', this)">🚚 Contra Entr.</button>
           </div>
@@ -485,12 +486,6 @@
         <div id="cashAmountSection">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">¿Con cuánto paga?</label>
           <input type="number" id="cashReceived" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-lg font-black outline-none focus:border-orange-500" placeholder="$ Monto recibido" oninput="calculateChange()">
-          <div class="grid grid-cols-4 gap-2 mt-2">
-            <button class="bg-[#222] hover:bg-[#333] border border-[#333] text-gray-300 font-bold py-2 rounded-xl text-xs transition-all" onclick="setCashAmount(10000)">+$10k</button>
-            <button class="bg-[#222] hover:bg-[#333] border border-[#333] text-gray-300 font-bold py-2 rounded-xl text-xs transition-all" onclick="setCashAmount(20000)">+$20k</button>
-            <button class="bg-[#222] hover:bg-[#333] border border-[#333] text-gray-300 font-bold py-2 rounded-xl text-xs transition-all" onclick="setCashAmount(50000)">+$50k</button>
-            <button class="bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 border border-orange-500/50 font-bold py-2 rounded-xl text-xs transition-all" onclick="setExactCash()">Exacto</button>
-          </div>
           <div id="changeDisplay" class="hidden mt-2 bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-center">
             <p class="text-[10px] text-green-400 font-bold uppercase tracking-widest mb-1">Cambio / Vuelto</p>
             <p class="text-2xl font-black text-green-400" id="changeAmount">$0</p>
@@ -515,7 +510,11 @@
               <input type="number" id="splitCash" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold">🏦 Transf:</span>
+              <span class="text-sm font-bold">💳 Tarjeta:</span>
+              <input type="number" id="splitCard" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold">📱 Transf:</span>
               <input type="number" id="splitTransfer" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
           </div>
@@ -707,10 +706,10 @@
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('pos_theme') === 'dark') {
-        document.body.classList.remove('light-mode');
+      if (localStorage.getItem('pos_theme') === 'light') {
+        document.body.classList.add('light-mode');
         const icon = document.getElementById('themeIcon');
-        if (icon) icon.textContent = '☀️';
+        if (icon) icon.textContent = '🌙';
       }
     });
   </script>

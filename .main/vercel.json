@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/landing.html" },
+    { "source": "/admin.html", "destination": "/admin.html" },
+    { "source": "/superadmin.html", "destination": "/superadmin.html" },
+    { "source": "/login.html", "destination": "/login.html" },
+    { "source": "/register.html", "destination": "/register.html" },
+    { "source": "/order-status.html", "destination": "/order-status.html" },
+    { "source": "/js/:path*", "destination": "/js/:path*" },
+    { "source": "/css/:path*", "destination": "/css/:path*" },
+    { "source": "/img/:path*", "destination": "/img/:path*" },
+    { "source": "/:slug", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estado de tu Pedido | Menú Digital</title>
+  <meta property="og:title" content="🛵 Sigue tu Pedido en Vivo">
+  <meta property="og:description" content="Haz clic aquí para rastrear el estado de tu pedido en tiempo real.">
+  <meta property="og:type" content="website">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #F8F9FA;
+      font-family: 'Outfit', sans-serif;
+      color: #1A1A1A;
+    }
+    .status-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      padding-bottom: 24px;
+    }
+    .status-step::after {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      width: 2px;
+      height: calc(100% - 32px);
+      background: #E5E7EB;
+      z-index: 1;
+    }
+    .status-step:last-child::after {
+      display: none;
+    }
+    .status-step.active::after {
+      background: #EA580C;
+    }
+    .status-step.completed::after {
+      background: #22C55E;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #F3F4F6;
+      border: 2px solid #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.7); transform: scale(1); }
+      50% { box-shadow: 0 0 0 10px rgba(234, 88, 12, 0); transform: scale(1.05); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); transform: scale(1); }
+    }
+    .status-step.active .step-circle {
+      background: #EA580C;
+      border-color: #EA580C;
+      color: white;
+      animation: pulse-ring 1.5s infinite;
+    }
+    .status-step.completed .step-circle {
+      background: #22C55E;
+      border-color: #22C55E;
+      color: white;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="max-w-lg w-full bg-white rounded-[32px] shadow-2xl p-6 md:p-8 border border-gray-50 text-center relative overflow-hidden">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col items-center">
+      <div class="w-20 h-20 rounded-full bg-orange-50 flex items-center justify-center mb-3">
+        <span id="headerEmoji" class="text-4xl">🍔</span>
+      </div>
+      <h1 class="text-2xl font-black" id="businessName">Tronco E' Filo</h1>
+      <p class="text-xs font-black tracking-widest text-orange-600 uppercase mt-1">Estado de tu Pedido</p>
+    </div>
+
+    <!-- Error/Expired Screen -->
+    <div id="expiredScreen" class="hidden py-8">
+      <div class="text-6xl mb-4">⏳</div>
+      <h2 class="text-xl font-bold text-red-600 mb-2">Enlace Expirado o Inválido</h2>
+      <p class="text-gray-500 text-sm">Por razones de seguridad, los enlaces de seguimiento solo son válidos por 3 horas.</p>
+      <a href="index.html" class="mt-6 inline-block bg-black text-white px-6 py-3 rounded-xl font-bold">Volver al Menú</a>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="py-12">
+      <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-600 mx-auto"></div>
+      <p class="text-gray-500 text-sm mt-4">Obteniendo estado de tu pedido...</p>
+    </div>
+
+    <!-- Main Status Tracker -->
+    <div id="trackerScreen" class="hidden text-left">
+      <div class="bg-gray-50 p-4 rounded-2xl mb-6 flex justify-between items-center">
+        <div>
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Pedido</p>
+          <p class="text-lg font-black text-orange-600" id="orderIdText">#0000</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Última actualización</p>
+          <p class="text-xs text-gray-500 font-bold" id="lastUpdated">cada 10s</p>
+        </div>
+      </div>
+
+      <!-- Status Steps -->
+      <div class="space-y-1 my-8 pl-4">
+        <!-- Pendiente -->
+        <div class="status-step" id="step-Pendiente">
+          <div class="step-circle">⏳</div>
+          <div>
+            <h4 class="font-bold text-base text-gray-900">Pendiente</h4>
+            <p class="text-xs text-gray-500">Recibido en el restaurante y en espera de confirmación.</p>
+          </div>
+        </div>
+
+        <!-- Confirmado -->
+        <div class="status-step" id="step-Confirmado">
+          <div class="step-circle">✅</div>
+          <div>
+            <h4 class="font-bold text-base text-gray-900">Confirmado</h4>
+            <p class="text-xs text-gray-500">Tu pedido ha sido aprobado por el local.</p>
+          </div>
+        </div>
+
+        <!-- Preparando -->
+        <div class="status-step" id="step-Preparando">
+          <div class="step-circle">👨‍🍳</div>
+          <div>
+            <h4 class="font-bold text-base text-gray-900">Preparando</h4>
+            <p class="text-xs text-gray-500">Nuestro equipo está preparando tus platos favoritos.</p>
+          </div>
+        </div>
+
+        <!-- Entregado -->
+        <div class="status-step" id="step-Entregado">
+          <div class="step-circle">🚚</div>
+          <div>
+            <h4 class="font-bold text-base text-gray-900">Entregado / Despachado</h4>
+            <p class="text-xs text-gray-500">Tu pedido está en camino o ha sido entregado en mesa.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Details Summary -->
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Detalle del Pedido</h3>
+        <div id="orderItemsSummary" class="space-y-1.5 text-xs text-gray-700 max-h-[120px] overflow-y-auto pr-1"></div>
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mt-4">
+          <span class="font-bold text-gray-500 text-xs">Total:</span>
+          <span class="text-lg font-black text-red-600" id="orderTotalText"></span>
+        </div>
+        <button id="btnNotify" onclick="enableNotifications()" class="mt-6 bg-orange-100 text-orange-600 px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-orange-200 flex items-center justify-center gap-2">🔔 Activar Notificaciones y Sonido</button>
+        <button id="btnWhatsAppShare" onclick="shareViaWhatsApp()" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-bold w-full transition-all flex items-center justify-center gap-2 shadow-md">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.725 1.451 5.402.002 9.799-4.393 9.802-9.799.002-2.618-1.01-5.08-2.858-6.93C16.47 2.025 14.014.996 11.997.996 6.596.996 2.2 5.391 2.197 10.797c-.001 1.637.478 3.237 1.385 4.678l-1.011 3.693 3.791-.994z"/></svg>
+          Enviar Resumen a mi WhatsApp
+        </button>
+        <button id="btnDownload" onclick="downloadTicket()" class="mt-2 bg-gray-800 text-white px-4 py-3 rounded-xl text-xs font-bold w-full transition-all hover:bg-gray-700 flex items-center justify-center gap-2">📥 Descargar Resumen del Pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="js/supabase-config.js?v=3"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+    let currentKnownStatus = null;
+    let notificationsEnabled = false;
+    let currentOrder = null;
+
+    function shareViaWhatsApp() {
+      if (!currentOrder) return alert('No se ha podido cargar los detalles del pedido aún.');
+      
+      let msg = `🍦 *Detalle de mi Pedido en Goloso* ✨\n\n`;
+      msg += `🛒 *PEDIDO #${String(currentOrder.id).padStart(4, '0')}*\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━\n`;
+      for (const item of currentOrder.items || []) {
+        msg += `▪️ ${item.name} x${item.qty}\n`;
+      }
+      
+      const discount = Number(currentOrder.discount || 0);
+      const total = Number(currentOrder.total || 0);
+      const subtotal = total + discount - (currentOrder.delivery_fee || 0);
+      
+      msg += `━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `Subtotal: $${subtotal.toLocaleString()}\n`;
+      if (discount > 0) msg += `Descuento: -$${discount.toLocaleString()}\n`;
+      if (currentOrder.delivery_fee > 0) msg += `Domicilio: +$${Number(currentOrder.delivery_fee).toLocaleString()}\n`;
+      msg += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━\n\n`;
+      msg += `👤 *Cliente:* ${currentOrder.customer_name}\n`;
+      msg += `📦 *Método:* ${currentOrder.delivery_method}\n`;
+      if (currentOrder.address && currentOrder.address !== 'Llevar / Kiosko') {
+        msg += `📍 *Ubicación/Mesa:* ${currentOrder.address}\n`;
+      }
+      msg += `\n🔗 *Seguimiento en vivo:*\n${window.location.href}\n`;
+      
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    async function enableNotifications() {
+      if ("Notification" in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          notificationsEnabled = true;
+          const audio = document.getElementById('notificationSound');
+          if (audio) {
+            audio.volume = 0;
+            audio.play().catch(e => console.log('Unlock failed:', e));
+            setTimeout(() => audio.volume = 1, 1000);
+          }
+          document.getElementById('btnNotify').classList.add('hidden');
+        }
+      }
+    }
+
+    async function loadOrderStatus() {
+      if (!orderId) {
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('expiredScreen').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const { data: order, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+        
+        if (error || !order) {
+          document.getElementById('loadingScreen').classList.add('hidden');
+          document.getElementById('expiredScreen').classList.remove('hidden');
+          return;
+        }
+
+        currentOrder = order;
+
+        // Load business settings from order's business_id
+        if (order.business_id) {
+          loadBusinessSettings(order.business_id);
+        }
+
+        // Check if expired (3 hours limit)
+        const createdAt = new Date(order.created_at);
+        const now = new Date();
+        const diffHours = (now - createdAt) / (1000 * 60 * 60);
+
+        if (diffHours > 3) {
+          document.getElementById('loadingScreen').classList.add('hidden');
+          document.getElementById('trackerScreen').classList.add('hidden');
+          document.getElementById('expiredScreen').classList.remove('hidden');
+          return;
+        }
+
+        document.getElementById('orderIdText').textContent = `#${String(order.id).padStart(4, '0')}`;
+        updateStatusStepsUI(order.status || 'Pendiente');
+
+        const items = order.items || [];
+        document.getElementById('orderItemsSummary').innerHTML = items.map(item => `
+          <div class="flex justify-between">
+            <span>${item.qty}x ${item.name}</span>
+            <span class="font-semibold">$${Number(item.price * item.qty).toLocaleString()}</span>
+          </div>
+        `).join('');
+
+        // Verificamos si cambió el estado para notificar
+        const newStatus = order.status || 'Pendiente';
+        if (currentKnownStatus && currentKnownStatus !== newStatus) {
+            const audio = document.getElementById('notificationSound');
+            if (audio) audio.play().catch(e => {});
+            
+            if (notificationsEnabled && Notification.permission === "granted") {
+                new Notification("¡Tu pedido se ha actualizado!", {
+                    body: `El nuevo estado de tu pedido es: ${newStatus}`,
+                    icon: "https://ui-avatars.com/api/?name=MP&background=ea580c&color=fff"
+                });
+            }
+        }
+        currentKnownStatus = newStatus;
+
+        document.getElementById('orderTotalText').textContent = `$${Number(order.total).toLocaleString()}`;
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('trackerScreen').classList.remove('hidden');
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function updateStatusStepsUI(currentStatus) {
+      const statuses = ['Pendiente', 'Confirmado', 'Preparando', 'Entregado'];
+      const idx = statuses.indexOf(currentStatus);
+      statuses.forEach((s, i) => {
+        const el = document.getElementById(`step-${s}`);
+        if (!el) return;
+        el.classList.remove('active', 'completed');
+        if (i === idx) el.classList.add('active');
+        else if (i < idx) el.classList.add('completed');
+      });
+    }
+
+    async function loadBusinessSettings(bizId) {
+      try {
+        const { data } = await supabaseClient.from('settings').select('*').eq('business_id', bizId).single();
+        if (data) {
+          if (data.business_name) document.getElementById('businessName').textContent = data.business_name;
+          if (data.logo_url) {
+            const emoji = document.getElementById('headerEmoji');
+            emoji.outerHTML = `<img src="${data.logo_url}" class="w-20 h-20 object-contain rounded-full">`;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadOrderStatus();
+    setInterval(loadOrderStatus, 10000);
+
+    async function downloadTicket() {
+      const element = document.querySelector('.max-w-lg');
+      const btnGroup = document.getElementById('btnNotify');
+      const btnDown = document.getElementById('btnDownload');
+      try {
+        if(btnGroup) btnGroup.style.display = 'none';
+        if(btnDown) btnDown.style.display = 'none';
+        
+        const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = `Pedido_${orderId}.png`;
+        link.href = image;
+        link.click();
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error al descargar ticket');
+      } finally {
+        if(btnGroup && !notificationsEnabled) btnGroup.style.display = '';
+        if(btnDown) btnDown.style.display = '';
+      }
+    }
+  </script>
+  
+  <audio id="notificationSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+</body>
+</html>

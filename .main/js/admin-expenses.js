@@ -50,19 +50,6 @@ async function addExpense(event) {
   try {
     const { error } = await supabaseClient.from('expenses').insert([{ business_id: businessId, category: cat, description: desc, amount, date }]);
     if (error) throw error;
-    
-    // Si hay caja abierta, registrarlo como retiro (gasto) en la caja para que afecte el cuadre
-    if (activeCashSession) {
-      await supabaseClient.from('cash_movements').insert([{
-        business_id: businessId,
-        cash_closing_id: activeCashSession.id,
-        type: 'withdrawal',
-        amount: amount,
-        reason: `Gasto Admin: ${cat} - ${desc}`,
-        created_by_name: 'Admin'
-      }]);
-    }
-    
     showToast('✅ Gasto registrado');
     document.getElementById('expenseDescription').value = '';
     document.getElementById('expenseAmount').value = '';
