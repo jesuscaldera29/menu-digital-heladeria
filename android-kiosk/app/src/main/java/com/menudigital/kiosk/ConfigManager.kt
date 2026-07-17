@@ -27,7 +27,7 @@ class ConfigManager(context: Context) {
         private const val DEFAULT_PRINTER_IP = "192.168.20.40"
         private const val DEFAULT_PRINTER_PORT = 9100
         private const val DEFAULT_PAPER_WIDTH = 48
-        private const val DEFAULT_KIOSK_URL = "https://menu-digital-pro.vercel.app/kiosk.html"
+        private const val DEFAULT_KIOSK_URL = "https://menu-digital-pro.vercel.app/login.html"
     }
 
     private val prefs: SharedPreferences =

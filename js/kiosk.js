@@ -1329,7 +1329,8 @@ window.handleLogoClick = function() {
           "1 = Cambiar IP impresora (actual: " + current.printer_ip + ")\n" +
           "2 = Cambiar URL del kiosko\n" +
           "3 = Prueba de impresión\n" +
-          "4 = Recargar app",
+          "4 = Recargar app\n" +
+          "5 = Cerrar Sesión",
           "1"
         );
         if (option === '1') {
@@ -1354,12 +1355,39 @@ window.handleLogoClick = function() {
           alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
         } else if (option === '4') {
           window.AndroidConfig.reloadApp();
+        } else if (option === '5') {
+          const pwd = prompt("Contraseña de seguridad:");
+          if (pwd === "salir") {
+            localStorage.clear();
+            supabaseClient.auth.signOut().then(() => {
+              window.location.href = 'login.html';
+            });
+          } else if (pwd !== null) {
+            alert("Contraseña incorrecta");
+          }
         }
       } catch (e) {
         alert('Error: ' + e.message);
       }
       return;
     }
+
+    // For non-Android web mode:
+    const webAction = prompt("⚙️ Menú Oculto:\n1 = Configurar Impresora\n5 = Cerrar Sesión", "1");
+    if (webAction === '5') {
+      const pwd = prompt("Contraseña de seguridad:");
+      if (pwd === "salir") {
+        localStorage.clear();
+        supabaseClient.auth.signOut().then(() => {
+          window.location.href = 'login.html';
+        });
+      } else if (pwd !== null) {
+        alert("Contraseña incorrecta");
+      }
+      return;
+    }
+    
+    if (webAction !== '1') return;
 
     // Electron Desktop config mode (impresion TCP integrada)
     if (window.DesktopPrint) {

@@ -2908,3 +2908,94 @@ async function loadDrivers() {
   }
 }
 
+let posLogoClicks = 0;
+window.handlePosLogoClick = function() {
+  posLogoClicks++;
+  if (posLogoClicks >= 5) {
+    posLogoClicks = 0;
+
+    // Android APK config mode
+    if (window.AndroidConfig) {
+      try {
+        const current = JSON.parse(window.AndroidConfig.getConfig());
+        const option = prompt(
+          "⚙️ Configuración POS Android:\n" +
+          "1 = Cambiar IP impresora (actual: " + current.printer_ip + ")\n" +
+          "2 = Cambiar URL de la app\n" +
+          "3 = Prueba de impresión\n" +
+          "4 = Recargar app\n" +
+          "5 = Cerrar Sesión (Secreto)",
+          "1"
+        );
+        if (option === '1') {
+          const newIP = prompt("IP de la impresora térmica:", current.printer_ip);
+          if (newIP) {
+            const newPort = prompt("Puerto (normalmente 9100):", String(current.printer_port));
+            window.AndroidConfig.setConfig(newIP, parseInt(newPort) || 9100);
+            alert("✅ Impresora configurada: " + newIP + ":" + (newPort || 9100));
+            const testResult = window.AndroidPrint.testPrint();
+            alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+          }
+        } else if (option === '2') {
+          const newUrl = prompt("URL de inicio:", current.kiosk_url);
+          if (newUrl) {
+            window.AndroidConfig.setKioskUrl(newUrl);
+            alert("✅ URL actualizada. Recargando...");
+            window.AndroidConfig.reloadApp();
+          }
+        } else if (option === '3') {
+          const testResult = window.AndroidPrint.testPrint();
+          alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+        } else if (option === '4') {
+          window.AndroidConfig.reloadApp();
+        } else if (option === '5') {
+          const pwd = prompt("Contraseña de seguridad:");
+          if (pwd === "salir") {
+            performLogout();
+          } else if (pwd !== null) {
+            alert("Contraseña incorrecta");
+          }
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+      return;
+    }
+
+    // For non-Android web mode:
+    const webAction = prompt("⚙️ Menú Oculto POS:\n1 = Configurar Impresora\n5 = Cerrar Sesión", "1");
+    if (webAction === '5') {
+      const pwd = prompt("Contraseña de seguridad:");
+      if (pwd === "salir") {
+        performLogout();
+      } else if (pwd !== null) {
+        alert("Contraseña incorrecta");
+      }
+      return;
+    }
+    
+    if (webAction !== '1') return;
+
+    // Electron Desktop config mode (impresion TCP integrada)
+    if (window.DesktopPrint) {
+      if (typeof configureDesktopPrinter === 'function') {
+        configureDesktopPrinter();
+      }
+      return;
+    }
+
+    // PrintBridge HTTP config (navegadores sin Electron ni Android)
+    const currentIP = localStorage.getItem('printbridge_url') || 'http://192.168.1.100:9101';
+    const newIP = prompt("⚙️ Configuración del Servidor de Impresión (PrintBridge):\nIngrese la dirección IP y puerto del servidor del PC (ej. http://192.168.1.100:9101):", currentIP);
+    if (newIP !== null) {
+      localStorage.setItem('printbridge_url', newIP);
+      if (typeof PRINTBRIDGE_URL !== 'undefined') {
+        PRINTBRIDGE_URL = newIP;
+      }
+      alert("✅ Servidor de impresión configurado en:\n" + newIP);
+      if (typeof detectPrintBridge === 'function') {
+        detectPrintBridge();
+      }
+    }
+  }
+};
