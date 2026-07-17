@@ -4,7 +4,7 @@
     <color name="orange_dark">#C2410C</color>
     <color name="orange_primary">#EA580C</color>
     <color name="white">#FFFFFF</color>
-    <string name="app_name">Kiosko</string>
+    <string name="app_name">Menú Digital Pro</string>
     <style name="Theme.KioskPrintBridge" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#EA580C</item>
         <item name="colorPrimaryVariant">#C2410C</item>

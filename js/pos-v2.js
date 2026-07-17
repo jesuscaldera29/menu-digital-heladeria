@@ -1365,9 +1365,15 @@ async function saveTableOrder() {
 
 async function logout() {
   if (!confirm('¿Seguro que deseas cerrar sesión?')) return;
-  await supabaseClient.auth.signOut();
-  localStorage.clear();
-  window.location.href = 'login.html';
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await supabaseClient.auth.signOut();
+  } catch (error) {
+    console.warn('Error during sign out:', error);
+  } finally {
+    window.location.href = 'login.html';
+  }
 }
 
 // Init
@@ -2863,11 +2869,15 @@ window.submitBlindClose = async function() {
 };
 
 async function performLogout() {
-  await supabaseClient.auth.signOut();
-  localStorage.removeItem('staff_business_id');
-  localStorage.removeItem('staff_id');
-  localStorage.removeItem('staff_name');
-  window.location.href = 'login.html';
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await supabaseClient.auth.signOut();
+  } catch (error) {
+    console.warn('Error during sign out:', error);
+  } finally {
+    window.location.href = 'login.html';
+  }
 }
 
 async function loadDrivers() {
