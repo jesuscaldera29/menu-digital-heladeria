@@ -2257,6 +2257,60 @@ window.printSpecificTicket = async function(orderId) {
   }
 };
 
+window.closeCashAndPrintZ = async function() {
+  if (!window.currentPOSReport || !activeCashClosingId) {
+    showToast('⚠️ No hay caja abierta o no se cargó el reporte', 'error');
+    return;
+  }
+  
+  if (!confirm('¿Estás seguro que deseas CERRAR LA CAJA e imprimir el Ticket Z con los montos actuales?')) return;
+
+  const btn = document.getElementById('btnCloseCashAndPrintZ');
+  if (btn) { btn.textContent = 'CERRANDO...'; btn.disabled = true; }
+
+  try {
+    const expectedCash = window.currentPOSReport.expectedCash || 0;
+
+    // Obtener los datos actuales de la caja
+    const { data: closingInfo } = await supabaseClient
+      .from('cash_closings')
+      .select('*')
+      .eq('id', activeCashClosingId)
+      .single();
+
+    // Actualizar registro de caja cerrada
+    await supabaseClient
+      .from('cash_closings')
+      .update({
+        is_open: false,
+        closed_at: new Date().toISOString(),
+        expected_total: expectedCash,
+        declared_total: expectedCash,
+        difference: 0, // Como es un cierre desde el Z, asumimos cuadre perfecto
+        cash_sales: window.currentPOSReport.cash || 0,
+        transfer_sales: window.currentPOSReport.transfer || 0,
+        card_sales: window.currentPOSReport.card || 0,
+        total_expenses: window.currentPOSReport.cashOut || 0
+      })
+      .eq('id', activeCashClosingId);
+
+    showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
+    
+    // Imprimir Z report
+    await printPOSReport();
+
+    // Cerrar sesión después de un breve tiempo
+    setTimeout(() => {
+      performLogout();
+    }, 2500);
+
+  } catch (err) {
+    showToast('❌ Error al cerrar la caja', 'error');
+    console.error(err);
+    if (btn) { btn.innerHTML = '<span>🔒</span> Cerrar Caja e Imprimir Z'; btn.disabled = false; }
+  }
+};
+
 window.closePOSReport = function() {
   document.getElementById('posReportModal').classList.add('hidden');
 };

@@ -160,5 +160,18 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js?v=3"></script>
   <script src="js/driver.js?v=1"></script>
+  <!-- Botón Retroceso a Admin (Solo Admin/Superadmin) -->
+  <button id="globalAdminBackBtn" onclick="window.location.href='admin.html'" class="hidden fixed bottom-6 left-6 bg-white hover:bg-orange-500 border border-gray-200 hover:border-orange-500 text-black hover:text-white font-bold w-14 h-14 rounded-full shadow-2xl z-[9999] flex items-center justify-center transition-all duration-300 active:scale-95 group" title="Volver al Panel de Administración">
+    <span class="text-2xl group-hover:-translate-x-1 transition-transform">⬅️</span>
+  </button>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const role = localStorage.getItem('staff_role');
+      if (!role || role === 'Administrador' || role === 'Superadmin') {
+        const btn = document.getElementById('globalAdminBackBtn');
+        if(btn) btn.classList.remove('hidden');
+      }
+    });
+  </script>
 </body>
 </html>
