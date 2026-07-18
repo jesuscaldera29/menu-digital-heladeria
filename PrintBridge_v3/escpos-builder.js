@@ -217,6 +217,17 @@ function buildReport(d, cfg) {
   b.leftRight('Caja (POS):', fmt(d.originPOS||0));
   b.leftRight('Kiosko:', fmt(d.originKiosko||0));
   b.leftRight('Menu QR:', fmt(d.originMenu||0));
+
+  b.separator().alignCenter().bold(true).textLine('PRODUCTOS VENDIDOS').bold(false).alignLeft();
+  if (d.productsSold && Object.keys(d.productsSold).length > 0) {
+    Object.keys(d.productsSold).forEach(name => {
+      const item = d.productsSold[name];
+      let displayName = name.length > 20 ? name.substring(0, 20) + '...' : name;
+      b.leftRight(item.qty + 'x ' + displayName.toUpperCase(), fmt(item.total));
+    });
+  } else {
+    b.alignCenter().textLine('Sin productos').alignLeft();
+  }
   
   b.separator().alignCenter().bold(true).textLine('DESGLOSE DE PAGOS').bold(false).alignLeft();
   b.leftRight('Efectivo:', fmt(d.cash||0));

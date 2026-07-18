@@ -2007,7 +2007,7 @@ window.openPOSReport = async function() {
 
     const { data: orders, error } = await supabaseClient
       .from('orders')
-      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes')
+      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items, cart')
       .eq('business_id', businessId)
       .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado'])
       .gte('created_at', startDate.toISOString())
@@ -2059,6 +2059,7 @@ window.openPOSReport = async function() {
     let originMenu = 0;
 
     let historyHtml = '';
+    let productsSold = {};
 
     orders.forEach(o => {
       const total = Number(o.total) || 0;
@@ -2084,6 +2085,26 @@ window.openPOSReport = async function() {
       else if (o.notes && o.notes.includes('[ORIGIN:POS]')) { originPOS += total; originStr = 'Caja (POS)'; }
       else if (o.notes && o.notes.includes('Kiosko Auto-Servicio')) { originKiosko += total; originStr = 'Kiosko'; }
       else { originPOS += total; originStr = 'Caja (POS)'; } // default to POS for older orders
+
+      // Calculate products sold
+      let orderItems = o.cart || o.items || [];
+      if (typeof orderItems === 'string') {
+        try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+      }
+      if (Array.isArray(orderItems)) {
+        orderItems.forEach(item => {
+          const qty = Number(item.quantity || item.qty) || 1;
+          const price = Number(item.price) || 0;
+          let name = item.name || 'Desconocido';
+          if (item.extrasLabel) name += ` (${item.extrasLabel})`;
+          
+          if (!productsSold[name]) {
+            productsSold[name] = { qty: 0, total: 0 };
+          }
+          productsSold[name].qty += qty;
+          productsSold[name].total += (qty * price);
+        });
+      }
 
       // Table Row
       const dateStr = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -2116,7 +2137,8 @@ window.openPOSReport = async function() {
       openingCash,
       cashIn,
       cashOut,
-      expectedCash
+      expectedCash,
+      productsSold
     };
 
     // Render KPIs
@@ -2295,6 +2317,19 @@ window.printPOSReport = async function() {
         <div class="flex"><span>Caja (POS):</span> <span>$${r.originPOS.toLocaleString()}</span></div>
         <div class="flex"><span>Kiosko:</span> <span>$${r.originKiosko.toLocaleString()}</span></div>
         <div class="flex"><span>Menú QR:</span> <span>$${r.originMenu.toLocaleString()}</span></div>
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
+        <div class="font-bold text-center mb-2">PRODUCTOS VENDIDOS</div>
+        ${Object.keys(r.productsSold || {}).length > 0 ? 
+            Object.keys(r.productsSold).map(name => `
+              <div class="flex" style="font-size:14px; margin-bottom:4px;">
+                <span style="flex:1; text-transform:uppercase; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.productsSold[name].qty}x ${name}</span>
+                <span>$${r.productsSold[name].total.toLocaleString()}</span>
+              </div>
+            `).join('')
+          : '<div class="text-center text-sm">Sin productos</div>'
+        }
       </div>
 
       <div class="border-t mb-2 mt-2" style="padding-top:10px;">
