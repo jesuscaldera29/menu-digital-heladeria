@@ -142,7 +142,7 @@ function buildTicket(d, cfg, logoImage = null) {
       const mt = item.name.match(/^(.*) \((.*)\)$/);
       if (mt) { mn = mt[1]; extras = mt[2].split(',').map(e => e.trim()); }
       
-      b.bold(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q)).bold(false);
+      b.bold(true).doubleHeight(true).leftRight(san(mn).toUpperCase() + ' x ' + q, fmt(Number(item.price) * q)).bold(false).normalSize();
       extras.forEach(e => {
         b.leftRight('  - ' + san(e) + ' x ' + q, fmt(0));
       });
@@ -206,7 +206,7 @@ function buildComanda(d, cfg) {
   b.alignLeft().textLine(d.time || d.date || new Date().toLocaleString());
   
   if (d.items) {
-    b.doubleHeight(true);
+    b.doubleSize(true);
     d.items.forEach(item => {
       const q = item.qty || item.quantity || 1;
       let mn = item.name, extras = [];
