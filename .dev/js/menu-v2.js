@@ -348,13 +348,19 @@ function renderMenu() {
 
 // Cart functions
 function addToCart(id, accompaniments = [], visualExtras = []) {
+  const p = products.find(x => String(x.id) === String(id));
+  if (!p) return;
+  const itemPrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+
   const accKey = accompaniments.length ? accompaniments.join(',') : '';
   const veKey = visualExtras.length ? visualExtras.map(v => v.id).sort().join(',') : '';
-  const key = `${id}_${accKey}_${veKey}`;
+  const baseKey = p.is_variable_price ? `${id}_${itemPrice}` : `${id}`;
+  const key = `${baseKey}_${accKey}_${veKey}`;
+
   if (cart[key]) {
     cart[key].qty++;
   } else {
-    cart[key] = { id, qty: 1, accompaniments, visualExtras };
+    cart[key] = { id, qty: 1, accompaniments, visualExtras, customPrice: p.is_variable_price ? itemPrice : null };
   }
   updateCartUI();
   showToast('✅ Agregado al carrito');
@@ -427,7 +433,8 @@ function updateCartUI() {
         if (item.visualExtras && item.visualExtras.length) {
             item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
         }
-        subtotal += (p.price + extrasTotal) * item.qty;
+        const basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+        subtotal += (basePrice + extrasTotal) * item.qty;
     }
   }
 
@@ -596,7 +603,8 @@ async function applyCoupon() {
         if (item.visualExtras && item.visualExtras.length) {
           item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
         }
-        subtotal += (p.price + extrasTotal) * item.qty;
+        const basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+        subtotal += (basePrice + extrasTotal) * item.qty;
       }
     }
 
@@ -661,10 +669,18 @@ function toggleOrderDetails() {
       const displayName = allAcc.length 
         ? `${p.name} <span class="text-[10px] text-gray-500 block leading-tight mt-0.5">(Extras: ${allAcc.join(', ')})</span>`
         : p.name;
+      
+      const basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+      let extrasTotal = 0;
+      if (item.visualExtras && item.visualExtras.length) {
+          item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
+      }
+      const finalItemPrice = basePrice + extrasTotal;
+
       html += `<div class="flex items-center justify-between border-b border-gray-100 py-3">
         <div class="flex-1 pr-3">
           <span class="text-sm font-bold text-gray-800">${displayName}</span>
-          <div class="text-orange-600 font-bold text-xs mt-1">$${(p.price * item.qty).toLocaleString()}</div>
+          <div class="text-orange-600 font-bold text-xs mt-1">$${(finalItemPrice * item.qty).toLocaleString()}</div>
         </div>
         <div class="flex items-center gap-2">
           <div class="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
@@ -745,7 +761,8 @@ async function processOrder() {
           });
       }
       
-      let itemPrice = p.price + extrasTotal;
+      let basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+      let itemPrice = basePrice + extrasTotal;
       subtotal += itemPrice * item.qty;
       
       const displayName = allAcc.length 

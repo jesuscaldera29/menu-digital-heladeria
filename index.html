@@ -712,6 +712,24 @@
       const p = products.find(x => String(x.id) === String(productId));
       if (!p) return;
 
+      if (p.is_variable_price) {
+        const minPrice = Number(p.price);
+        const val = prompt(`Ingresa el valor a pagar para ${p.name} (Mínimo $${minPrice.toLocaleString()}):`, minPrice);
+        if (val === null) return;
+        const customPrice = parseFloat(val);
+        if (isNaN(customPrice) || customPrice < minPrice) {
+          if (typeof showToast === 'function') {
+            showToast(`⚠️ El valor mínimo permitido es $${minPrice.toLocaleString()}`, 'error');
+          } else {
+            alert(`⚠️ El valor mínimo permitido es $${minPrice.toLocaleString()}`);
+          }
+          return;
+        }
+        p.temp_custom_price = customPrice;
+      } else {
+        p.temp_custom_price = null;
+      }
+
       const visualExtras = (window.allVisualExtras || []).filter(e => String(e.product_id) === String(productId));
       const hasVisualExtras = visualExtras.length > 0;
 
@@ -910,11 +928,19 @@
       for (const [key, item] of Object.entries(cart)) {
         const p = products.find(x => String(x.id) === String(item.id));
         if (!p) continue;
-        total += p.price * item.qty;
+        
+        let extrasTotal = 0;
+        if (item.visualExtras && item.visualExtras.length) {
+          item.visualExtras.forEach(ve => { extrasTotal += Number(ve.price || 0); });
+        }
+        let basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+        let finalItemPrice = basePrice + extrasTotal;
+
+        total += finalItemPrice * item.qty;
         const displayName = item.accompaniments.length
           ? `${p.name} (Sabores: ${item.accompaniments.join(', ')})`
           : p.name;
-        msg += `▪️ ${displayName} x${item.qty} — $${(p.price * item.qty).toLocaleString()}\n`;
+        msg += `▪️ ${displayName} x${item.qty} — $${(finalItemPrice * item.qty).toLocaleString()}\n`;
       }
       msg += `\n💰 *TOTAL: $${total.toLocaleString()}*\n`;
       msg += '━━━━━━━━━━━━━━━━━━━\n\n';

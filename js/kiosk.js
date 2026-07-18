@@ -526,6 +526,20 @@ function handleProductTap(prodId) {
   const p = products.find(x => String(x.id) === String(prodId));
   if (!p) return;
 
+  if (p.is_variable_price) {
+    const minPrice = Number(p.price);
+    const val = prompt(`Ingresa el valor a pagar para ${p.name} (Mínimo $${minPrice.toLocaleString()}):`, minPrice);
+    if (val === null) return;
+    const customPrice = parseFloat(val);
+    if (isNaN(customPrice) || customPrice < minPrice) {
+      showToast(`⚠️ El valor mínimo permitido es $${minPrice.toLocaleString()}`, 'error');
+      return;
+    }
+    p.temp_custom_price = customPrice;
+  } else {
+    p.temp_custom_price = null;
+  }
+
   const hasAcc = p.accompaniments && p.accompaniments.trim() !== '';
   const extras = (window.allVisualExtras || []).filter(e => String(e.product_id) === String(p.id));
   const hasExtras = extras.length > 0;
@@ -699,7 +713,7 @@ window.updateKioskAccCount = function(id, delta) {
 window.updateKioskModalTotal = function() {
   const p = products.find(x => String(x.id) === String(currentSelectedProductId));
   if (!p) return;
-  let total = Number(p.price) || 0;
+  let total = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : (Number(p.price) || 0);
   
   document.querySelectorAll('.kiosk-ve-input').forEach(el => {
     const count = parseInt(el.getAttribute('data-count')) || 0;
@@ -719,14 +733,19 @@ function closeAccompanimentsModal() {
 
 // Add to Cart
 function addToCart(id, accompaniments = [], visualExtras = []) {
+  const p = products.find(x => String(x.id) === String(id));
+  if (!p) return;
+  const itemPrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+
   const accKey = accompaniments.length ? accompaniments.join(',') : '';
   const veKey = visualExtras.length ? visualExtras.map(v => v.id).sort().join(',') : '';
-  const key = `${id}_${accKey}_${veKey}`;
+  const baseKey = p.is_variable_price ? `${id}_${itemPrice}` : `${id}`;
+  const key = `${baseKey}_${accKey}_${veKey}`;
   
   if (cart[key]) {
     cart[key].qty++;
   } else {
-    cart[key] = { id, qty: 1, accompaniments, visualExtras };
+    cart[key] = { id, qty: 1, accompaniments, visualExtras, customPrice: p.is_variable_price ? itemPrice : null };
   }
   
   updateKioskCartUI();
@@ -788,7 +807,8 @@ function updateKioskCartUI() {
     totalQty += item.qty;
     let extrasPrice = 0;
     item.visualExtras.forEach(ve => { extrasPrice += Number(ve.price || 0); });
-    const itemPrice = p.price + extrasPrice;
+    let basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+    const itemPrice = basePrice + extrasPrice;
     subtotal += itemPrice * item.qty;
 
     let allAcc = [...(item.accompaniments || [])];
@@ -1036,7 +1056,8 @@ async function kProcessOrder() {
         allAcc.push(ve.price > 0 ? `${ve.name} (+$${Number(ve.price).toLocaleString()})` : ve.name);
       });
 
-      const itemPrice = p.price + extrasPrice;
+      let basePrice = item.customPrice !== null && item.customPrice !== undefined ? item.customPrice : Number(p.price);
+      const itemPrice = basePrice + extrasPrice;
       subtotal += itemPrice * item.qty;
 
       const displayName = allAcc.length 

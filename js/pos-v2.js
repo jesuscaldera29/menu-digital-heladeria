@@ -493,6 +493,20 @@ function handleProductClick(id) {
   const p = products.find(x => String(x.id) === String(id));
   if (!p) return;
 
+  if (p.is_variable_price) {
+    const minPrice = Number(p.price);
+    const val = prompt(`Ingresa el valor a cobrar para ${p.name} (Mínimo $${minPrice.toLocaleString()}):`, minPrice);
+    if (val === null) return;
+    const customPrice = parseFloat(val);
+    if (isNaN(customPrice) || customPrice < minPrice) {
+      showToast(`⚠️ El valor mínimo permitido es $${minPrice.toLocaleString()}`, 'error');
+      return;
+    }
+    p.temp_custom_price = customPrice;
+  } else {
+    p.temp_custom_price = null;
+  }
+
   const extras = allVisualExtras.filter(e => String(e.product_id) === String(id));
   const accList = (p.accompaniments && p.accompaniments.trim()) ? p.accompaniments.split(',').map(a => a.trim()).filter(Boolean) : [];
 
@@ -629,7 +643,8 @@ function updateExtrasTotal() {
   const p = products.find(x => String(x.id) === String(currentExtrasProductId));
   if (!p) return;
 
-  let total = Number(p.price);
+  let basePrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  let total = basePrice;
   document.querySelectorAll('.ve-input').forEach(el => { 
     const count = parseInt(el.getAttribute('data-count')) || 0;
     if (count > 0) {
@@ -684,12 +699,14 @@ function confirmExtrasAndAdd() {
   }
 
   let extrasTotal = veChecked.reduce((s, v) => s + v.price, 0);
-  const itemPrice = Number(p.price) + extrasTotal;
+  let basePrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  const itemPrice = basePrice + extrasTotal;
 
   // Build unique key
   const accKey = accChecked.join(',');
   const veKey = veChecked.map(v => v.id).sort().join(',');
-  const key = `${p.id}_${accKey}_${veKey}`;
+  const baseKey = p.is_variable_price ? `${p.id}_${basePrice}` : `${p.id}`;
+  const key = `${baseKey}_${accKey}_${veKey}`;
 
   const extrasLabel = [...accChecked, ...veChecked.map(v => v.price > 0 ? `${v.name} (+$${v.price.toLocaleString()})` : v.name)];
 
@@ -708,9 +725,10 @@ function confirmExtrasAndAdd() {
 function addToCartDirect(id) {
   const p = products.find(x => String(x.id) === String(id));
   if (!p) return;
-  const key = `${id}__`;
+  const itemPrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  const key = p.is_variable_price ? `${id}_${itemPrice}` : `${id}__`;
   if (posCart[key]) { posCart[key].qty++; }
-  else { posCart[key] = { id, qty: 1, price: Number(p.price), name: p.name, extrasLabel: '' }; }
+  else { posCart[key] = { id, qty: 1, price: itemPrice, name: p.name, extrasLabel: '' }; }
   updateCartUI();
   showToast('✅ Agregado');
 }

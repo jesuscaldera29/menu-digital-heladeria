@@ -48,9 +48,15 @@ window.downloadKioskApk = function() {
 };
 
 async function logout() {
-    localStorage.clear();
-    await supabaseClient.auth.signOut();
-    window.location.href = 'login.html';
+    try {
+        localStorage.clear();
+        sessionStorage.clear();
+        await supabaseClient.auth.signOut();
+    } catch (error) {
+        console.warn('Error during sign out:', error);
+    } finally {
+        window.location.href = 'login.html';
+    }
 }
 
 // AUTH GUARD: Check session and load business
@@ -714,6 +720,7 @@ async function addProduct(event) {
     const description = document.getElementById('prodDescription').value.trim();
     const accompaniments = document.getElementById('prodAccompaniments').value.trim();
     const accompanimentsLimit = parseInt(document.getElementById('prodAccompanimentsLimit').value) || null;
+    const isVariablePrice = document.getElementById('prodIsVariable')?.checked || false;
     const file = document.getElementById('prodImage').files[0];
 
     if (!name || isNaN(price) || !category) return showToast('⚠️ Completa nombre, precio y categoría', 'error');
@@ -739,6 +746,7 @@ async function addProduct(event) {
         const { error } = await supabaseClient.from('products').insert([{
             name,
             price,
+            is_variable_price: isVariablePrice,
             category,
             description,
             accompaniments,
@@ -761,6 +769,7 @@ async function addProduct(event) {
         document.getElementById('prodAccompanimentsLimit').value = '';
         document.getElementById('prodImage').value = '';
         document.getElementById('prodFeatured').checked = false;
+        if(document.getElementById('prodIsVariable')) document.getElementById('prodIsVariable').checked = false;
         if(document.getElementById('prodPosOnly')) document.getElementById('prodPosOnly').checked = false;
         document.getElementById('prodPreview').src = '';
         document.getElementById('prodPreview').style.display = 'none';
@@ -939,6 +948,7 @@ function openEdit(id) {
     document.getElementById('editId').value = p.id;
     document.getElementById('editName').value = p.name;
     document.getElementById('editPrice').value = p.price;
+    if (document.getElementById('editIsVariable')) document.getElementById('editIsVariable').checked = p.is_variable_price || false;
     document.getElementById('editCategory').value = p.category;
     document.getElementById('editDescription').value = p.description || '';
     document.getElementById('editAccompaniments').value = p.accompaniments || '';
@@ -977,7 +987,8 @@ async function saveEdit() {
 
     const isFeatured = document.getElementById('editFeatured')?.checked || false;
     const isPosOnly = document.getElementById('editPosOnly')?.checked || false;
-    const updateData = { name, price, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured, pos_only: isPosOnly };
+    const isVariablePrice = document.getElementById('editIsVariable')?.checked || false;
+    const updateData = { name, price, is_variable_price: isVariablePrice, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured, pos_only: isPosOnly };
     if (file) {
         showToast('⏳ Subiendo imagen...');
         const url = await uploadImage(file);

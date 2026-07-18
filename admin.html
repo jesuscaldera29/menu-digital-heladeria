@@ -870,7 +870,17 @@
             <h3 class="font-bold text-lg mb-4 text-orange-600">📝 Agregar Nuevo Producto</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <input type="text" id="prodName" class="input !mt-0" placeholder="Nombre producto">
-              <input type="number" id="prodPrice" class="input !mt-0" placeholder="Precio">
+              <input type="number" id="prodPrice" class="input !mt-0" placeholder="Precio Base">
+            </div>
+            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 mb-4 shadow-sm">
+              <div>
+                <span class="text-sm font-bold text-gray-800">Precio Variable (Abierto)</span>
+                <p class="text-[10px] text-gray-500 mt-0.5">Permite ingresar el valor exacto al vender. El precio base será el mínimo a cobrar.</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="prodIsVariable" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+              </label>
             </div>
             <textarea id="prodDescription" class="input" placeholder="Descripción..." rows="3"></textarea>
             <div class="flex flex-col gap-2 mt-4">
@@ -2422,7 +2432,17 @@
       <input type="hidden" id="editId">
       <div class="space-y-6">
         <input type="text" id="editName" class="input" placeholder="Nombre">
-        <input type="number" id="editPrice" class="input" placeholder="Precio">
+        <input type="number" id="editPrice" class="input" placeholder="Precio Base">
+        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+          <div>
+            <span class="text-sm font-bold text-gray-800">Precio Variable (Abierto)</span>
+            <p class="text-[10px] text-gray-500 mt-0.5">Permite ingresar el valor exacto al vender. El precio base será el mínimo a cobrar.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input type="checkbox" id="editIsVariable" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+          </label>
+        </div>
         <textarea id="editDescription" class="input" placeholder="Descripción" rows="3"></textarea>
         <div class="flex flex-col gap-2">
           <input type="text" id="editAccompaniments" class="input" placeholder="Acompañamientos (separados por comas, ej: Yuca, Arroz de coco)">

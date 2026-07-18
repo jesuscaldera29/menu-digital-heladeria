@@ -493,6 +493,20 @@ function handleProductClick(id) {
   const p = products.find(x => String(x.id) === String(id));
   if (!p) return;
 
+  if (p.is_variable_price) {
+    const minPrice = Number(p.price);
+    const val = prompt(`Ingresa el valor a cobrar para ${p.name} (Mínimo $${minPrice.toLocaleString()}):`, minPrice);
+    if (val === null) return;
+    const customPrice = parseFloat(val);
+    if (isNaN(customPrice) || customPrice < minPrice) {
+      showToast(`⚠️ El valor mínimo permitido es $${minPrice.toLocaleString()}`, 'error');
+      return;
+    }
+    p.temp_custom_price = customPrice;
+  } else {
+    p.temp_custom_price = null;
+  }
+
   const extras = allVisualExtras.filter(e => String(e.product_id) === String(id));
   const accList = (p.accompaniments && p.accompaniments.trim()) ? p.accompaniments.split(',').map(a => a.trim()).filter(Boolean) : [];
 
@@ -629,7 +643,8 @@ function updateExtrasTotal() {
   const p = products.find(x => String(x.id) === String(currentExtrasProductId));
   if (!p) return;
 
-  let total = Number(p.price);
+  let basePrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  let total = basePrice;
   document.querySelectorAll('.ve-input').forEach(el => { 
     const count = parseInt(el.getAttribute('data-count')) || 0;
     if (count > 0) {
@@ -684,12 +699,14 @@ function confirmExtrasAndAdd() {
   }
 
   let extrasTotal = veChecked.reduce((s, v) => s + v.price, 0);
-  const itemPrice = Number(p.price) + extrasTotal;
+  let basePrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  const itemPrice = basePrice + extrasTotal;
 
   // Build unique key
   const accKey = accChecked.join(',');
   const veKey = veChecked.map(v => v.id).sort().join(',');
-  const key = `${p.id}_${accKey}_${veKey}`;
+  const baseKey = p.is_variable_price ? `${p.id}_${basePrice}` : `${p.id}`;
+  const key = `${baseKey}_${accKey}_${veKey}`;
 
   const extrasLabel = [...accChecked, ...veChecked.map(v => v.price > 0 ? `${v.name} (+$${v.price.toLocaleString()})` : v.name)];
 
@@ -708,9 +725,10 @@ function confirmExtrasAndAdd() {
 function addToCartDirect(id) {
   const p = products.find(x => String(x.id) === String(id));
   if (!p) return;
-  const key = `${id}__`;
+  const itemPrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
+  const key = p.is_variable_price ? `${id}_${itemPrice}` : `${id}__`;
   if (posCart[key]) { posCart[key].qty++; }
-  else { posCart[key] = { id, qty: 1, price: Number(p.price), name: p.name, extrasLabel: '' }; }
+  else { posCart[key] = { id, qty: 1, price: itemPrice, name: p.name, extrasLabel: '' }; }
   updateCartUI();
   showToast('✅ Agregado');
 }
@@ -1365,9 +1383,15 @@ async function saveTableOrder() {
 
 async function logout() {
   if (!confirm('¿Seguro que deseas cerrar sesión?')) return;
-  await supabaseClient.auth.signOut();
-  localStorage.clear();
-  window.location.href = 'login.html';
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await supabaseClient.auth.signOut();
+  } catch (error) {
+    console.warn('Error during sign out:', error);
+  } finally {
+    window.location.href = 'login.html';
+  }
 }
 
 // Init
@@ -2863,11 +2887,15 @@ window.submitBlindClose = async function() {
 };
 
 async function performLogout() {
-  await supabaseClient.auth.signOut();
-  localStorage.removeItem('staff_business_id');
-  localStorage.removeItem('staff_id');
-  localStorage.removeItem('staff_name');
-  window.location.href = 'login.html';
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await supabaseClient.auth.signOut();
+  } catch (error) {
+    console.warn('Error during sign out:', error);
+  } finally {
+    window.location.href = 'login.html';
+  }
 }
 
 async function loadDrivers() {
@@ -2908,3 +2936,94 @@ async function loadDrivers() {
   }
 }
 
+let posLogoClicks = 0;
+window.handlePosLogoClick = function() {
+  posLogoClicks++;
+  if (posLogoClicks >= 5) {
+    posLogoClicks = 0;
+
+    // Android APK config mode
+    if (window.AndroidConfig) {
+      try {
+        const current = JSON.parse(window.AndroidConfig.getConfig());
+        const option = prompt(
+          "⚙️ Configuración POS Android:\n" +
+          "1 = Cambiar IP impresora (actual: " + current.printer_ip + ")\n" +
+          "2 = Cambiar URL de la app\n" +
+          "3 = Prueba de impresión\n" +
+          "4 = Recargar app\n" +
+          "5 = Cerrar Sesión (Secreto)",
+          "1"
+        );
+        if (option === '1') {
+          const newIP = prompt("IP de la impresora térmica:", current.printer_ip);
+          if (newIP) {
+            const newPort = prompt("Puerto (normalmente 9100):", String(current.printer_port));
+            window.AndroidConfig.setConfig(newIP, parseInt(newPort) || 9100);
+            alert("✅ Impresora configurada: " + newIP + ":" + (newPort || 9100));
+            const testResult = window.AndroidPrint.testPrint();
+            alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+          }
+        } else if (option === '2') {
+          const newUrl = prompt("URL de inicio:", current.kiosk_url);
+          if (newUrl) {
+            window.AndroidConfig.setKioskUrl(newUrl);
+            alert("✅ URL actualizada. Recargando...");
+            window.AndroidConfig.reloadApp();
+          }
+        } else if (option === '3') {
+          const testResult = window.AndroidPrint.testPrint();
+          alert(testResult === 'OK' ? '✅ Impresión de prueba exitosa!' : '❌ Error: ' + testResult);
+        } else if (option === '4') {
+          window.AndroidConfig.reloadApp();
+        } else if (option === '5') {
+          const pwd = prompt("Contraseña de seguridad:");
+          if (pwd === "salir") {
+            performLogout();
+          } else if (pwd !== null) {
+            alert("Contraseña incorrecta");
+          }
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+      return;
+    }
+
+    // For non-Android web mode:
+    const webAction = prompt("⚙️ Menú Oculto POS:\n1 = Configurar Impresora\n5 = Cerrar Sesión", "1");
+    if (webAction === '5') {
+      const pwd = prompt("Contraseña de seguridad:");
+      if (pwd === "salir") {
+        performLogout();
+      } else if (pwd !== null) {
+        alert("Contraseña incorrecta");
+      }
+      return;
+    }
+    
+    if (webAction !== '1') return;
+
+    // Electron Desktop config mode (impresion TCP integrada)
+    if (window.DesktopPrint) {
+      if (typeof configureDesktopPrinter === 'function') {
+        configureDesktopPrinter();
+      }
+      return;
+    }
+
+    // PrintBridge HTTP config (navegadores sin Electron ni Android)
+    const currentIP = localStorage.getItem('printbridge_url') || 'http://192.168.1.100:9101';
+    const newIP = prompt("⚙️ Configuración del Servidor de Impresión (PrintBridge):\nIngrese la dirección IP y puerto del servidor del PC (ej. http://192.168.1.100:9101):", currentIP);
+    if (newIP !== null) {
+      localStorage.setItem('printbridge_url', newIP);
+      if (typeof PRINTBRIDGE_URL !== 'undefined') {
+        PRINTBRIDGE_URL = newIP;
+      }
+      alert("✅ Servidor de impresión configurado en:\n" + newIP);
+      if (typeof detectPrintBridge === 'function') {
+        detectPrintBridge();
+      }
+    }
+  }
+};
