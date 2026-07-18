@@ -61,6 +61,7 @@ async function detectPrintBridge() {
 // Check if PrintBridge is available
 async function isPrintBridgeOnline() {
   if (isDesktopApp()) return true; // Desktop siempre tiene impresion disponible
+  if (window.AndroidPrint) return true; // Android PrintBridge siempre disponible
   if (!PRINTBRIDGE_URL) return false;
   try {
     const resp = await fetch(PRINTBRIDGE_URL + '/status', { signal: AbortSignal.timeout(2000) });
@@ -180,6 +181,15 @@ async function bridgePrintTicket(order, settings) {
       } catch (e) {
         console.error('[DesktopPrint] Excepción:', e);
       }
+    } else if (window.AndroidPrint) {
+      // 1.5. Android APK PrintBridge
+      try {
+        const result = window.AndroidPrint.printTicket(JSON.stringify(payload));
+        if (result === 'OK') return true;
+        console.warn('[AndroidPrint] Error:', result);
+      } catch (e) {
+        console.error('[AndroidPrint] Excepción:', e);
+      }
     } else {
       // 2. HTTP PrintBridge (navegadores)
       const success = await printViaBridge('/print/ticket', payload);
@@ -209,6 +219,15 @@ async function bridgePrintComanda(order, settings) {
         console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
       } catch (e) {
         console.error('[DesktopPrint] Excepción:', e);
+      }
+    } else if (window.AndroidPrint) {
+      // 1.5. Android APK PrintBridge
+      try {
+        const result = window.AndroidPrint.printComanda(JSON.stringify(payload));
+        if (result === 'OK') return true;
+        console.warn('[AndroidPrint] Error:', result);
+      } catch (e) {
+        console.error('[AndroidPrint] Excepción:', e);
       }
     } else {
       // 2. HTTP PrintBridge (navegadores)
@@ -240,6 +259,17 @@ async function bridgePrintReport(reportData, settings) {
     }
   }
 
+  // 1.5 Android APK
+  if (window.AndroidPrint && window.AndroidPrint.printReport) {
+    try {
+      const result = window.AndroidPrint.printReport(JSON.stringify(data));
+      return result === 'OK';
+    } catch (e) {
+      console.error('[AndroidPrint] Error reporte:', e);
+      return false;
+    }
+  }
+
   // 2. HTTP PrintBridge
   return await printViaBridge('/print/report', data);
 }
@@ -253,6 +283,17 @@ async function bridgeTestPrint() {
       return result === 'OK';
     } catch (e) {
       console.error('[DesktopPrint] Error test:', e);
+      return false;
+    }
+  }
+
+  // 1.5 Android APK
+  if (window.AndroidPrint) {
+    try {
+      const result = window.AndroidPrint.testPrint();
+      return result === 'OK';
+    } catch (e) {
+      console.error('[AndroidPrint] Error test:', e);
       return false;
     }
   }
