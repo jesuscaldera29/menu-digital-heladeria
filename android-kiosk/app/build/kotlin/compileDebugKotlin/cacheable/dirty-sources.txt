@@ -1,0 +1,4 @@
+C:\Users\Jesus Caldera\.gemini\antigravity\scratch\menu-digital- heladeria -\android-kiosk\app\src\main\java\com\menudigital\kiosk\EscPosBuilder.kt
+C:\Users\Jesus Caldera\.gemini\antigravity\scratch\menu-digital- heladeria -\android-kiosk\app\src\main\java\com\menudigital\kiosk\PrintBridge.kt
+C:\Users\Jesus Caldera\.gemini\antigravity\scratch\menu-digital- heladeria -\android-kiosk\app\src\main\java\com\menudigital\kiosk\ConfigManager.kt
+C:\Users\Jesus Caldera\.gemini\antigravity\scratch\menu-digital- heladeria -\android-kiosk\app\src\main\java\com\menudigital\kiosk\MainActivity.kt

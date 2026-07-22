@@ -145,6 +145,19 @@ async function initAdmin() {
     setInterval(pollNewOrders, 15000);
     pollNewOrders(); // Primera carga silenciosa
 
+    // Suscripción en tiempo real a la caja (cash_closings)
+    supabaseClient.channel('admin-cash-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cash_closings', filter: `business_id=eq.${businessId}` }, payload => {
+            console.log('🔄 Actualización de caja detectada en tiempo real');
+            if (typeof loadCashClosings === 'function') loadCashClosings();
+            if (typeof loadDashboard === 'function') loadDashboard();
+            // Actualizar el resumen si estamos en esa vista
+            if (document.getElementById('cajaViewResumen') && !document.getElementById('cajaViewResumen').classList.contains('hidden')) {
+                if (typeof loadCajaResumen === 'function') loadCajaResumen();
+            }
+        })
+        .subscribe();
+
     const loading = document.getElementById('loadingBizScreen');
     if (loading) {
         loading.style.opacity = '0';
