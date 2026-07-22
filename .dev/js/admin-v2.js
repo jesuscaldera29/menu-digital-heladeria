@@ -721,6 +721,8 @@ async function addProduct(event) {
     const accompaniments = document.getElementById('prodAccompaniments').value.trim();
     const accompanimentsLimit = parseInt(document.getElementById('prodAccompanimentsLimit').value) || null;
     const isVariablePrice = document.getElementById('prodIsVariable')?.checked || false;
+    const manageStock = document.getElementById('prodManageStock')?.checked || false;
+    const stock = parseInt(document.getElementById('prodStock')?.value) || 0;
     const file = document.getElementById('prodImage').files[0];
 
     if (!name || isNaN(price) || !category) return showToast('⚠️ Completa nombre, precio y categoría', 'error');
@@ -754,7 +756,9 @@ async function addProduct(event) {
             image_url,
             business_id: businessId,
             is_featured: isFeatured,
-            pos_only: isPosOnly
+            pos_only: isPosOnly,
+            manage_stock: manageStock,
+            stock: stock
         }]);
         if (error) throw error;
 
@@ -771,6 +775,9 @@ async function addProduct(event) {
         document.getElementById('prodFeatured').checked = false;
         if(document.getElementById('prodIsVariable')) document.getElementById('prodIsVariable').checked = false;
         if(document.getElementById('prodPosOnly')) document.getElementById('prodPosOnly').checked = false;
+        if(document.getElementById('prodManageStock')) document.getElementById('prodManageStock').checked = false;
+        if(document.getElementById('prodStockContainer')) document.getElementById('prodStockContainer').classList.add('hidden');
+        if(document.getElementById('prodStock')) document.getElementById('prodStock').value = '';
         document.getElementById('prodPreview').src = '';
         document.getElementById('prodPreview').style.display = 'none';
 
@@ -955,6 +962,11 @@ function openEdit(id) {
     document.getElementById('editAccompanimentsLimit').value = p.accompaniments_limit || '';
     document.getElementById('editFeatured').checked = p.is_featured || false;
     if(document.getElementById('editPosOnly')) document.getElementById('editPosOnly').checked = p.pos_only || false;
+    if(document.getElementById('editManageStock')) {
+        document.getElementById('editManageStock').checked = p.manage_stock || false;
+        document.getElementById('editStockContainer').classList.toggle('hidden', !p.manage_stock);
+        document.getElementById('editStock').value = p.stock || 0;
+    }
     document.getElementById('editImage').value = '';
 
     const preview = document.getElementById('editPreview');
@@ -988,7 +1000,9 @@ async function saveEdit() {
     const isFeatured = document.getElementById('editFeatured')?.checked || false;
     const isPosOnly = document.getElementById('editPosOnly')?.checked || false;
     const isVariablePrice = document.getElementById('editIsVariable')?.checked || false;
-    const updateData = { name, price, is_variable_price: isVariablePrice, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured, pos_only: isPosOnly };
+    const manageStock = document.getElementById('editManageStock')?.checked || false;
+    const stock = parseInt(document.getElementById('editStock')?.value) || 0;
+    const updateData = { name, price, is_variable_price: isVariablePrice, category, description, accompaniments, accompaniments_limit: accompanimentsLimit, is_featured: isFeatured, pos_only: isPosOnly, manage_stock: manageStock, stock: stock };
     if (file) {
         showToast('⏳ Subiendo imagen...');
         const url = await uploadImage(file);

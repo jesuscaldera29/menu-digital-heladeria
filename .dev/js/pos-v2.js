@@ -474,9 +474,17 @@ function renderProducts() {
   container.innerHTML = filtered.map(p => {
     const hasExtras = allVisualExtras.some(e => String(e.product_id) === String(p.id));
     const hasAcc = p.accompaniments && p.accompaniments.trim().length > 0;
+    
+    let stockBadge = '';
+    if (p.manage_stock) {
+      const stockClass = p.stock > 0 ? 'bg-blue-500' : 'bg-red-500';
+      stockBadge = `<span class="absolute top-1 left-1 ${stockClass} text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">Stock: ${p.stock}</span>`;
+    }
+
     return `
     <div class="bg-[#111] border border-[#222] rounded-xl overflow-hidden cursor-pointer hover:border-gray-600 transition-all active:scale-95 select-none flex flex-col h-full" onclick="handleProductClick('${p.id}')">
       <div class="h-32 md:h-40 bg-white flex items-center justify-center overflow-hidden shrink-0 relative">
+        ${stockBadge}
         ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-contain p-1" loading="lazy" decoding="async">` : `<span class="text-3xl">🍽️</span>`}
         ${(hasExtras || hasAcc) ? '<span class="absolute top-1 right-1 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg">+Extras</span>' : ''}
       </div>
@@ -492,6 +500,11 @@ function renderProducts() {
 function handleProductClick(id) {
   const p = products.find(x => String(x.id) === String(id));
   if (!p) return;
+  
+  if (p.manage_stock && p.stock <= 0) {
+    showToast('⚠️ Producto agotado (Sin stock)', 'error');
+    return;
+  }
 
   if (p.is_variable_price) {
     const minPrice = Number(p.price);
@@ -710,10 +723,18 @@ function confirmExtrasAndAdd() {
 
   const extrasLabel = [...accChecked, ...veChecked.map(v => v.price > 0 ? `${v.name} (+$${v.price.toLocaleString()})` : v.name)];
 
+  if (p.manage_stock) {
+    const currentQty = posCart[key] ? posCart[key].qty : 0;
+    if (currentQty >= p.stock) {
+        showToast(`⚠️ Solo quedan ${p.stock} unidades en stock`, 'error');
+        return;
+    }
+  }
+
   if (posCart[key]) {
     posCart[key].qty++;
   } else {
-    posCart[key] = { id: p.id, qty: 1, price: itemPrice, name: p.name, extrasLabel: extrasLabel.length ? extrasLabel.join(', ') : '' };
+    posCart[key] = { id: p.id, qty: 1, price: itemPrice, name: p.name, extrasLabel: extrasLabel.length ? extrasLabel.join(', ') : '', manage_stock: p.manage_stock, stock: p.stock };
   }
 
   updateCartUI();
@@ -727,8 +748,16 @@ function addToCartDirect(id) {
   if (!p) return;
   const itemPrice = p.temp_custom_price !== null && p.temp_custom_price !== undefined ? p.temp_custom_price : Number(p.price);
   const key = p.is_variable_price ? `${id}_${itemPrice}` : `${id}__`;
+  if (p.manage_stock) {
+      const currentQty = posCart[key] ? posCart[key].qty : 0;
+      if (currentQty >= p.stock) {
+          showToast(`⚠️ Solo quedan ${p.stock} unidades en stock`, 'error');
+          return;
+      }
+  }
+
   if (posCart[key]) { posCart[key].qty++; }
-  else { posCart[key] = { id, qty: 1, price: itemPrice, name: p.name, extrasLabel: '' }; }
+  else { posCart[key] = { id, qty: 1, price: itemPrice, name: p.name, extrasLabel: '', manage_stock: p.manage_stock, stock: p.stock }; }
   updateCartUI();
   showToast('✅ Agregado');
 }
@@ -741,7 +770,14 @@ function removeFromCart(key) {
 }
 
 function addOneMore(key) {
-  if (posCart[key]) { posCart[key].qty++; updateCartUI(); }
+  if (posCart[key]) { 
+      if (posCart[key].manage_stock && posCart[key].qty >= posCart[key].stock) {
+          showToast(`⚠️ Solo quedan ${posCart[key].stock} unidades en stock`, 'error');
+          return;
+      }
+      posCart[key].qty++; 
+      updateCartUI(); 
+  }
 }
 
 function clearCart() { posCart = {}; currentOpenOrderId = null; window.currentOpenOrderNotes = ''; updateCartUI(); }
@@ -2007,7 +2043,7 @@ window.openPOSReport = async function() {
 
     const { data: orders, error } = await supabaseClient
       .from('orders')
-      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes')
+      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items')
       .eq('business_id', businessId)
       .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado'])
       .gte('created_at', startDate.toISOString())
@@ -2059,6 +2095,7 @@ window.openPOSReport = async function() {
     let originMenu = 0;
 
     let historyHtml = '';
+    let productsSold = {};
 
     orders.forEach(o => {
       const total = Number(o.total) || 0;
@@ -2084,6 +2121,26 @@ window.openPOSReport = async function() {
       else if (o.notes && o.notes.includes('[ORIGIN:POS]')) { originPOS += total; originStr = 'Caja (POS)'; }
       else if (o.notes && o.notes.includes('Kiosko Auto-Servicio')) { originKiosko += total; originStr = 'Kiosko'; }
       else { originPOS += total; originStr = 'Caja (POS)'; } // default to POS for older orders
+
+      // Calculate products sold
+      let orderItems = o.cart || o.items || [];
+      if (typeof orderItems === 'string') {
+        try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+      }
+      if (Array.isArray(orderItems)) {
+        orderItems.forEach(item => {
+          const qty = Number(item.quantity || item.qty) || 1;
+          const price = Number(item.price) || 0;
+          let name = item.name || 'Desconocido';
+          if (item.extrasLabel) name += ` (${item.extrasLabel})`;
+          
+          if (!productsSold[name]) {
+            productsSold[name] = { qty: 0, total: 0 };
+          }
+          productsSold[name].qty += qty;
+          productsSold[name].total += (qty * price);
+        });
+      }
 
       // Table Row
       const dateStr = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -2116,7 +2173,8 @@ window.openPOSReport = async function() {
       openingCash,
       cashIn,
       cashOut,
-      expectedCash
+      expectedCash,
+      productsSold
     };
 
     // Render KPIs
@@ -2235,6 +2293,60 @@ window.printSpecificTicket = async function(orderId) {
   }
 };
 
+window.closeCashAndPrintZ = async function() {
+  if (!window.currentPOSReport || !activeCashClosingId) {
+    showToast('⚠️ No hay caja abierta o no se cargó el reporte', 'error');
+    return;
+  }
+  
+  if (!confirm('¿Estás seguro que deseas CERRAR LA CAJA e imprimir el Ticket Z con los montos actuales?')) return;
+
+  const btn = document.getElementById('btnCloseCashAndPrintZ');
+  if (btn) { btn.textContent = 'CERRANDO...'; btn.disabled = true; }
+
+  try {
+    const expectedCash = window.currentPOSReport.expectedCash || 0;
+
+    // Obtener los datos actuales de la caja
+    const { data: closingInfo } = await supabaseClient
+      .from('cash_closings')
+      .select('*')
+      .eq('id', activeCashClosingId)
+      .single();
+
+    // Actualizar registro de caja cerrada
+    await supabaseClient
+      .from('cash_closings')
+      .update({
+        is_open: false,
+        closed_at: new Date().toISOString(),
+        expected_total: expectedCash,
+        declared_total: expectedCash,
+        difference: 0, // Como es un cierre desde el Z, asumimos cuadre perfecto
+        cash_sales: window.currentPOSReport.cash || 0,
+        transfer_sales: window.currentPOSReport.transfer || 0,
+        card_sales: window.currentPOSReport.card || 0,
+        total_expenses: window.currentPOSReport.cashOut || 0
+      })
+      .eq('id', activeCashClosingId);
+
+    showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
+    
+    // Imprimir Z report
+    await printPOSReport();
+
+    // Cerrar sesión después de un breve tiempo
+    setTimeout(() => {
+      performLogout();
+    }, 2500);
+
+  } catch (err) {
+    showToast('❌ Error al cerrar la caja', 'error');
+    console.error(err);
+    if (btn) { btn.innerHTML = '<span>🔒</span> Cerrar Caja e Imprimir Z'; btn.disabled = false; }
+  }
+};
+
 window.closePOSReport = function() {
   document.getElementById('posReportModal').classList.add('hidden');
 };
@@ -2295,6 +2407,19 @@ window.printPOSReport = async function() {
         <div class="flex"><span>Caja (POS):</span> <span>$${r.originPOS.toLocaleString()}</span></div>
         <div class="flex"><span>Kiosko:</span> <span>$${r.originKiosko.toLocaleString()}</span></div>
         <div class="flex"><span>Menú QR:</span> <span>$${r.originMenu.toLocaleString()}</span></div>
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
+        <div class="font-bold text-center mb-2">PRODUCTOS VENDIDOS</div>
+        ${Object.keys(r.productsSold || {}).length > 0 ? 
+            Object.keys(r.productsSold).map(name => `
+              <div class="flex" style="font-size:14px; margin-bottom:4px;">
+                <span style="flex:1; text-transform:uppercase; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.productsSold[name].qty}x ${name}</span>
+                <span>$${r.productsSold[name].total.toLocaleString()}</span>
+              </div>
+            `).join('')
+          : '<div class="text-center text-sm">Sin productos</div>'
+        }
       </div>
 
       <div class="border-t mb-2 mt-2" style="padding-top:10px;">

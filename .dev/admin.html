@@ -893,6 +893,19 @@
               </div>
             </div>
             <input type="number" id="prodAccompanimentsLimit" class="input mt-4" placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
+            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 mt-4 mb-2 shadow-sm">
+              <div>
+                <span class="text-sm font-bold text-gray-800">Controlar Inventario (Stock)</span>
+                <p class="text-[10px] text-gray-500 mt-0.5">Activa si el producto tiene unidades limitadas.</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="prodManageStock" class="sr-only peer" onchange="document.getElementById('prodStockContainer').classList.toggle('hidden', !this.checked)">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+              </label>
+            </div>
+            <div id="prodStockContainer" class="hidden mb-4">
+              <input type="number" id="prodStock" class="input !mt-0" placeholder="Cantidad Disponible (Stock)" min="0">
+            </div>
             <div class="mt-4">
               <label class="font-bold text-sm text-gray-500 uppercase">📂 Categoría</label>
               <select id="prodCategory" class="input">
@@ -2455,6 +2468,19 @@
         </div>
         <input type="number" id="editAccompanimentsLimit" class="input"
           placeholder="Límite a elegir (Dejar vacío para sin límite)" min="1">
+        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 mt-4 shadow-sm">
+          <div>
+            <span class="text-sm font-bold text-gray-800">Controlar Inventario (Stock)</span>
+            <p class="text-[10px] text-gray-500 mt-0.5">Activa si el producto tiene unidades limitadas.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input type="checkbox" id="editManageStock" class="sr-only peer" onchange="document.getElementById('editStockContainer').classList.toggle('hidden', !this.checked)">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+          </label>
+        </div>
+        <div id="editStockContainer" class="hidden">
+          <input type="number" id="editStock" class="input !mt-0" placeholder="Cantidad Disponible (Stock)" min="0">
+        </div>
         <label class="font-bold text-sm text-gray-500 uppercase mt-4 block">📂 Categoría</label>
         <select id="editCategory" class="input mt-1">
           <option value="">Seleccionar</option>

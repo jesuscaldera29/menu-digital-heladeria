@@ -61,6 +61,7 @@ async function detectPrintBridge() {
 // Check if PrintBridge is available
 async function isPrintBridgeOnline() {
   if (isDesktopApp()) return true; // Desktop siempre tiene impresion disponible
+  if (window.AndroidPrint) return true; // Android PrintBridge siempre disponible
   if (!PRINTBRIDGE_URL) return false;
   try {
     const resp = await fetch(PRINTBRIDGE_URL + '/status', { signal: AbortSignal.timeout(2000) });
@@ -86,21 +87,24 @@ async function printViaBridge(endpoint, data) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(10000)
     });
 
     if (resp.ok) {
-      const result = await resp.json();
-      console.log('[PrintBridge] Impreso:', result.message);
+      try {
+        const text = await resp.text();
+        console.log('[PrintBridge] Respuesta:', text);
+      } catch (err) {
+        console.log('[PrintBridge] Impreso (respuesta no legible)');
+      }
       return true;
     } else {
-      const err = await resp.json().catch(() => ({}));
-      console.error('[PrintBridge] Error:', err.error || 'Unknown');
+      console.error('[PrintBridge] Error HTTP:', resp.status);
       return false;
     }
   } catch (e) {
-    console.error('[PrintBridge] Sin conexion:', e.message);
-    PRINTBRIDGE_URL = ''; // Reset so it re-detects next time
+    console.error('[PrintBridge] Fetch fail:', e.message);
+    // Do not reset URL on a single failure, it might be a CORS or timeout issue but printed successfully
     return false;
   }
 }
@@ -166,6 +170,8 @@ async function bridgePrintTicket(order, settings) {
   
   // Create an array with at least one null target if no printers are set (fallback to local config)
   const targets = validPrinters.length > 0 ? validPrinters : [{ ip: null, port: null }];
+  
+  let printedCount = 0;
 
   for (const printer of targets) {
     payload.target_ip = printer.ip;
@@ -175,20 +181,29 @@ async function bridgePrintTicket(order, settings) {
     if (isDesktopApp()) {
       try {
         const result = await window.DesktopPrint.printTicket(JSON.stringify(payload));
-        if (result === 'OK') return true;
-        console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
+        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        else console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
       } catch (e) {
         console.error('[DesktopPrint] Excepción:', e);
+      }
+    } else if (window.AndroidPrint) {
+      // 1.5. Android APK PrintBridge
+      try {
+        const result = window.AndroidPrint.printTicket(JSON.stringify(payload));
+        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        else console.warn('[AndroidPrint] Error:', result);
+      } catch (e) {
+        console.error('[AndroidPrint] Excepción:', e);
       }
     } else {
       // 2. HTTP PrintBridge (navegadores)
       const success = await printViaBridge('/print/ticket', payload);
-      if (success) return true;
-      console.warn('[PrintBridge] Error con IP:', printer.ip);
+      if (success) printedCount++;
+      else console.warn('[PrintBridge] Error con IP:', printer.ip);
     }
   }
   
-  return false;
+  return printedCount > 0;
 }
 
 // Print a comanda (kitchen order)
@@ -196,6 +211,8 @@ async function bridgePrintComanda(order, settings) {
   const { payload, validPrinters } = _buildComandaPayload(order, settings);
 
   const targets = validPrinters.length > 0 ? validPrinters : [{ ip: null, port: null }];
+  
+  let printedCount = 0;
 
   for (const printer of targets) {
     payload.target_ip = printer.ip;
@@ -205,20 +222,29 @@ async function bridgePrintComanda(order, settings) {
     if (isDesktopApp()) {
       try {
         const result = await window.DesktopPrint.printComanda(JSON.stringify(payload));
-        if (result === 'OK') return true;
-        console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
+        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        else console.warn('[DesktopPrint] Error con IP:', printer.ip, result);
       } catch (e) {
         console.error('[DesktopPrint] Excepción:', e);
+      }
+    } else if (window.AndroidPrint) {
+      // 1.5. Android APK PrintBridge
+      try {
+        const result = window.AndroidPrint.printComanda(JSON.stringify(payload));
+        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        else console.warn('[AndroidPrint] Error:', result);
+      } catch (e) {
+        console.error('[AndroidPrint] Excepción:', e);
       }
     } else {
       // 2. HTTP PrintBridge (navegadores)
       const success = await printViaBridge('/print/comanda', payload);
-      if (success) return true;
-      console.warn('[PrintBridge] Error con IP:', printer.ip);
+      if (success) printedCount++;
+      else console.warn('[PrintBridge] Error con IP:', printer.ip);
     }
   }
 
-  return false;
+  return printedCount > 0;
 }
 
 // Print a report via PrintBridge
@@ -233,9 +259,20 @@ async function bridgePrintReport(reportData, settings) {
   if (isDesktopApp()) {
     try {
       const result = await window.DesktopPrint.printReport(JSON.stringify(data));
-      return result === 'OK';
+      return result === 'OK' || result === true || (result && result.success);
     } catch (e) {
       console.error('[DesktopPrint] Error reporte:', e);
+      return false;
+    }
+  }
+
+  // 1.5 Android APK
+  if (window.AndroidPrint && window.AndroidPrint.printReport) {
+    try {
+      const result = window.AndroidPrint.printReport(JSON.stringify(data));
+      return result === 'OK' || result === true || (result && result.success);
+    } catch (e) {
+      console.error('[AndroidPrint] Error reporte:', e);
       return false;
     }
   }
@@ -250,9 +287,20 @@ async function bridgeTestPrint() {
   if (isDesktopApp()) {
     try {
       const result = await window.DesktopPrint.testPrint();
-      return result === 'OK';
+      return result === 'OK' || result === true || (result && result.success);
     } catch (e) {
       console.error('[DesktopPrint] Error test:', e);
+      return false;
+    }
+  }
+
+  // 1.5 Android APK
+  if (window.AndroidPrint) {
+    try {
+      const result = window.AndroidPrint.testPrint();
+      return result === 'OK' || result === true || (result && result.success);
+    } catch (e) {
+      console.error('[AndroidPrint] Error test:', e);
       return false;
     }
   }

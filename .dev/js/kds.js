@@ -51,8 +51,15 @@ function playAlertSound() {
 }
 
 async function logout() {
-  await supabaseClient.auth.signOut();
-  window.location.href = 'login.html';
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await supabaseClient.auth.signOut();
+  } catch (error) {
+    console.warn('Error during sign out:', error);
+  } finally {
+    window.location.href = 'login.html';
+  }
 }
 
 async function initKDS() {
