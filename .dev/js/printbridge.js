@@ -284,11 +284,7 @@ async function bridgePrintReport(reportData, settings) {
   if (window.AndroidPrint) {
     if (window.AndroidPrint.printReport) {
       try {
-        const androidData = { ...data };
-        if (typeof androidData.productsSold !== 'undefined') androidData.productsSold = {}; 
-        delete androidData.declared_cash;
-        delete androidData.difference;
-        const result = window.AndroidPrint.printReport(JSON.stringify(androidData));
+        const result = window.AndroidPrint.printReport(JSON.stringify(data));
         console.log('[AndroidPrint] Report Result:', result);
         return true; // Siempre evitar fallback a navegador
       } catch (e) {

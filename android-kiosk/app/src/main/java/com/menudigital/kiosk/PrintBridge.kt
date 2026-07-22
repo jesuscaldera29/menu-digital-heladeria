@@ -47,6 +47,18 @@ class PrintBridge(private val config: ConfigManager) {
     }
 
     @JavascriptInterface
+    fun printReport(jsonString: String): String {
+        return try {
+            val data = JSONObject(jsonString)
+            val bytes = EscPosBuilder.buildReport(data, config)
+            sendToPrinter(bytes)
+            "OK"
+        } catch (e: Exception) {
+            "ERROR: ${e.message}"
+        }
+    }
+
+    @JavascriptInterface
     fun testPrint(): String {
         return try {
             val builder = EscPosBuilder(config.getPaperWidth())

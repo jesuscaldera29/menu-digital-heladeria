@@ -224,6 +224,83 @@ class EscPosBuilder(private val w: Int = 48) {
             if (config.getBeepOnPrint()) b.beep(3, 5)
             if (config.getAutoCut()) b.cut()
 
+        // ===== Build Report (Z-Report) =====
+        fun buildReport(d: JSONObject, config: ConfigManager): ByteArray {
+            val pw = config.getPaperWidth()
+            val b = EscPosBuilder(pw)
+            b.init().alignCenter()
+
+            // Header
+            b.bold(true).doubleHeight(true).textLine(san(d.optString("business_name", "MI NEGOCIO")).uppercase()).normalSize().bold(false)
+            b.bold(true).textLine("CORTE DE CAJA Z").bold(false)
+            b.textLine("Fecha: " + d.optString("date", ""))
+            b.separator('-')
+
+            b.leftRight("Periodo:", san(d.optString("period", "Hoy")))
+            b.leftRight("Pedidos Totales:", d.optString("total_orders", "0"))
+            b.leftRight("Ticket Promedio:", fmt(d.optDouble("average_ticket", 0.0).toLong()))
+            b.separator('-')
+
+            b.alignCenter().bold(true).textLine("ORIGEN DE VENTAS").bold(false)
+            b.leftRight("Caja (POS):", fmt(d.optDouble("origin_pos", 0.0).toLong()))
+            b.leftRight("Kiosko:", fmt(d.optDouble("origin_kiosk", 0.0).toLong()))
+            b.leftRight("Menu QR:", fmt(d.optDouble("origin_qr", 0.0).toLong()))
+            b.separator('-')
+
+            // Products sold
+            b.alignCenter().bold(true).textLine("PRODUCTOS VENDIDOS").bold(false)
+            val ps = d.optJSONObject("productsSold")
+            if (ps != null && ps.length() > 0) {
+                val keys = ps.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val item = ps.getJSONObject(key)
+                    val qty = item.optInt("qty", 0)
+                    val total = item.optDouble("total", 0.0)
+                    var dn = key
+                    if (dn.length > 20) dn = dn.substring(0, 20) + "..."
+                    b.leftRight(qty.toString() + "x " + san(dn).uppercase(), fmt(total.toLong()))
+                }
+            } else {
+                b.alignCenter().textLine("Sin productos").alignLeft()
+            }
+            b.separator('-')
+
+            b.alignCenter().bold(true).textLine("DESGLOSE DE PAGOS").bold(false)
+            b.leftRight("Efectivo:", fmt(d.optDouble("payment_cash", 0.0).toLong()))
+            b.leftRight("NEQUI:", fmt(d.optDouble("payment_nequi", 0.0).toLong()))
+            b.leftRight("Transferencia:", fmt(d.optDouble("payment_transfer", 0.0).toLong()))
+            b.separator('-')
+            
+            b.bold(true).leftRight("TOTAL VENTAS:", fmt(d.optDouble("total_sales", 0.0).toLong())).bold(false)
+            b.separator('-')
+
+            b.alignCenter().bold(true).textLine("FLUJO DE EFECTIVO").bold(false)
+            b.leftRight("Fondo Apertura:", "+" + fmt(d.optDouble("opening_amount", 0.0).toLong()))
+            b.leftRight("Ventas Efectivo:", "+" + fmt(d.optDouble("payment_cash", 0.0).toLong()))
+            b.leftRight("Entradas Extra:", "+" + fmt(d.optDouble("cash_in", 0.0).toLong()))
+            b.leftRight("Gastos/Retiros:", "-" + fmt(d.optDouble("cash_out", 0.0).toLong()))
+            b.separator('-')
+
+            val expected = d.optDouble("expected_cash", 0.0)
+            b.bold(true).doubleHeight(true).leftRight("EFECTIVO ESPERADO:", fmt(expected.toLong())).normalSize().bold(false)
+            
+            if (d.has("declared_cash")) {
+                b.separator('-')
+                val declared = d.optDouble("declared_cash", 0.0)
+                b.bold(true).leftRight("Efectivo Declarado:", fmt(declared.toLong())).bold(false)
+                
+                val diff = d.optDouble("difference", 0.0)
+                val diffStr = if (diff > 0) "+" + fmt(diff.toLong()) else if (diff < 0) "-" + fmt(Math.abs(diff).toLong()) else "$0"
+                b.bold(true).leftRight(if (diff >= 0) "Sobrante:" else "Faltante:", diffStr).bold(false)
+            }
+
+            b.separator('-')
+            b.newline().alignCenter().textLine("FIN DEL REPORTE").newline()
+            
+            if (config.getBeepOnPrint()) b.beep(2, 4)
+            if (config.getAutoCut()) b.cut()
+            
             return b.build()
         }
     }
