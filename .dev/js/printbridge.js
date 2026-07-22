@@ -195,7 +195,7 @@ async function bridgePrintTicket(order, settings) {
         delete androidPayload.cash_received;
         
         const result = window.AndroidPrint.printTicket(JSON.stringify(androidPayload));
-        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
         else console.warn('[AndroidPrint] Error:', result);
       } catch (e) {
         console.error('[AndroidPrint] Excepción:', e);
@@ -236,7 +236,7 @@ async function bridgePrintComanda(order, settings) {
       // 1.5. Android APK PrintBridge
       try {
         const result = window.AndroidPrint.printComanda(JSON.stringify(payload));
-        if (result === 'OK' || result === true || (result && result.success)) printedCount++;
+        if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
         else console.warn('[AndroidPrint] Error:', result);
       } catch (e) {
         console.error('[AndroidPrint] Excepción:', e);
@@ -274,8 +274,12 @@ async function bridgePrintReport(reportData, settings) {
   // 1.5 Android APK
   if (window.AndroidPrint && window.AndroidPrint.printReport) {
     try {
-      const result = window.AndroidPrint.printReport(JSON.stringify(data));
-      return result === 'OK' || result === true || (result && result.success);
+      // Prevent crash by stripping complex new fields if Android expects a simpler JSON
+      const androidData = { ...data };
+      if (typeof androidData.productsSold === 'object') androidData.productsSold = {}; 
+      // Si la interfaz retorna void (undefined), consideramos que el comando se envió con éxito.
+      const result = window.AndroidPrint.printReport(JSON.stringify(androidData));
+      return result === undefined || result === null || result === 'OK' || result === true || (result && result.success);
     } catch (e) {
       console.error('[AndroidPrint] Error reporte:', e);
       return false;
