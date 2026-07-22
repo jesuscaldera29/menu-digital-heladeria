@@ -189,7 +189,12 @@ async function bridgePrintTicket(order, settings) {
     } else if (window.AndroidPrint) {
       // 1.5. Android APK PrintBridge
       try {
-        const result = window.AndroidPrint.printTicket(JSON.stringify(payload));
+        // En Android, campos desconocidos en el JSON pueden romper el parser GSON
+        const androidPayload = { ...payload };
+        delete androidPayload.tip;
+        delete androidPayload.cash_received;
+        
+        const result = window.AndroidPrint.printTicket(JSON.stringify(androidPayload));
         if (result === 'OK' || result === true || (result && result.success)) printedCount++;
         else console.warn('[AndroidPrint] Error:', result);
       } catch (e) {

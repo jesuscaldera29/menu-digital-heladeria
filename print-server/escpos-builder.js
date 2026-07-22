@@ -74,27 +74,6 @@ class EscPosBuilder {
     this.newline();
     return this;
   }
-  qrCode(url) {
-    if (!url) return this;
-    const store_len = url.length + 3;
-    const pL = store_len & 0xFF;
-    const pH = (store_len >> 8) & 0xFF;
-    
-    this.alignCenter();
-    // Model 2
-    this._p(GS, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00);
-    // Size (6)
-    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06);
-    // Error correction (48 = L)
-    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30);
-    // Store data
-    this._p(GS, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30);
-    this._t(url);
-    // Print
-    this._p(GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30);
-    this.newline(2);
-    return this;
-  }
   build() { return Buffer.from(this.buf); }
 }
 
@@ -181,7 +160,6 @@ function buildTicket(d, cfg, logoImage = null) {
   
   b.separator('-');
   b.newline().alignCenter().textLine(san(d.footer || 'Gracias por su compra!')).newline();
-  
   if (cfg.beep_on_print) b.beep(2, 3);
   if (cfg.auto_cut) b.cut();
   return b.build();
@@ -264,6 +242,15 @@ function buildReport(d, cfg) {
   
   b.separator().alignCenter().bold(true).textLine('ESPERADO EN CAJA').bold(false).alignLeft();
   b.bold(true).leftRight('TOTAL EFECTIVO:', fmt(d.expectedCash||0)).bold(false);
+
+  // Cierre ciego: mostrar declarado y diferencia
+  if (typeof d.declaredCash !== 'undefined') {
+    b.separator().alignCenter().bold(true).textLine('CIERRE DE CAJA').bold(false).alignLeft();
+    b.leftRight('Efectivo Declarado:', fmt(d.declaredCash||0));
+    const diff = Number(d.difference || 0);
+    const diffLabel = diff > 0 ? 'Sobrante:' : diff < 0 ? 'Faltante:' : 'Diferencia:';
+    b.bold(true).leftRight(diffLabel, fmt(Math.abs(diff))).bold(false);
+  }
 
   b.doubleSep().bold(true).doubleSize(true).alignCenter();
   b.textLine('TOTAL: ' + fmt(d.total||0)).normalSize().bold(false);

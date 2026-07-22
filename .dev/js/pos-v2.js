@@ -2339,9 +2339,10 @@ window.closeCashAndPrintZ = async function() {
       console.error('Error imprimiendo Z:', printErr);
     }
 
-    // Cerrar sesión después de dar tiempo suficiente a la impresora
+    // Recargar la página después de dar tiempo suficiente a la impresora
+    // (Se recarga para limpiar el estado de la caja, pero no se cierra la sesión)
     setTimeout(() => {
-      performLogout();
+      window.location.reload();
     }, 4000);
 
   } catch (err) {
