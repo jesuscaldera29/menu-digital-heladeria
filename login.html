@@ -119,6 +119,31 @@
       opacity: 1;
     }
 
+    .loading-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #0a0a0a; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.3s;
+    }
+    .loading-spinner {
+      border: 4px solid rgba(249,115,22,0.2);
+      border-top: 4px solid #f97316;
+      border-bottom: 4px solid #f97316;
+      border-radius: 50%;
+      width: 56px; height: 56px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+      box-shadow: 0 0 15px rgba(249,115,22,0.5);
+    }
+    .loading-text {
+      color: #d1d5db; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; font-size: 14px;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      font-family: sans-serif;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
     @media (max-width: 480px) {
       .glass-card {
         margin: 16px;
@@ -129,10 +154,10 @@
 </head>
 
 <body>
-  <!-- LOADING SCREEN -->
-  <div id="loadingBizScreen" class="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col items-center justify-center transition-opacity duration-300">
-    <div class="animate-spin rounded-full h-14 w-14 border-t-4 border-b-4 border-orange-500 mb-4 shadow-[0_0_15px_rgba(249,115,22,0.5)]"></div>
-    <p class="text-gray-300 font-bold tracking-widest uppercase text-sm animate-pulse">Autenticando...</p>
+  <!-- LOADING SCREEN (INSTANT RENDER) -->
+  <div id="loadingBizScreen" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Cargando...</p>
   </div>
 
   <div class="bg-glow glow-1"></div>
