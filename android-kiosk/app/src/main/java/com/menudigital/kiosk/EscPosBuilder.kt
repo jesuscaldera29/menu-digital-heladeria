@@ -223,6 +223,8 @@ class EscPosBuilder(private val w: Int = 48) {
             b.newline(2)
             if (config.getBeepOnPrint()) b.beep(3, 5)
             if (config.getAutoCut()) b.cut()
+            return b.build()
+        }
 
         // ===== Build Report (Z-Report) =====
         fun buildReport(d: JSONObject, config: ConfigManager): ByteArray {

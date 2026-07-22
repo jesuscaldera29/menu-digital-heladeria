@@ -185,7 +185,7 @@ async function submitCashClosing() {
     const expectedCash = Number(activeCashSession.opening_amount || 0) + cash + totalDeposits - totalWithdrawals;
     const diff = declared - expectedCash;
     
-    const { error } = await supabaseClient.from('cash_closings')
+    const { data: updateData, error } = await supabaseClient.from('cash_closings')
       .update({
         date: today,
         expected_total: expectedCash,
@@ -199,9 +199,14 @@ async function submitCashClosing() {
         notes: notes,
         is_open: false
       })
-      .eq('id', activeCashSession.id);
+      .eq('id', activeCashSession.id)
+      .select();
       
     if (error) throw error;
+    if (!updateData || updateData.length === 0) {
+        alert('⚠️ ERROR DE PERMISOS (RLS) EN SUPABASE\n\nNo se pudo cerrar la caja porque falta la política de UPDATE en Supabase.\n\nVe a Supabase -> SQL Editor y ejecuta:\n\nCREATE POLICY "Enable update for users" ON "public"."cash_closings" FOR UPDATE USING (true);');
+        throw new Error('Fallo al cerrar caja por falta de permisos RLS en Supabase.');
+    }
     
     // Lanza limpieza de cajas fantasmas que hayan quedado abiertas por error en el pasado
     try {

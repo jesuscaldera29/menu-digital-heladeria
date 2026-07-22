@@ -2315,20 +2315,30 @@ window.closeCashAndPrintZ = async function() {
       .single();
 
     // Actualizar registro de caja cerrada
-    await supabaseClient
+    const { data: updateData, error: updateError } = await supabaseClient
       .from('cash_closings')
       .update({
         is_open: false,
-        closed_at: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0],
         expected_total: expectedCash,
         declared_total: expectedCash,
-        difference: 0, // Como es un cierre desde el Z, asumimos cuadre perfecto
+        difference: 0,
         cash_sales: window.currentPOSReport.cash || 0,
         transfer_sales: window.currentPOSReport.transfer || 0,
         card_sales: window.currentPOSReport.card || 0,
         total_expenses: window.currentPOSReport.cashOut || 0
       })
-      .eq('id', activeCashClosingId);
+      .eq('id', activeCashClosingId)
+      .select();
+
+    if (updateError) {
+        console.error('Error en Supabase UPDATE:', updateError);
+        throw updateError;
+    }
+    if (!updateData || updateData.length === 0) {
+        alert('⚠️ ERROR DE PERMISOS (RLS) EN SUPABASE\n\nNo se pudo cerrar la caja porque falta la política de UPDATE en Supabase.\n\nVe a Supabase -> SQL Editor y ejecuta:\n\nCREATE POLICY "Enable update for users" ON "public"."cash_closings" FOR UPDATE USING (true);');
+        throw new Error('Fallo al cerrar caja por falta de permisos RLS en Supabase.');
+    }
 
     showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
     
