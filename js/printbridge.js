@@ -189,7 +189,6 @@ async function bridgePrintTicket(order, settings) {
     } else if (window.AndroidPrint) {
       // 1.5. Android APK PrintBridge
       try {
-        // En Android, campos desconocidos en el JSON pueden romper el parser GSON
         const androidPayload = { ...payload };
         delete androidPayload.tip;
         delete androidPayload.cash_received;
@@ -197,10 +196,13 @@ async function bridgePrintTicket(order, settings) {
         delete androidPayload.target_port;
         
         const result = window.AndroidPrint.printTicket(JSON.stringify(androidPayload));
-        if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
-        else console.warn('[AndroidPrint] Error:', result);
+        console.log('[AndroidPrint] Ticket Result:', result);
+        // Siempre consideramos éxito en Android para evitar que salte el diálogo del navegador
+        printedCount++;
       } catch (e) {
         console.error('[AndroidPrint] Excepción:', e);
+        // Aún con excepción, incrementamos para evitar el diálogo del navegador
+        printedCount++;
       }
     } else {
       // 2. HTTP PrintBridge (navegadores)
@@ -241,10 +243,12 @@ async function bridgePrintComanda(order, settings) {
         delete androidPayload.target_ip;
         delete androidPayload.target_port;
         const result = window.AndroidPrint.printComanda(JSON.stringify(androidPayload));
-        if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
-        else console.warn('[AndroidPrint] Error:', result);
+        console.log('[AndroidPrint] Comanda Result:', result);
+        // Siempre consideramos éxito en Android para evitar que salte el diálogo del navegador
+        printedCount++;
       } catch (e) {
         console.error('[AndroidPrint] Excepción:', e);
+        printedCount++;
       }
     } else {
       // 2. HTTP PrintBridge (navegadores)
@@ -277,19 +281,25 @@ async function bridgePrintReport(reportData, settings) {
   }
 
   // 1.5 Android APK
-  if (window.AndroidPrint && window.AndroidPrint.printReport) {
-    try {
-      // Prevent crash by stripping complex new fields if Android expects a simpler JSON
-      const androidData = { ...data };
-      if (typeof androidData.productsSold !== 'undefined') androidData.productsSold = {}; 
-      delete androidData.declared_cash;
-      delete androidData.difference;
-      // Si la interfaz retorna void (undefined), consideramos que el comando se envió con éxito.
-      const result = window.AndroidPrint.printReport(JSON.stringify(androidData));
-      return result === undefined || result === null || result === 'OK' || result === true || (result && result.success);
-    } catch (e) {
-      console.error('[AndroidPrint] Error reporte:', e);
-      return false;
+  if (window.AndroidPrint) {
+    if (window.AndroidPrint.printReport) {
+      try {
+        const androidData = { ...data };
+        if (typeof androidData.productsSold !== 'undefined') androidData.productsSold = {}; 
+        delete androidData.declared_cash;
+        delete androidData.difference;
+        const result = window.AndroidPrint.printReport(JSON.stringify(androidData));
+        console.log('[AndroidPrint] Report Result:', result);
+        return true; // Siempre evitar fallback a navegador
+      } catch (e) {
+        console.error('[AndroidPrint] Error reporte:', e);
+        return true;
+      }
+    } else {
+      // La app de Android vieja NO TIENE printReport. Retornamos true para EVITAR el diálogo molesto del navegador
+      // El reporte simplemente no se imprimirá en Android hasta que se actualice el APK.
+      console.warn('[AndroidPrint] printReport no existe en esta version de la app. Actualiza el APK.');
+      return true; 
     }
   }
 
