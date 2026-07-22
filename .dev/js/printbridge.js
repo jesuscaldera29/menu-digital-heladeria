@@ -193,6 +193,8 @@ async function bridgePrintTicket(order, settings) {
         const androidPayload = { ...payload };
         delete androidPayload.tip;
         delete androidPayload.cash_received;
+        delete androidPayload.target_ip;
+        delete androidPayload.target_port;
         
         const result = window.AndroidPrint.printTicket(JSON.stringify(androidPayload));
         if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
@@ -235,7 +237,10 @@ async function bridgePrintComanda(order, settings) {
     } else if (window.AndroidPrint) {
       // 1.5. Android APK PrintBridge
       try {
-        const result = window.AndroidPrint.printComanda(JSON.stringify(payload));
+        const androidPayload = { ...payload };
+        delete androidPayload.target_ip;
+        delete androidPayload.target_port;
+        const result = window.AndroidPrint.printComanda(JSON.stringify(androidPayload));
         if (result === undefined || result === null || result === 'OK' || result === true || (result && result.success)) printedCount++;
         else console.warn('[AndroidPrint] Error:', result);
       } catch (e) {
@@ -276,7 +281,9 @@ async function bridgePrintReport(reportData, settings) {
     try {
       // Prevent crash by stripping complex new fields if Android expects a simpler JSON
       const androidData = { ...data };
-      if (typeof androidData.productsSold === 'object') androidData.productsSold = {}; 
+      if (typeof androidData.productsSold !== 'undefined') androidData.productsSold = {}; 
+      delete androidData.declared_cash;
+      delete androidData.difference;
       // Si la interfaz retorna void (undefined), consideramos que el comando se envió con éxito.
       const result = window.AndroidPrint.printReport(JSON.stringify(androidData));
       return result === undefined || result === null || result === 'OK' || result === true || (result && result.success);
