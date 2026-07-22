@@ -243,6 +243,15 @@ function buildReport(d, cfg) {
   b.separator().alignCenter().bold(true).textLine('ESPERADO EN CAJA').bold(false).alignLeft();
   b.bold(true).leftRight('TOTAL EFECTIVO:', fmt(d.expectedCash||0)).bold(false);
 
+  // Cierre ciego: mostrar declarado y diferencia
+  if (typeof d.declaredCash !== 'undefined') {
+    b.separator().alignCenter().bold(true).textLine('CIERRE DE CAJA').bold(false).alignLeft();
+    b.leftRight('Efectivo Declarado:', fmt(d.declaredCash||0));
+    const diff = Number(d.difference || 0);
+    const diffLabel = diff > 0 ? 'Sobrante:' : diff < 0 ? 'Faltante:' : 'Diferencia:';
+    b.bold(true).leftRight(diffLabel, fmt(Math.abs(diff))).bold(false);
+  }
+
   b.doubleSep().bold(true).doubleSize(true).alignCenter();
   b.textLine('TOTAL: ' + fmt(d.total||0)).normalSize().bold(false);
   b.newline().alignCenter().textLine('FIN DEL REPORTE').newline();

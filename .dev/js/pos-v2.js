@@ -2332,13 +2332,17 @@ window.closeCashAndPrintZ = async function() {
 
     showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
     
-    // Imprimir Z report
-    await printPOSReport();
+    // Imprimir Z report y esperar a que termine
+    try {
+      await printPOSReport();
+    } catch (printErr) {
+      console.error('Error imprimiendo Z:', printErr);
+    }
 
-    // Cerrar sesión después de un breve tiempo
+    // Cerrar sesión después de dar tiempo suficiente a la impresora
     setTimeout(() => {
       performLogout();
-    }, 2500);
+    }, 4000);
 
   } catch (err) {
     showToast('❌ Error al cerrar la caja', 'error');
@@ -2446,6 +2450,14 @@ window.printPOSReport = async function() {
         <span>EFECTIVO ESPERADO:</span>
         <span>$${(r.expectedCash||0).toLocaleString()}</span>
       </div>
+
+      ${typeof r.declaredCash !== 'undefined' ? `
+      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
+        <div class="font-bold text-center mb-2">CIERRE DE CAJA</div>
+        <div class="flex"><span>Efectivo Declarado:</span> <span>$${(r.declaredCash||0).toLocaleString()}</span></div>
+        <div class="flex font-bold"><span>${Number(r.difference||0) > 0 ? 'Sobrante:' : Number(r.difference||0) < 0 ? 'Faltante:' : 'Diferencia:'}</span> <span>$${Math.abs(Number(r.difference||0)).toLocaleString()}</span></div>
+      </div>
+      ` : ''}
       
       <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
         FIN DEL REPORTE
@@ -2996,12 +3008,97 @@ window.submitBlindClose = async function() {
       })
       .eq('id', activeCashClosingId);
 
-    // TODO: Imprimir ticket de cierre o algo
-    showToast('✅ Turno Cerrado. Sesión finalizada.', 'success');
-    
+    // === IMPRIMIR TICKET Z AUTOMÁTICAMENTE ===
+    showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
+
+    // Construir datos del reporte Z para impresión
+    const blindZReport = {
+      filter: 'today',
+      orderCount: orders ? orders.filter(o => o.status !== 'Cancelado').length : 0,
+      total: cashSales + transferSales + cardSales,
+      cash: cashSales,
+      card: cardSales,
+      transfer: transferSales,
+      originKiosko: 0,
+      originPOS: cashSales + transferSales + cardSales,
+      originMenu: 0,
+      ticketPromedio: orders && orders.filter(o => o.status !== 'Cancelado').length > 0 ? (cashSales + transferSales + cardSales) / orders.filter(o => o.status !== 'Cancelado').length : 0,
+      openingCash: Number(closingInfo.opening_amount) || 0,
+      cashIn: totalDeposits,
+      cashOut: totalWithdrawals,
+      expectedCash: expectedCash,
+      declaredCash: declaredCash,
+      difference: difference,
+      productsSold: {}
+    };
+
+    // Enriquecer con detalles de productos y orígenes
+    try {
+      const { data: fullOrders } = await supabaseClient
+        .from('orders')
+        .select('total, payment_method, status, notes, items')
+        .eq('business_id', businessId)
+        .gte('created_at', closingInfo.opened_at)
+        .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado']);
+
+      if (fullOrders) {
+        let oKiosko = 0, oPOS = 0, oMenu = 0;
+        fullOrders.forEach(o => {
+          const t = Number(o.total) || 0;
+          const n = o.notes || '';
+          if (n.includes('[ORIGIN:KIOSKO]')) oKiosko += t;
+          else if (n.includes('[ORIGIN:MENU]')) oMenu += t;
+          else oPOS += t;
+
+          let orderItems = o.items || [];
+          if (typeof orderItems === 'string') {
+            try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+          }
+          if (Array.isArray(orderItems)) {
+            orderItems.forEach(item => {
+              const qty = Number(item.quantity || item.qty) || 1;
+              const price = Number(item.price) || 0;
+              let name = item.name || 'Desconocido';
+              if (item.extrasLabel) name += ` (${item.extrasLabel})`;
+              if (!blindZReport.productsSold[name]) blindZReport.productsSold[name] = { qty: 0, total: 0 };
+              blindZReport.productsSold[name].qty += qty;
+              blindZReport.productsSold[name].total += (qty * price);
+            });
+          }
+        });
+        blindZReport.originKiosko = oKiosko;
+        blindZReport.originPOS = oPOS;
+        blindZReport.originMenu = oMenu;
+      }
+    } catch (enrichErr) {
+      console.warn('No se pudieron enriquecer datos del Z:', enrichErr);
+    }
+
+    // Intentar impresión vía PrintBridge (Desktop / Android / HTTP)
+    try {
+      if (typeof bridgePrintReport === 'function') {
+        const printed = await bridgePrintReport(blindZReport, posSettings);
+        if (printed) {
+          showToast('🖨️ Ticket Z impreso correctamente', 'success');
+        } else {
+          console.warn('PrintBridge no pudo imprimir, usando fallback del navegador');
+          // Fallback: generar ventana de impresión del navegador
+          window.currentPOSReport = blindZReport;
+          await printPOSReport();
+        }
+      } else {
+        // Sin PrintBridge, usar impresión del navegador
+        window.currentPOSReport = blindZReport;
+        await printPOSReport();
+      }
+    } catch (printErr) {
+      console.error('Error imprimiendo ticket Z en cierre ciego:', printErr);
+    }
+
+    // Dar tiempo suficiente para que la impresora procese antes de logout
     setTimeout(() => {
       performLogout();
-    }, 1500);
+    }, 4000);
 
   } catch (e) {
     showToast('❌ Error al cerrar caja', 'error');
