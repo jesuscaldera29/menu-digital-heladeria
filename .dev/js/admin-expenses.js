@@ -701,7 +701,7 @@ async function loadCajaHistorialCards() {
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-black text-base">$${amount.toLocaleString()}</span>
-                ${c.is_open ? '<span class="bg-emerald-100 text-emerald-700 text-[8px] px-2 py-0.5 rounded-full font-bold">ABIERTA</span>' : ''}
+                ${c.is_open ? '<span class="bg-emerald-100 text-emerald-700 text-[8px] px-2 py-0.5 rounded-full font-bold">ABIERTA</span>' : '<span class="bg-red-100 text-red-700 text-[8px] px-2 py-0.5 rounded-full font-bold">CERRADA</span>'}
                 <button onclick="event.stopPropagation(); deleteCashClosing('${c.id}')" class="text-red-400 hover:text-red-600 text-xs p-1">🗑️</button>
               </div>
             </div>`;
