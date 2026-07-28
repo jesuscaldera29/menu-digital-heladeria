@@ -842,6 +842,13 @@
             <button class="btn btn-primary w-full mt-2" onclick="saveMenuConfig(event)">💾 Guardar Configuración</button>
           </div>
         </div>
+
+        <!-- ZONA PELIGROSA (RESET) -->
+        <div class="card" style="border: 1px solid #ff4d4d; background: #fffaf9;">
+          <h2 class="text-xl font-black mb-2 text-red-600 flex items-center gap-2">⚠️ Zona Peligrosa</h2>
+          <p class="text-xs text-gray-600 mb-4">Esta acción borrará permanentemente <b>todos los pedidos</b> y el <b>historial de caja (aperturas/cierres)</b> de este negocio. Útil para limpiar datos de prueba. No afectará tus productos ni configuración.</p>
+          <button class="btn btn-danger w-full sm:w-auto text-sm" onclick="resetDatabaseData(event)">🗑️ Borrar Todos los Pedidos y Caja</button>
+        </div>
       </div>
     </div>
 

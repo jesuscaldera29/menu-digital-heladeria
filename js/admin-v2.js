@@ -490,6 +490,60 @@ async function saveMenuConfig(event) {
     }
 }
 
+// Reset Database (Peligroso)
+window.resetDatabaseData = async function(event) {
+    if (!businessId) return showToast('⚠️ Negocio no identificado', 'error');
+    if (!confirm('⚠️ PELIGRO: Esto borrará TODOS LOS PEDIDOS y TODAS LAS APERTURAS/CIERRES DE CAJA de este negocio. Esta acción NO se puede deshacer. ¿Estás absolutamente seguro?')) {
+        return;
+    }
+    
+    // Segunda confirmación para evitar accidentes
+    if (prompt('Escribe "BORRAR TODO" para confirmar esta acción:') !== 'BORRAR TODO') {
+        return showToast('❌ Acción cancelada', 'error');
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Borrando todo...';
+    btn.disabled = true;
+
+    try {
+        // 1. Borrar pedidos
+        const { error: errOrders } = await supabaseClient
+            .from('orders')
+            .delete()
+            .eq('business_id', businessId);
+            
+        if (errOrders) throw new Error('Error al borrar pedidos: ' + errOrders.message);
+
+        // 2. Borrar aperturas/cierres de caja
+        const { error: errCash } = await supabaseClient
+            .from('cash_closings')
+            .delete()
+            .eq('business_id', businessId);
+            
+        if (errCash) throw new Error('Error al borrar caja: ' + errCash.message);
+
+        showToast('✅ Bases de datos limpiadas con éxito (Pedidos y Caja)');
+        
+        // Refrescar UI si las funciones existen
+        if (typeof allOrders !== 'undefined') allOrders = [];
+        if (typeof renderOrders === 'function') renderOrders();
+        if (typeof loadCashClosings === 'function') loadCashClosings();
+        if (typeof loadDashboard === 'function') loadDashboard();
+
+        // Limpiar localStorage de carrito local admin
+        localStorage.removeItem('cart');
+        
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        console.error('Reset DB Error:', err);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
+
 // Funciones para gestionar Cuentas Bancarias
 window.bankAccountsList = [];
 
