@@ -2078,7 +2078,7 @@ window.openPOSReport = async function() {
     if (!isCurrentShift) {
       const { data: closings, error: closingsErr } = await supabaseClient
         .from('cash_closings')
-        .select('opening_amount')
+        .select('opening_amount, opened_by, closed_by, closed_at, opened_at')
         .eq('business_id', businessId)
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
@@ -2087,6 +2087,12 @@ window.openPOSReport = async function() {
       
       if (!closingsErr && closings && closings.length > 0) {
         openingCash = Number(closings[0].opening_amount) || 0;
+        cashierOpenedBy = closings[0].opened_by;
+        cashierClosedBy = closings[0].closed_by;
+        cashierClosedAt = closings[0].closed_at;
+        if (closings[0].opened_at) {
+          startDate = new Date(closings[0].opened_at);
+        }
       }
     }
 

@@ -479,7 +479,7 @@ window.openPOSReportAdmin = async function() {
     if (!isCurrentShift) {
       const { data: closings, error: closingsErr } = await supabaseClient
         .from('cash_closings')
-        .select('opening_amount, opened_by, closed_by, closed_at')
+        .select('opening_amount, opened_by, closed_by, closed_at, opened_at')
         .eq('business_id', businessId)
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
@@ -491,6 +491,9 @@ window.openPOSReportAdmin = async function() {
         cashierOpenedBy = closings[0].opened_by;
         cashierClosedBy = closings[0].closed_by;
         cashierClosedAt = closings[0].closed_at;
+        if (closings[0].opened_at) {
+          startDate = new Date(closings[0].opened_at);
+        }
       }
     }
 
@@ -704,7 +707,7 @@ window.printPOSReportAdmin = function() {
       <div class="text-center" style="font-size: 20px;">** CORTE DE CAJA Z **</div>
       ${headerHtml}
       <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Fecha Impresión: ${now}</div>
-      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Periodo: ${r.filter === 'current_shift' ? 'Turno Actual' : r.filter.toUpperCase()}</div>
+      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Periodo: ${r.filter === 'today' ? 'HOY' : r.filter === 'yesterday' ? 'AYER' : r.filter === 'this_week' ? 'ESTA SEMANA' : r.filter === 'current_shift' ? 'TURNO ACTUAL' : 'ESTE MES'}</div>
       
       <div style="border-top:1px dashed #000; padding-top:8px; margin-top:8px;">
         ${r.openedBy ? `<div class="flex"><span>Abierto por:</span> <span>${r.openedBy}</span></div>` : ''}
