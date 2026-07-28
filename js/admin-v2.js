@@ -154,9 +154,9 @@ async function initAdmin() {
         loadBranches();
     }
 
-    // Iniciar auto-polling de pedidos cada 15 segundos
-    setInterval(pollNewOrders, 15000);
-    pollNewOrders(); // Primera carga silenciosa
+    // Carga inicial de pedidos y suscripción en tiempo real
+    loadInitialOrders();
+    subscribeToAdminOrders();
 
     // Suscripción en tiempo real a la caja (cash_closings)
     supabaseClient.channel('admin-cash-channel')
@@ -192,31 +192,17 @@ window.changeGlobalBranch = async function() {
 };
 
 // Polling for new orders
-async function pollNewOrders() {
+async function loadInitialOrders() {
     if (!businessId) return;
     try {
-        const { data, error } = await supabaseClient.from('orders').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient.from('orders')
+            .select('*')
+            .eq('business_id', businessId)
+            .order('created_at', { ascending: false });
         if (error) return;
 
         allOrders = data || [];
-        const currentPending = allOrders.filter(o => !o.status || o.status === 'Pendiente').length;
-
-        if (currentPending > lastPendingCount) {
-            // ¡Nuevo pedido!
-            const audio = document.getElementById('notificationSound');
-            if (audio) {
-                audio.play().catch(e => console.warn('Audio auto-play bloqueado por el navegador', e));
-            }
-
-            if (notificationsEnabled && Notification.permission === "granted") {
-                new Notification("🛎️ ¡Nuevo Pedido Recibido!", {
-                    body: "Tienes pedidos pendientes por revisar en MenuPro.",
-                    icon: "https://ui-avatars.com/api/?name=Menu&background=ea580c&color=fff"
-                });
-            }
-            showToast('🔔 ¡NUEVO PEDIDO RECIBIDO!', 'success');
-        }
-        lastPendingCount = currentPending;
+        lastPendingCount = allOrders.filter(o => !o.status || o.status === 'Pendiente').length;
 
         // Si estamos en la pestaña de pedidos, actualizamos visualmente
         const sectionOrders = document.getElementById('section-orders');
@@ -224,8 +210,83 @@ async function pollNewOrders() {
             renderOrders();
         }
     } catch (err) {
-        console.error('Error polling:', err);
+        console.error('Error loading initial orders:', err);
     }
+}
+
+let adminOrdersSubscription = null;
+
+function subscribeToAdminOrders() {
+    if (adminOrdersSubscription) {
+        supabaseClient.removeChannel(adminOrdersSubscription);
+    }
+
+    adminOrdersSubscription = supabaseClient
+        .channel('admin-orders-channel')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'orders', filter: `business_id=eq.${businessId}` },
+            (payload) => {
+                const newRecord = payload.new;
+                const oldRecord = payload.old;
+                let shouldPlaySound = false;
+
+                if (payload.eventType === 'INSERT') {
+                    allOrders.unshift(newRecord);
+                    if (!newRecord.status || newRecord.status === 'Pendiente') {
+                        shouldPlaySound = true;
+                        lastPendingCount++;
+                    }
+                } else if (payload.eventType === 'UPDATE') {
+                    const idx = allOrders.findIndex(o => o.id === newRecord.id);
+                    if (idx > -1) {
+                        const previousStatus = allOrders[idx].status;
+                        allOrders[idx] = newRecord;
+                        // Si cambia de otro estado a pendiente (raro, pero posible)
+                        if (newRecord.status === 'Pendiente' && previousStatus !== 'Pendiente') {
+                            shouldPlaySound = true;
+                            lastPendingCount++;
+                        } else if (previousStatus === 'Pendiente' && newRecord.status !== 'Pendiente') {
+                            lastPendingCount = Math.max(0, lastPendingCount - 1);
+                        }
+                    } else {
+                        allOrders.unshift(newRecord);
+                    }
+                } else if (payload.eventType === 'DELETE') {
+                    const idx = allOrders.findIndex(o => o.id === oldRecord.id);
+                    if (idx > -1) {
+                        if (allOrders[idx].status === 'Pendiente') {
+                            lastPendingCount = Math.max(0, lastPendingCount - 1);
+                        }
+                        allOrders.splice(idx, 1);
+                    }
+                }
+
+                // Reproducir sonido si hay nuevo pedido pendiente
+                if (shouldPlaySound) {
+                    const audio = document.getElementById('notificationSound');
+                    if (audio) {
+                        audio.play().catch(e => console.warn('Audio auto-play bloqueado', e));
+                    }
+                    if (notificationsEnabled && Notification.permission === "granted") {
+                        new Notification("🛎️ ¡Nuevo Pedido Recibido!", {
+                            body: "Tienes pedidos pendientes por revisar.",
+                            icon: "https://ui-avatars.com/api/?name=Menu&background=ea580c&color=fff"
+                        });
+                    }
+                    showToast('🔔 ¡NUEVO PEDIDO RECIBIDO!', 'success');
+                }
+
+                // Actualizar interfaz si estamos en pedidos
+                const sectionOrders = document.getElementById('section-orders');
+                if (sectionOrders && sectionOrders.classList.contains('active')) {
+                    // Mantener orden correcto
+                    allOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    renderOrders();
+                }
+            }
+        )
+        .subscribe();
 }
 
 // PREVIEW IMAGE

@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load Deliveries
   await loadDeliveries();
 
-  // Polling active deliveries every 15 seconds
-  setInterval(loadDeliveries, 15000);
+  // Subscribe to real-time updates for deliveries
+  subscribeToDeliveries();
 });
 
 // Load Driver availability state
@@ -175,6 +175,38 @@ async function loadDeliveries() {
   } catch (err) {
     console.error('Error loading deliveries:', err);
   }
+}
+
+// Subscribe to real-time orders assigned to this driver
+function subscribeToDeliveries() {
+  if (!currentDriver || !currentDriver.driver_id) return;
+  
+  supabaseClient
+    .channel('driver-deliveries-channel')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `driver_id=eq.${currentDriver.driver_id}`
+      },
+      (payload) => {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
+        audio.volume = 1.0;
+        
+        if (payload.eventType === 'INSERT') {
+          showToast('🔔 ¡Nuevo pedido asignado!');
+          audio.play().catch(e => console.log(e));
+          loadDeliveries();
+        } else if (payload.eventType === 'UPDATE') {
+          loadDeliveries();
+        } else if (payload.eventType === 'DELETE') {
+          loadDeliveries();
+        }
+      }
+    )
+    .subscribe();
 }
 
 // Render active deliveries

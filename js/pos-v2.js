@@ -53,9 +53,9 @@ async function initPOS() {
   updateAutoPrintUI();
   subscribeToOnlineOrders();
 
-  // Load initial notifications badge count
-  loadInitialNotifBadge();
-  startOrderPolling();
+  // Load initial notifications
+  if (typeof window.notifOrders === 'undefined') window.notifOrders = [];
+  loadInitialNotifications();
 
   const loading = document.getElementById('loadingBizScreen');
   if (loading) {
@@ -116,81 +116,40 @@ async function checkActiveCashRegister() {
   }
 }
 
-async function loadInitialNotifBadge() {
+
+
+async function loadInitialNotifications() {
   try {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
     const { data } = await supabaseClient
       .from('orders')
-      .select('id, notes, status')
+      .select('*')
       .eq('business_id', businessId)
       .gte('created_at', startOfDay.toISOString())
-      .in('status', ['Pendiente', 'En preparación']);
-
-    const pending = (data || []).filter(o => {
-      const n = o.notes || '';
-      return n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true);
+      .in('status', ['Pendiente', 'En preparación'])
+      .order('created_at', { ascending: false });
+      
+    if (!data) return;
+    
+    window.notifOrders = [];
+    data.forEach(order => {
+      const n = order.notes || '';
+      if (n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true)) {
+        window.notifOrders.push(order);
+      }
     });
+    
+    if (typeof renderNotifications === 'function') renderNotifications();
     const badge = document.getElementById('notifBadge');
     if (badge) {
-      badge.textContent = pending.length;
-      badge.classList.toggle('hidden', pending.length === 0);
+      badge.textContent = window.notifOrders.length;
+      badge.classList.toggle('hidden', window.notifOrders.length === 0);
     }
-  } catch(e) { console.error('Badge load error', e); }
-}
-
-let posOrderPollingInterval = null;
-
-function startOrderPolling() {
-  if (posOrderPollingInterval) clearInterval(posOrderPollingInterval);
-  
-  posOrderPollingInterval = setInterval(async () => {
-    try {
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      const { data } = await supabaseClient
-        .from('orders')
-        .select('*')
-        .eq('business_id', businessId)
-        .gte('created_at', startOfDay.toISOString())
-        .in('status', ['Pendiente', 'En preparación'])
-        .order('created_at', { ascending: false });
-        
-      if (!data) return;
-      
-      let newOrdersFound = false;
-      
-      data.forEach(order => {
-        const n = order.notes || '';
-        if (n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true)) {
-          const exists = window.notifOrders.find(o => String(o.id) === String(order.id));
-          if (!exists) {
-            window.notifOrders.unshift(order);
-            newOrdersFound = true;
-          }
-        }
-      });
-      
-      if (newOrdersFound) {
-        renderNotifications();
-        try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2190/2190-preview.mp3');
-          audio.volume = 1.0;
-          audio.play().catch(e => console.log('Audio blocked', e));
-        } catch (e) { }
-        
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-          badge.classList.remove('animate-pulse');
-          badge.classList.add('animate-bounce');
-          setTimeout(() => badge.classList.remove('animate-bounce'), 3000);
-        }
-      }
-    } catch(err) {
-      console.log('Polling error silently ignored', err);
-    }
-  }, 10000);
+  } catch(err) {
+    console.error('Error loading initial notifications', err);
+  }
 }
 
 let autoPrintEnabled = false;
@@ -270,8 +229,43 @@ function subscribeToOnlineOrders() {
             showToast('🛎️ Nuevo pedido online recibido');
           }
         } else if (payload.eventType === 'UPDATE') {
-          if (typeof updateNotificationStatus === 'function') {
-            updateNotificationStatus(payload.new);
+          const newRecord = payload.new;
+          if (typeof window.notifOrders !== 'undefined') {
+            const idx = window.notifOrders.findIndex(o => o.id === newRecord.id);
+            if (idx > -1) {
+              if (newRecord.status === 'Pendiente' || newRecord.status === 'En preparación') {
+                window.notifOrders[idx] = newRecord;
+              } else {
+                window.notifOrders.splice(idx, 1);
+              }
+            } else {
+              if (newRecord.status === 'Pendiente' || newRecord.status === 'En preparación') {
+                const n = newRecord.notes || '';
+                if (n.includes('[ORIGIN:KIOSKO]') || n.includes('[ORIGIN:MENU]') || (!n.includes('[ORIGIN:POS]') && true)) {
+                  window.notifOrders.unshift(newRecord);
+                }
+              }
+            }
+            if (typeof renderNotifications === 'function') renderNotifications();
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+              badge.textContent = window.notifOrders.length;
+              badge.classList.toggle('hidden', window.notifOrders.length === 0);
+            }
+          }
+        } else if (payload.eventType === 'DELETE') {
+          const oldRecord = payload.old;
+          if (typeof window.notifOrders !== 'undefined') {
+            const idx = window.notifOrders.findIndex(o => o.id === oldRecord.id);
+            if (idx > -1) {
+              window.notifOrders.splice(idx, 1);
+              if (typeof renderNotifications === 'function') renderNotifications();
+              const badge = document.getElementById('notifBadge');
+              if (badge) {
+                badge.textContent = window.notifOrders.length;
+                badge.classList.toggle('hidden', window.notifOrders.length === 0);
+              }
+            }
           }
         }
       }
