@@ -13,11 +13,13 @@ function showToast(msg) {
   setTimeout(() => t.className = 'toast', 3000);
 }
 
-async function logout() {
+window.superAdminLogout = async function() {
   try {
+    // Es importante llamar a signOut() ANTES de limpiar el localStorage,
+    // porque Supabase necesita el token para invalidar la sesión en el servidor.
+    await supabaseClient.auth.signOut();
     localStorage.clear();
     sessionStorage.clear();
-    await supabaseClient.auth.signOut();
   } catch (error) {
     console.warn('Error during sign out:', error);
   } finally {
