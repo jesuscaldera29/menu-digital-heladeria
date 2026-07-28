@@ -2021,8 +2021,23 @@ window.openPOSReport = async function() {
     const now = new Date();
     let startDate = new Date();
     let endDate = new Date();
+    let isCurrentShift = (filter === 'current_shift');
+    let openingCash = 0;
 
-    if (filter === 'today') {
+    if (isCurrentShift) {
+        if (!activeCashClosingId) {
+            document.getElementById('posReportKPIs').innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-4">⚠️ No hay una caja abierta actualmente. Para ver los totales del turno, primero abre la caja.</div>';
+            return;
+        }
+        const { data: closingInfo } = await supabaseClient.from('cash_closings').select('opened_at, opening_amount').eq('id', activeCashClosingId).single();
+        if (closingInfo) {
+            startDate = new Date(closingInfo.opened_at);
+            endDate = now;
+            openingCash = Number(closingInfo.opening_amount) || 0;
+        } else {
+            throw new Error("No se encontró información del turno actual.");
+        }
+    } else if (filter === 'today') {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
     } else if (filter === 'yesterday') {
@@ -2052,19 +2067,20 @@ window.openPOSReport = async function() {
 
     if (error) throw error;
 
-    // Fetch opening cash
-    const { data: closings, error: closingsErr } = await supabaseClient
-      .from('cash_closings')
-      .select('opening_amount')
-      .eq('business_id', businessId)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .order('created_at', { ascending: true })
-      .limit(1);
-    
-    let openingCash = 0;
-    if (!closingsErr && closings && closings.length > 0) {
-      openingCash = Number(closings[0].opening_amount) || 0;
+    // Fetch opening cash ONLY if not current shift
+    if (!isCurrentShift) {
+      const { data: closings, error: closingsErr } = await supabaseClient
+        .from('cash_closings')
+        .select('opening_amount')
+        .eq('business_id', businessId)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: true })
+        .limit(1);
+      
+      if (!closingsErr && closings && closings.length > 0) {
+        openingCash = Number(closings[0].opening_amount) || 0;
+      }
     }
 
     // Fetch cash movements
