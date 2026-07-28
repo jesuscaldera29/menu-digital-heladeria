@@ -1113,6 +1113,11 @@
             <span class="font-bold text-gray-800">Gastos operativos</span>
             <span class="ml-auto text-gray-400">›</span>
           </button>
+          <button onclick="openPOSReportAdmin()" class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left">
+            <span class="text-xl w-8 text-center">📊</span>
+            <span class="font-bold text-gray-800">Corte de Caja Z</span>
+            <span class="ml-auto text-gray-400">›</span>
+          </button>
         </div>
 
         <!-- Bottom Action -->
@@ -2869,6 +2874,84 @@
         </div>
 
         <button id="btnSubmitBranch" class="btn btn-primary w-full mt-4" onclick="createBranch(event)">Crear Sucursal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD FINANCIERO / CORTE DE CAJA Z MODAL (Copia de POS) -->
+  <div id="posReportModalAdmin" class="hidden fixed inset-0 z-[1200] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePOSReportAdmin()"></div>
+    <div class="bg-[#111] border border-[#333] w-full max-w-6xl h-[95vh] md:h-[90vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden text-white">
+      
+      <!-- Header -->
+      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
+        <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3">
+          <span>📊</span> Dashboard Financiero (Corte Z)
+        </h3>
+        <button onclick="closePOSReportAdmin()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 bg-[#0a0a0a]">
+        
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222]">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">PERIODO:</span>
+            <select id="posReportDateFilterAdmin" class="bg-[#222] text-white text-sm font-bold p-2.5 rounded-xl border border-[#333] focus:border-orange-500 outline-none cursor-pointer" onchange="openPOSReportAdmin()">
+              <option value="today">Hoy</option>
+              <option value="yesterday">Ayer</option>
+              <option value="this_week">Esta Semana</option>
+              <option value="this_month">Este Mes</option>
+            </select>
+          </div>
+          <button onclick="printPOSReportAdmin()" id="btnPrintPOSReportAdmin" class="bg-white text-black font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
+            <span>🖨️</span> Imprimir Ticket Z
+          </button>
+          <button onclick="closeCashAndPrintZAdmin()" id="btnCloseCashAndPrintZAdmin" class="bg-red-500 text-white font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 hidden">
+            <span>🔒</span> Cerrar Caja e Imprimir Z
+          </button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6" id="posReportKPIsAdmin">
+           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando métricas...</div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden" id="posReportChartsAdmin">
+          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
+            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Ventas por Origen</h4>
+            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartOriginAdmin"></canvas></div>
+          </div>
+          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
+            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Métodos de Pago</h4>
+            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartPaymentAdmin"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Order History Table -->
+        <div class="bg-[#1a1a1a] rounded-2xl border border-[#222] overflow-hidden hidden" id="posReportHistoryContainerAdmin">
+          <div class="p-4 border-b border-[#222]">
+            <h4 class="text-sm text-white font-bold uppercase tracking-widest">Historial de Pedidos</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-400">
+              <thead class="text-xs text-gray-500 uppercase bg-[#111] border-b border-[#222]">
+                <tr>
+                  <th class="px-4 py-3">ID / Hora</th>
+                  <th class="px-4 py-3">Cliente</th>
+                  <th class="px-4 py-3 text-center">Origen</th>
+                  <th class="px-4 py-3 text-center">Pago</th>
+                  <th class="px-4 py-3 text-right">Total</th>
+                  <th class="px-4 py-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="posReportHistoryBodyAdmin" class="divide-y divide-[#222]">
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
