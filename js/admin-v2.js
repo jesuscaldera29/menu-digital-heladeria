@@ -498,7 +498,7 @@ window.resetDatabaseData = async function(event) {
     }
     
     // Segunda confirmación para evitar accidentes
-    if (prompt('Escribe "BORRAR TODO" para confirmar esta acción:') !== 'BORRAR TODO') {
+    if (!confirm('🛑 ÚLTIMA ADVERTENCIA: Estás a punto de borrar los datos financieros y pedidos de este restaurante. ¿Deseas continuar de todas formas?')) {
         return showToast('❌ Acción cancelada', 'error');
     }
 
