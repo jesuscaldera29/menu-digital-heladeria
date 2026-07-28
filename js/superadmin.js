@@ -149,8 +149,13 @@ function renderBusinesses() {
         </td>
         <td>${statusHtml}</td>
         <td>
-          <div class="flex gap-2">
+          <div class="flex gap-2 mb-2">
             ${actionBtn}
+            <button onclick="toggleResetData('${b.id}', ${!b.allow_reset_data})" class="px-3 py-1 ${b.allow_reset_data ? 'bg-orange-900/50 text-orange-400 border-orange-900 hover:bg-orange-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700'} border rounded-lg text-xs transition-all">
+              ${b.allow_reset_data ? '🔥 Peligro ON' : '🛡️ Peligro OFF'}
+            </button>
+          </div>
+          <div class="flex gap-2">
             <button onclick="openEditModal('${b.id}', '${b.business_name.replace(/'/g, "\\'")}', '${b.slug}')" class="px-3 py-1 bg-blue-900/50 text-blue-400 border border-blue-900 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition-all">✏️ Editar</button>
             <button onclick="deleteBusiness('${b.id}', '${b.business_name.replace(/'/g, "\\'")}')" class="px-3 py-1 bg-red-900/50 text-red-400 border border-red-900 rounded-lg text-sm hover:bg-red-600 hover:text-white transition-all">🗑️ Eliminar</button>
           </div>
@@ -158,6 +163,29 @@ function renderBusinesses() {
       </tr>
     `;
   }).join('');
+}
+
+async function toggleResetData(businessId, newValue) {
+  const confirmMsg = newValue
+    ? "⚠️ ¿Estás seguro de ACTIVAR la Zona Peligrosa? El cliente podrá borrar todos sus pedidos y caja."
+    : "¿Estás seguro de DESACTIVAR la Zona Peligrosa? El cliente ya no podrá borrar datos.";
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const { error } = await supabaseClient
+      .from('businesses')
+      .update({ allow_reset_data: newValue })
+      .eq('id', businessId);
+
+    if (error) throw error;
+
+    showToast(newValue ? '✅ Zona Peligrosa Activada' : '🛡️ Zona Peligrosa Desactivada');
+    await loadBusinesses(); // recargar
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error actualizando configuración de peligro.');
+  }
 }
 
 async function deleteBusiness(businessId, businessName) {

@@ -39,6 +39,47 @@ function renderStaff() {
     select.innerHTML = '<option value="">-- Seleccionar Empleado --</option>' + 
       allStaff.map(s => `<option value="${s.id}">${s.name} (${s.role})</option>`).join('');
   }
+
+  // Populate Switch Role List
+  const switchRoleList = document.getElementById('switchRoleList');
+  if (switchRoleList) {
+    // Keep the default Admin button, then append staff
+    const adminButtonHtml = `
+      <button onclick="switchStaffRole('Administrador', 'Administrador Principal')" class="w-full text-left bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 p-4 rounded-2xl transition-all flex items-center justify-between group">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-lg">👨‍🍳</div>
+          <div>
+            <div class="font-bold text-gray-800 group-hover:text-orange-700">Administrador Principal</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 group-hover:text-orange-400 font-bold">Default</div>
+          </div>
+        </div>
+        <span class="text-gray-300 group-hover:text-orange-500">›</span>
+      </button>`;
+
+    const staffButtonsHtml = allStaff.map(s => {
+      let icon = '👤';
+      if(s.role === 'Mesero') icon = '📝';
+      else if(s.role === 'Cajero') icon = '💵';
+      else if(s.role === 'Cocina') icon = '🍳';
+      else if(s.role === 'Repartidor') icon = '🛵';
+      else if(s.role === 'Kiosko') icon = '📱';
+
+      return `
+        <button onclick="switchStaffRole('${s.role}', '${s.name}')" class="w-full text-left bg-white hover:bg-blue-50 border border-gray-100 hover:border-blue-200 p-4 rounded-2xl transition-all flex items-center justify-between group mt-2">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg">${icon}</div>
+            <div>
+              <div class="font-bold text-gray-800 group-hover:text-blue-700">${s.name}</div>
+              <div class="text-[10px] uppercase tracking-widest text-gray-400 group-hover:text-blue-400 font-bold">${s.role}</div>
+            </div>
+          </div>
+          <span class="text-gray-300 group-hover:text-blue-500">›</span>
+        </button>
+      `;
+    }).join('');
+
+    switchRoleList.innerHTML = adminButtonHtml + staffButtonsHtml;
+  }
 }
 
 async function addStaff(event) {

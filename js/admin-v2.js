@@ -133,6 +133,13 @@ async function initAdmin() {
     // Update header with business info
     const h1 = document.querySelector('header h1');
     if (h1) h1.textContent = '👨‍🍳 ' + biz.business_name + (staffRole ? ` (${staffRole})` : ' (Admin)');
+    
+    // Set current employee name in Options menu
+    const staffName = localStorage.getItem('staff_name') || 'Administrador Principal';
+    const currentEmployeeLabel = document.getElementById('moreCurrentEmployee');
+    if (currentEmployeeLabel) {
+        currentEmployeeLabel.textContent = staffName;
+    }
     // Update menu link
     const menuLink = document.querySelector('a[href="index.html"]');
     if (menuLink) { menuLink.href = '/' + biz.slug; menuLink.innerHTML = '📱 Ver Menú'; }
@@ -2447,6 +2454,36 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
+
+// ==========================================
+// SWITCH ROLE (SIMULAR EMPLEADO)
+// ==========================================
+window.openSwitchRoleModal = function() {
+    const modal = document.getElementById('switchRoleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+window.closeSwitchRoleModal = function() {
+    const modal = document.getElementById('switchRoleModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+window.switchStaffRole = function(role, name) {
+    if (role === 'Administrador' || !role) {
+        localStorage.removeItem('staff_role');
+        localStorage.removeItem('staff_name');
+    } else {
+        localStorage.setItem('staff_role', role);
+        localStorage.setItem('staff_name', name);
+    }
+    
+    // Redirect to root admin which handles routing
+    window.location.href = 'admin.html';
+}
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', async () => {
