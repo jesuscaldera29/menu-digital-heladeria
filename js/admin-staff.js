@@ -65,7 +65,7 @@ function renderStaff() {
       else if(s.role === 'Kiosko') icon = '📱';
 
       return `
-        <button onclick="switchStaffRole('${s.role}', '${s.name}')" class="w-full text-left bg-white hover:bg-blue-50 border border-gray-100 hover:border-blue-200 p-4 rounded-2xl transition-all flex items-center justify-between group mt-2">
+        <button onclick="promptRolePassword('${s.role}', '${s.name}', '${s.password}')" class="w-full text-left bg-white hover:bg-blue-50 border border-gray-100 hover:border-blue-200 p-4 rounded-2xl transition-all flex items-center justify-between group mt-2">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg">${icon}</div>
             <div>

@@ -66,6 +66,12 @@ async function initAdmin() {
     const biz = await getCurrentBusiness();
     if (!biz) { alert('No se encontró un negocio asociado a tu cuenta.'); await supabaseClient.auth.signOut(); window.location.href = 'login.html'; return false; }
 
+    // Store admin password for role switching fallback
+    const { data: settingsData } = await supabaseClient.from('settings').select('admin_password').eq('business_id', biz.id).single();
+    if (settingsData) {
+        window.bizAdminPassword = settingsData.admin_password;
+    }
+
     if (biz.is_active === false) {
         alert('⚠️ Tu cuenta ha sido SUSPENDIDA. Contacta al administrador.');
         await supabaseClient.auth.signOut();
@@ -2458,9 +2464,19 @@ window.addEventListener('beforeinstallprompt', (e) => {
 // ==========================================
 // SWITCH ROLE (SIMULAR EMPLEADO)
 // ==========================================
+let pendingRole = null;
+let pendingName = null;
+let pendingExpectedPassword = null;
+
 window.openSwitchRoleModal = function() {
     const modal = document.getElementById('switchRoleModal');
     if (modal) {
+        document.getElementById('switchRoleStep1').classList.remove('hidden');
+        document.getElementById('switchRoleStep1').classList.add('flex');
+        document.getElementById('switchRoleStep2').classList.add('hidden');
+        document.getElementById('switchRoleStep2').classList.remove('flex');
+        document.getElementById('rolePasswordInput').value = '';
+        document.getElementById('rolePasswordError').classList.add('hidden');
         modal.classList.remove('hidden');
     }
 }
@@ -2470,19 +2486,82 @@ window.closeSwitchRoleModal = function() {
     if (modal) {
         modal.classList.add('hidden');
     }
+    pendingRole = null;
+    pendingName = null;
+    pendingExpectedPassword = null;
+}
+
+window.promptRolePassword = function(role, name, expectedPassword) {
+    pendingRole = role;
+    pendingName = name;
+    pendingExpectedPassword = expectedPassword;
+    
+    // Si la contraseña esperada dice ADMIN_PASSWORD, buscar en el negocio actual
+    if (expectedPassword === 'ADMIN_PASSWORD') {
+        const adminPass = window.bizAdminPassword || ''; // Lo asociaremos en initAdmin
+        pendingExpectedPassword = adminPass;
+    }
+
+    // Si el usuario no tiene contraseña (caso raro), dejar pasar directo? 
+    // No, mejor obligar a que coincida aunque sea vacía, pero si es null la volvemos vacía.
+    if (!pendingExpectedPassword || pendingExpectedPassword === 'undefined') pendingExpectedPassword = '';
+
+    document.getElementById('targetRoleName').textContent = name + (role !== 'Administrador' ? ` (${role})` : '');
+    
+    document.getElementById('switchRoleStep1').classList.add('hidden');
+    document.getElementById('switchRoleStep1').classList.remove('flex');
+    document.getElementById('switchRoleStep2').classList.remove('hidden');
+    document.getElementById('switchRoleStep2').classList.add('flex');
+    
+    const pwdInput = document.getElementById('rolePasswordInput');
+    pwdInput.value = '';
+    pwdInput.focus();
+}
+
+window.cancelRolePassword = function() {
+    document.getElementById('switchRoleStep2').classList.add('hidden');
+    document.getElementById('switchRoleStep2').classList.remove('flex');
+    document.getElementById('switchRoleStep1').classList.remove('hidden');
+    document.getElementById('switchRoleStep1').classList.add('flex');
+}
+
+window.confirmRoleSwitch = function() {
+    const pwdInput = document.getElementById('rolePasswordInput');
+    const errorMsg = document.getElementById('rolePasswordError');
+    const entered = pwdInput.value;
+
+    if (entered !== pendingExpectedPassword) {
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    // Contraseña correcta
+    switchStaffRole(pendingRole, pendingName);
 }
 
 window.switchStaffRole = function(role, name) {
     if (role === 'Administrador' || !role) {
         localStorage.removeItem('staff_role');
         localStorage.removeItem('staff_name');
+        window.location.href = 'admin.html';
+        return;
     } else {
         localStorage.setItem('staff_role', role);
         localStorage.setItem('staff_name', name);
     }
     
-    // Redirect to root admin which handles routing
-    window.location.href = 'admin.html';
+    // Redirect a los módulos correspondientes en vez de quedarse en admin.html
+    if (role === 'Repartidor') {
+        window.location.href = 'driver.html';
+    } else if (role === 'Mesero' || role === 'Cajero') {
+        window.location.href = 'pos.html';
+    } else if (role === 'Cocina') {
+        window.location.href = 'kds.html';
+    } else if (role === 'Kiosko') {
+        window.location.href = 'kiosk.html';
+    } else {
+        window.location.href = 'admin.html';
+    }
 }
 
 // Initialize on DOM load
