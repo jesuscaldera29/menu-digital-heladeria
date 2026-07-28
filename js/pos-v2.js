@@ -2818,7 +2818,9 @@ window.submitOpenCash = async function() {
       .insert([{
         business_id: businessId,
         is_open: true,
-        opening_amount: amount
+        opening_amount: amount,
+        opened_at: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0]
       }])
       .select('id')
       .single();
