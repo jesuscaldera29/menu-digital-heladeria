@@ -256,8 +256,8 @@ async function loadCashClosings() {
       .order('opened_at', { ascending: false })
       .limit(20);
       
-    const tbody = document.getElementById('cashClosingsList');
-    if (!tbody) return;
+    const container = document.getElementById('cajaHistorialList') || document.getElementById('cashClosingsList');
+    if (!container) return;
     
     // Determine active session
     activeCashSession = data?.find(c => c.is_open === true) || null;
@@ -276,25 +276,94 @@ async function loadCashClosings() {
     // Sync new UI buttons
     if (typeof updateCajaMainButtons === 'function') updateCajaMainButtons();
     
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">Sin sesiones de caja registradas</td></tr>'; return; }
+    if (!data?.length) { 
+      container.innerHTML = '<div class="text-center py-6 text-gray-400">Sin sesiones de caja registradas</div>'; 
+      return; 
+    }
     
-    tbody.innerHTML = data.map(c => {
-      const diffColor = c.difference >= 0 ? 'text-green-600' : 'text-red-600';
-      const statusBadge = c.is_open 
-        ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded-full font-bold">ABIERTA</span>'
-        : '<span class="bg-gray-100 text-gray-800 text-[10px] px-2 py-1 rounded-full font-bold">CERRADA</span>';
-        
-      return `<tr>
-        <td class="text-sm">${c.opened_at ? new Date(c.opened_at).toLocaleString() : '-'}</td>
-        <td class="font-bold">$${Number(c.opening_amount || 0).toLocaleString()}</td>
-        <td class="text-sm">${c.is_open ? '-' : new Date(c.date).toLocaleDateString()}</td>
-        <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.expected_total).toLocaleString()}</td>
-        <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.declared_total).toLocaleString()}</td>
-        <td class="font-black ${diffColor}">${c.is_open ? '-' : (c.difference >= 0 ? '+' : '') + '$' + Number(c.difference).toLocaleString()}</td>
-        <td class="text-center">${statusBadge}</td><td class="text-center"><button onclick="deleteCashClosing('${c.id}')" class="text-red-500 hover:text-red-700 font-bold text-lg p-1" title="Eliminar sesión de caja">🗑️</button></td>
-      </tr>`;
-    }).join('');
+    if (container.tagName.toLowerCase() === 'tbody') {
+      // OLD UI (Table format)
+      container.innerHTML = data.map(c => {
+        const diffColor = c.difference >= 0 ? 'text-green-600' : 'text-red-600';
+        const statusBadge = c.is_open 
+          ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded-full font-bold">ABIERTA</span>'
+          : '<span class="bg-gray-100 text-gray-800 text-[10px] px-2 py-1 rounded-full font-bold">CERRADA</span>';
+          
+        return `<tr>
+          <td class="text-sm">${c.opened_at ? new Date(c.opened_at).toLocaleString() : '-'}</td>
+          <td class="font-bold">$${Number(c.opening_amount || 0).toLocaleString()}</td>
+          <td class="text-sm">${c.is_open ? '-' : new Date(c.date).toLocaleDateString()}</td>
+          <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.expected_total).toLocaleString()}</td>
+          <td class="font-bold">${c.is_open ? '-' : '$' + Number(c.declared_total).toLocaleString()}</td>
+          <td class="font-black ${diffColor}">${c.is_open ? '-' : (c.difference >= 0 ? '+' : '') + '$' + Number(c.difference).toLocaleString()}</td>
+          <td class="text-center">${statusBadge}</td><td class="text-center"><button onclick="deleteCashClosing('${c.id}')" class="text-red-500 hover:text-red-700 font-bold text-lg p-1" title="Eliminar sesión de caja">🗑️</button></td>
+        </tr>`;
+      }).join('');
+    } else {
+      // NEW UI (Cards format)
+      container.innerHTML = data.map(c => {
+        const isDiffPositive = c.difference >= 0;
+        const diffColor = isDiffPositive ? 'text-green-500' : 'text-red-500';
+        const statusBadge = c.is_open 
+          ? '<div class="absolute top-4 right-4 bg-green-100 text-green-700 text-[10px] px-3 py-1 rounded-full font-black tracking-widest uppercase">Abierta</div>'
+          : '<div class="absolute top-4 right-4 bg-gray-100 text-gray-500 text-[10px] px-3 py-1 rounded-full font-black tracking-widest uppercase">Cerrada</div>';
+          
+        return `
+        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm relative hover:shadow-md transition-shadow">
+          ${statusBadge}
+          <div class="flex flex-col mb-4">
+            <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Apertura</span>
+            <span class="text-gray-800 font-bold">${c.opened_at ? new Date(c.opened_at).toLocaleString() : '-'}</span>
+            ${c.opened_by ? `<span class="text-[10px] text-gray-400">${c.opened_by}</span>` : ''}
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl mb-4">
+            <div>
+              <span class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Base</span>
+              <span class="font-black text-gray-700">$${Number(c.opening_amount || 0).toLocaleString()}</span>
+            </div>
+            ${c.is_open ? '' : `
+            <div>
+              <span class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Cierre</span>
+              <span class="font-black text-gray-700">$${Number(c.declared_total || 0).toLocaleString()}</span>
+            </div>
+            <div class="col-span-2 border-t border-gray-200 pt-2 mt-1 flex justify-between items-center">
+              <span class="text-[10px] text-gray-400 font-bold uppercase">Diferencia</span>
+              <span class="font-black ${diffColor}">${isDiffPositive ? '+' : ''}$${Number(c.difference || 0).toLocaleString()}</span>
+            </div>
+            `}
+          </div>
+          
+          <div class="flex justify-between items-center">
+            ${c.is_open ? '<span class="text-xs text-emerald-500 font-bold">Turno en curso...</span>' : `<span class="text-[10px] text-gray-400">Cierre: ${c.closed_at ? new Date(c.closed_at).toLocaleString() : new Date(c.date).toLocaleDateString()}</span>`}
+            <button onclick="deleteCashClosing('${c.id}')" class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-xs" title="Eliminar sesión de caja">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
   } catch (err) { console.error(err); }
+}
+
+async function resetAllCashHistory() {
+  const code = prompt('⚠️ ATENCIÓN: Esto eliminará TODO el historial de cajas (No afectará los pedidos ni productos). Escribe "RESET" para confirmar:');
+  if (code !== 'RESET') return;
+  
+  try {
+    const { data, error } = await supabaseClient.from('cash_closings')
+      .delete()
+      .eq('business_id', businessId)
+      .select();
+      
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      alert('⚠️ ERROR DE PERMISOS EN SUPABASE:\n\nFalta la política de DELETE. Ejecuta:\nCREATE POLICY "Enable delete for users" ON "public"."cash_closings" FOR DELETE USING (true);');
+      return;
+    }
+    showToast('✅ Reset Completo: ' + data.length + ' sesiones de caja eliminadas.');
+    loadCashClosings();
+  } catch (err) {
+    showToast('❌ Error: ' + err.message, 'error');
+  }
 }
 
 async function deleteCashClosing(id) {
