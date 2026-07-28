@@ -672,3 +672,90 @@ window.printPOSReportAdmin = function() {
     printWindow.document.close();
   }
 };
+
+// ==========================================
+// REDESIGNED CAJA VIEWS LOGIC
+// ==========================================
+
+window.showCajaView = function(viewName) {
+  const views = ['cajaMainMenu', 'cajaViewResumen', 'cajaViewMovimientos', 'cajaViewHistorial', 'cajaViewGastos'];
+  views.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.classList.add('hidden');
+  });
+
+  const targetId = viewName === 'menu' ? 'cajaMainMenu' :
+                   viewName === 'resumen' ? 'cajaViewResumen' :
+                   viewName === 'movimientos' ? 'cajaViewMovimientos' :
+                   viewName === 'historial' ? 'cajaViewHistorial' :
+                   viewName === 'gastos' ? 'cajaViewGastos' : null;
+  
+  if (targetId) {
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) targetEl.classList.remove('hidden');
+  }
+
+  // Reload specific data if needed
+  if (viewName === 'resumen' && typeof loadCajaResumen === 'function') loadCajaResumen();
+  if (viewName === 'historial' && typeof loadCashClosings === 'function') loadCashClosings();
+  if (viewName === 'gastos' && typeof loadExpenses === 'function') loadExpenses();
+  if (viewName === 'movimientos') {
+    if (typeof loadCashMovements === 'function') loadCashMovements();
+  }
+};
+
+window.switchResumenTab = function(tabName) {
+  document.querySelectorAll('.resumen-tab').forEach(t => {
+    t.classList.remove('active', 'border-blue-500', 'text-blue-600');
+    t.classList.add('border-transparent');
+    if (t.dataset.tab === tabName) {
+      t.classList.add('active', 'border-blue-500', 'text-blue-600');
+      t.classList.remove('border-transparent');
+    }
+  });
+
+  const contents = ['resumenTabResumen', 'resumenTabDetallado', 'resumenTabMovimientos'];
+  contents.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.add('hidden');
+  });
+
+  const targetId = tabName === 'resumen' ? 'resumenTabResumen' :
+                   tabName === 'detallado' ? 'resumenTabDetallado' : 'resumenTabMovimientos';
+  
+  const targetEl = document.getElementById(targetId);
+  if(targetEl) targetEl.classList.remove('hidden');
+};
+
+window.updateCajaMainButtons = function() {
+  const btnOpen = document.getElementById('cajaBtnOpen');
+  const btnClose = document.getElementById('cajaBtnClose');
+  const btnResumenClose = document.getElementById('resumenBtnCerrar');
+  const infoOpened = document.getElementById('resumenOpenedInfo');
+
+  if (activeCashSession) {
+    if (btnOpen) btnOpen.classList.add('hidden');
+    if (btnClose) btnClose.classList.remove('hidden');
+    if (btnResumenClose) btnResumenClose.classList.remove('hidden');
+    if (infoOpened) infoOpened.textContent = 'Abierta el: ' + new Date(activeCashSession.opened_at).toLocaleString();
+  } else {
+    if (btnOpen) btnOpen.classList.remove('hidden');
+    if (btnClose) btnClose.classList.add('hidden');
+    if (btnResumenClose) btnResumenClose.classList.add('hidden');
+    if (infoOpened) infoOpened.textContent = 'Sin caja abierta';
+  }
+};
+
+window.loadCajaResumen = async function() {
+  if (!activeCashSession) {
+    document.getElementById('resumenCajaTotal').textContent = '$0';
+    document.getElementById('resumenIngresosTotal').textContent = '$0';
+    return;
+  }
+  document.getElementById('resumenCajaTotal').textContent = '$' + Number(activeCashSession.opening_amount || 0).toLocaleString();
+};
+
+window.openCashMovementModal = function(type) {
+  showToast('Para movimientos, por favor usa el POS.', 'info');
+};
+
