@@ -91,12 +91,108 @@ async function startCashClosing() {
 function openCashOpeningModal() {
   document.getElementById('cashOpeningModal').style.display = 'flex';
   document.getElementById('openingAmount').value = '0';
+// ===== GASTOS Y CIERRE DE CAJA =====
+let allExpenses = [];
+let cashClosingData = null;
+
+async function loadExpenses() {
+  if (!businessId) return;
+  const filter = document.getElementById('expenseTimeFilter')?.value || 'month';
+  let query = supabaseClient.from('expenses').select('*').eq('business_id', businessId).order('date', { ascending: false });
+  const now = new Date();
+  if (filter === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    query = query.gte('date', start);
+  } else if (filter === 'week') {
+    const d = new Date(); d.setDate(d.getDate() - 7);
+    query = query.gte('date', d.toISOString().split('T')[0]);
+  }
+  try {
+    const { data, error } = await query;
+    if (error) throw error;
+    allExpenses = data || [];
+    renderExpenses();
+    if (typeof renderExpenseCards === 'function') renderExpenseCards();
+    if (typeof loadCashMovements === 'function') loadCashMovements();
+  } catch (err) { showToast('Error cargando gastos: ' + err.message, 'error'); }
+}
+
+function renderExpenses() {
+  const tbody = document.getElementById('expensesList');
+  if (!tbody) return;
+  const monthTotal = allExpenses.reduce((s, e) => s + Number(e.amount), 0);
+  const el = document.getElementById('expensesMonthTotal');
+  if (el) el.textContent = '$' + monthTotal.toLocaleString();
+  if (!allExpenses.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-400">No hay gastos registrados</td></tr>'; return; }
+  tbody.innerHTML = allExpenses.map(e => `<tr>
+    <td class="text-sm">${new Date(e.date).toLocaleDateString()}</td>
+    <td><span class="bg-gray-100 px-2 py-1 rounded-full text-xs font-bold">${e.category}</span></td>
+    <td class="text-sm">${e.description || '-'}</td>
+    <td class="font-black text-red-600">$${Number(e.amount).toLocaleString()}</td>
+    <td><button onclick="deleteExpense('${e.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
+  </tr>`).join('');
+}
+
+async function addExpense(event) {
+  const cat = document.getElementById('expenseCategory').value;
+  const desc = document.getElementById('expenseDescription').value.trim();
+  const amount = parseFloat(document.getElementById('expenseAmount').value);
+  const date = document.getElementById('expenseDate').value || new Date().toISOString().split('T')[0];
+  if (!amount || amount <= 0) return showToast('⚠️ Ingresa un monto válido', 'error');
+  const btn = event.target; btn.disabled = true; btn.innerText = '⏳...';
+  try {
+    const { error } = await supabaseClient.from('expenses').insert([{ business_id: businessId, category: cat, description: desc, amount, date }]);
+    if (error) throw error;
+    
+    // Si hay caja abierta, registrarlo como retiro (gasto) en la caja para que afecte el cuadre
+    if (activeCashSession) {
+      await supabaseClient.from('cash_movements').insert([{
+        business_id: businessId,
+        cash_closing_id: activeCashSession.id,
+        type: 'withdrawal',
+        amount: amount,
+        reason: `Gasto Admin: ${cat} - ${desc}`,
+        created_by_name: 'Admin'
+      }]);
+    }
+    
+    showToast('✅ Gasto registrado');
+    document.getElementById('expenseDescription').value = '';
+    document.getElementById('expenseAmount').value = '';
+    loadExpenses();
+  } catch (err) { showToast('❌ ' + err.message, 'error'); }
+  finally { btn.disabled = false; btn.innerText = '➕ Registrar Gasto'; }
+}
+
+async function deleteExpense(id) {
+  if (!confirm('¿Eliminar este gasto?')) return;
+  try {
+    const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
+    if (error) throw error;
+    showToast('🗑️ Gasto eliminado'); loadExpenses();
+  } catch (err) { showToast('❌ ' + err.message, 'error'); }
+}
+
+let activeCashSession = null;
+
+async function startCashClosing() {
+  document.getElementById('cashClosingModal').style.display = 'flex';
+  document.getElementById('declaredCashAmount').value = '';
+  document.getElementById('cashClosingNotes').value = '';
+}
+
+function openCashOpeningModal() {
+  document.getElementById('cashOpeningModal').style.display = 'flex';
+  document.getElementById('openingAmount').value = '0';
 }
 
 async function confirmCashOpening() {
   const openingAmount = parseFloat(document.getElementById('openingAmount').value) || 0;
   
   try {
+    const authRes = await supabaseClient.auth.getSession();
+    const userEmail = authRes.data?.session?.user?.email || 'Desconocido';
+
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabaseClient.from('cash_closings').insert([{
       business_id: businessId,
@@ -104,6 +200,7 @@ async function confirmCashOpening() {
       opened_at: new Date().toISOString(),
       opening_amount: openingAmount,
       is_open: true,
+      opened_by: userEmail,
       expected_total: 0,
       declared_total: 0,
       difference: 0,
@@ -197,7 +294,9 @@ async function submitCashClosing() {
         total_expenses: totalWithdrawals,
         total_orders: orders.length,
         notes: notes,
-        is_open: false
+        is_open: false,
+        closed_by: (await supabaseClient.auth.getSession()).data?.session?.user?.email || 'Desconocido',
+        closed_at: new Date().toISOString()
       })
       .eq('id', activeCashSession.id)
       .select();
@@ -356,6 +455,10 @@ window.openPOSReportAdmin = async function() {
     let isCurrentShift = (filter === 'current_shift');
     let openingCash = 0;
 
+    let cashierOpenedBy = null;
+    let cashierClosedBy = null;
+    let cashierClosedAt = null;
+
     if (isCurrentShift) {
         if (!activeCashSession) {
             document.getElementById('posReportKPIsAdmin').innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-4">⚠️ No hay una caja abierta actualmente.</div>';
@@ -364,6 +467,9 @@ window.openPOSReportAdmin = async function() {
         startDate = new Date(activeCashSession.opened_at);
         endDate = now;
         openingCash = Number(activeCashSession.opening_amount) || 0;
+        cashierOpenedBy = activeCashSession.opened_by;
+        cashierClosedBy = activeCashSession.closed_by;
+        cashierClosedAt = activeCashSession.closed_at;
     } else if (filter === 'today') {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
@@ -397,7 +503,7 @@ window.openPOSReportAdmin = async function() {
     if (!isCurrentShift) {
       const { data: closings, error: closingsErr } = await supabaseClient
         .from('cash_closings')
-        .select('opening_amount')
+        .select('opening_amount, opened_by, closed_by, closed_at')
         .eq('business_id', businessId)
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
@@ -406,6 +512,9 @@ window.openPOSReportAdmin = async function() {
       
       if (!closingsErr && closings && closings.length > 0) {
         openingCash = Number(closings[0].opening_amount) || 0;
+        cashierOpenedBy = closings[0].opened_by;
+        cashierClosedBy = closings[0].closed_by;
+        cashierClosedAt = closings[0].closed_at;
       }
     }
 
@@ -489,7 +598,11 @@ window.openPOSReportAdmin = async function() {
     window.currentPOSReportAdmin = {
       filter, orderCount: orders.length, total: totalVendido, cash: totalEfectivo, card: totalTarjeta,
       transfer: totalTransferencia, originKiosko, originPOS, originMenu, ticketPromedio,
-      openingCash, cashIn, cashOut, expectedCash, productsSold
+      openingCash, cashIn, cashOut, expectedCash, productsSold,
+      openedBy: cashierOpenedBy,
+      closedBy: cashierClosedBy,
+      closedAt: cashierClosedAt,
+      startDateStr: startDate.toLocaleString()
     };
 
     document.getElementById('posReportKPIsAdmin').innerHTML = `
@@ -617,6 +730,17 @@ window.printPOSReportAdmin = function() {
       <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Fecha: ${now}</div>
       <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Periodo: ${r.filter.toUpperCase()}</div>
       
+      <div style="border-top:1px dashed #000; padding-top:8px; margin-top:8px;">
+        <div style="display:flex; margin-top:10px;">
+          <span>Periodo:</span>
+          <span style="font-weight:bold; margin-left:auto;">${r.filter === 'today' ? 'Hoy' : r.filter === 'yesterday' ? 'Ayer' : r.filter === 'this_week' ? 'Esta Semana' : r.filter === 'current_shift' ? 'Turno Actual' : 'Este Mes'}</span>
+        </div>
+        ${r.openedBy ? `<div style="display:flex;"><span>Abierto por:</span> <span style="font-weight:bold; margin-left:auto;">${r.openedBy}</span></div>` : ''}
+        ${r.startDateStr ? `<div style="display:flex;"><span>Hora Apertura:</span> <span style="font-weight:bold; margin-left:auto;">${r.startDateStr}</span></div>` : ''}
+        ${r.closedBy ? `<div style="display:flex;"><span>Cerrado por:</span> <span style="font-weight:bold; margin-left:auto;">${r.closedBy}</span></div>` : ''}
+        ${r.closedAt ? `<div style="display:flex;"><span>Hora Cierre:</span> <span style="font-weight:bold; margin-left:auto;">${new Date(r.closedAt).toLocaleString()}</span></div>` : ''}
+      </div>
+
       <div style="border-top:1px dashed #000; padding-top:8px; margin-top:8px;">
         <div class="flex"><span>Ventas Totales:</span><span>$${r.total.toLocaleString()}</span></div>
         <div class="flex"><span>Ticket Promedio:</span><span>$${Math.round(r.ticketPromedio).toLocaleString()}</span></div>

@@ -2024,16 +2024,23 @@ window.openPOSReport = async function() {
     let isCurrentShift = (filter === 'current_shift');
     let openingCash = 0;
 
+    let cashierOpenedBy = null;
+    let cashierClosedBy = null;
+    let cashierClosedAt = null;
+
     if (isCurrentShift) {
         if (!activeCashClosingId) {
             document.getElementById('posReportKPIs').innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-4">⚠️ No hay una caja abierta actualmente. Para ver los totales del turno, primero abre la caja.</div>';
             return;
         }
-        const { data: closingInfo } = await supabaseClient.from('cash_closings').select('opened_at, opening_amount').eq('id', activeCashClosingId).single();
+        const { data: closingInfo } = await supabaseClient.from('cash_closings').select('opened_at, opening_amount, opened_by, closed_by, closed_at').eq('id', activeCashClosingId).single();
         if (closingInfo) {
             startDate = new Date(closingInfo.opened_at);
             endDate = now;
             openingCash = Number(closingInfo.opening_amount) || 0;
+            cashierOpenedBy = closingInfo.opened_by;
+            cashierClosedBy = closingInfo.closed_by;
+            cashierClosedAt = closingInfo.closed_at;
         } else {
             throw new Error("No se encontró información del turno actual.");
         }
@@ -2330,6 +2337,9 @@ window.closeCashAndPrintZ = async function() {
       .eq('id', activeCashClosingId)
       .single();
 
+    const authRes = await supabaseClient.auth.getSession();
+    const userEmail = authRes.data?.session?.user?.email || 'Desconocido';
+
     // Actualizar registro de caja cerrada
     const { data: updateData, error: updateError } = await supabaseClient
       .from('cash_closings')
@@ -2342,7 +2352,9 @@ window.closeCashAndPrintZ = async function() {
         cash_sales: window.currentPOSReport.cash || 0,
         transfer_sales: window.currentPOSReport.transfer || 0,
         card_sales: window.currentPOSReport.card || 0,
-        total_expenses: window.currentPOSReport.cashOut || 0
+        total_expenses: window.currentPOSReport.cashOut || 0,
+        closed_by: userEmail,
+        closed_at: new Date().toISOString()
       })
       .eq('id', activeCashClosingId)
       .select();
@@ -2417,14 +2429,19 @@ window.printPOSReport = async function() {
         CORTE DE CAJA Z
       </div>
       <div class="text-center border-b mb-2" style="font-size:12px;">
-        <strong>Fecha:</strong> ${new Date().toLocaleString()}
+        <strong>Fecha Impresión:</strong> ${new Date().toLocaleString()}
       </div>
       
-      <div class="flex" style="margin-top:15px;">
+      <div class="flex" style="margin-top:10px;">
         <span>Periodo:</span>
-        <span class="font-bold">${r.filter === 'today' ? 'Hoy' : r.filter === 'yesterday' ? 'Ayer' : r.filter === 'this_week' ? 'Esta Semana' : 'Este Mes'}</span>
+        <span class="font-bold">${r.filter === 'today' ? 'Hoy' : r.filter === 'yesterday' ? 'Ayer' : r.filter === 'this_week' ? 'Esta Semana' : r.filter === 'current_shift' ? 'Turno Actual' : 'Este Mes'}</span>
       </div>
-      <div class="flex">
+      ${r.openedBy ? `<div class="flex"><span>Abierto por:</span> <span class="font-bold">${r.openedBy}</span></div>` : ''}
+      ${r.startDateStr ? `<div class="flex"><span>Hora Apertura:</span> <span class="font-bold">${r.startDateStr}</span></div>` : ''}
+      ${r.closedBy ? `<div class="flex"><span>Cerrado por:</span> <span class="font-bold">${r.closedBy}</span></div>` : ''}
+      ${r.closedAt ? `<div class="flex"><span>Hora Cierre:</span> <span class="font-bold">${new Date(r.closedAt).toLocaleString()}</span></div>` : ''}
+      
+      <div class="flex" style="margin-top:5px;">
         <span>Pedidos Totales:</span>
         <span class="font-bold">${r.orderCount}</span>
       </div>
@@ -2813,6 +2830,9 @@ window.submitOpenCash = async function() {
   const amount = parseFloat(document.getElementById('cashOpenAmount').value) || 0;
   
   try {
+    const authRes = await supabaseClient.auth.getSession();
+    const userEmail = authRes.data?.session?.user?.email || 'Desconocido';
+
     const { data, error } = await supabaseClient
       .from('cash_closings')
       .insert([{
@@ -2820,7 +2840,8 @@ window.submitOpenCash = async function() {
         is_open: true,
         opening_amount: amount,
         opened_at: new Date().toISOString(),
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        opened_by: userEmail
       }])
       .select('id')
       .single();
@@ -3051,6 +3072,10 @@ window.submitBlindClose = async function() {
       originKiosko: 0,
       originPOS: cashSales + transferSales + cardSales,
       originMenu: 0,
+      openedBy: closingInfo.opened_by_email,
+      closedBy: user?.email,
+      closedAt: closedAt,
+      startDateStr: new Date(closingInfo.opened_at).toLocaleString(),
       ticketPromedio: orders && orders.filter(o => o.status !== 'Cancelado').length > 0 ? (cashSales + transferSales + cardSales) / orders.filter(o => o.status !== 'Cancelado').length : 0,
       openingCash: Number(closingInfo.opening_amount) || 0,
       cashIn: totalDeposits,

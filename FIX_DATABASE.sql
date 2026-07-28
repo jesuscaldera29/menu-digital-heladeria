@@ -43,3 +43,13 @@ CREATE TABLE IF NOT EXISTS shifts (
 -- Después de ejecutar este código, ve a:
 -- Settings (Engranaje) > API > "Reload Schema Cache"
 -- De lo contrario, los errores rojos podrían seguir apareciendo.
+
+-- 6. Agregar columnas para auditar quién abrió y cerró la caja
+ALTER TABLE cash_closings
+ADD COLUMN IF NOT EXISTS opened_by VARCHAR(255);
+
+ALTER TABLE cash_closings
+ADD COLUMN IF NOT EXISTS closed_by VARCHAR(255);
+
+ALTER TABLE cash_closings
+ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
