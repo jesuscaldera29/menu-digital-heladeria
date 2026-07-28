@@ -91,99 +91,6 @@ async function startCashClosing() {
 function openCashOpeningModal() {
   document.getElementById('cashOpeningModal').style.display = 'flex';
   document.getElementById('openingAmount').value = '0';
-// ===== GASTOS Y CIERRE DE CAJA =====
-let allExpenses = [];
-let cashClosingData = null;
-
-async function loadExpenses() {
-  if (!businessId) return;
-  const filter = document.getElementById('expenseTimeFilter')?.value || 'month';
-  let query = supabaseClient.from('expenses').select('*').eq('business_id', businessId).order('date', { ascending: false });
-  const now = new Date();
-  if (filter === 'month') {
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    query = query.gte('date', start);
-  } else if (filter === 'week') {
-    const d = new Date(); d.setDate(d.getDate() - 7);
-    query = query.gte('date', d.toISOString().split('T')[0]);
-  }
-  try {
-    const { data, error } = await query;
-    if (error) throw error;
-    allExpenses = data || [];
-    renderExpenses();
-    if (typeof renderExpenseCards === 'function') renderExpenseCards();
-    if (typeof loadCashMovements === 'function') loadCashMovements();
-  } catch (err) { showToast('Error cargando gastos: ' + err.message, 'error'); }
-}
-
-function renderExpenses() {
-  const tbody = document.getElementById('expensesList');
-  if (!tbody) return;
-  const monthTotal = allExpenses.reduce((s, e) => s + Number(e.amount), 0);
-  const el = document.getElementById('expensesMonthTotal');
-  if (el) el.textContent = '$' + monthTotal.toLocaleString();
-  if (!allExpenses.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-400">No hay gastos registrados</td></tr>'; return; }
-  tbody.innerHTML = allExpenses.map(e => `<tr>
-    <td class="text-sm">${new Date(e.date).toLocaleDateString()}</td>
-    <td><span class="bg-gray-100 px-2 py-1 rounded-full text-xs font-bold">${e.category}</span></td>
-    <td class="text-sm">${e.description || '-'}</td>
-    <td class="font-black text-red-600">$${Number(e.amount).toLocaleString()}</td>
-    <td><button onclick="deleteExpense('${e.id}')" class="text-red-500 hover:text-red-700 font-bold text-sm">🗑️</button></td>
-  </tr>`).join('');
-}
-
-async function addExpense(event) {
-  const cat = document.getElementById('expenseCategory').value;
-  const desc = document.getElementById('expenseDescription').value.trim();
-  const amount = parseFloat(document.getElementById('expenseAmount').value);
-  const date = document.getElementById('expenseDate').value || new Date().toISOString().split('T')[0];
-  if (!amount || amount <= 0) return showToast('⚠️ Ingresa un monto válido', 'error');
-  const btn = event.target; btn.disabled = true; btn.innerText = '⏳...';
-  try {
-    const { error } = await supabaseClient.from('expenses').insert([{ business_id: businessId, category: cat, description: desc, amount, date }]);
-    if (error) throw error;
-    
-    // Si hay caja abierta, registrarlo como retiro (gasto) en la caja para que afecte el cuadre
-    if (activeCashSession) {
-      await supabaseClient.from('cash_movements').insert([{
-        business_id: businessId,
-        cash_closing_id: activeCashSession.id,
-        type: 'withdrawal',
-        amount: amount,
-        reason: `Gasto Admin: ${cat} - ${desc}`,
-        created_by_name: 'Admin'
-      }]);
-    }
-    
-    showToast('✅ Gasto registrado');
-    document.getElementById('expenseDescription').value = '';
-    document.getElementById('expenseAmount').value = '';
-    loadExpenses();
-  } catch (err) { showToast('❌ ' + err.message, 'error'); }
-  finally { btn.disabled = false; btn.innerText = '➕ Registrar Gasto'; }
-}
-
-async function deleteExpense(id) {
-  if (!confirm('¿Eliminar este gasto?')) return;
-  try {
-    const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
-    if (error) throw error;
-    showToast('🗑️ Gasto eliminado'); loadExpenses();
-  } catch (err) { showToast('❌ ' + err.message, 'error'); }
-}
-
-let activeCashSession = null;
-
-async function startCashClosing() {
-  document.getElementById('cashClosingModal').style.display = 'flex';
-  document.getElementById('declaredCashAmount').value = '';
-  document.getElementById('cashClosingNotes').value = '';
-}
-
-function openCashOpeningModal() {
-  document.getElementById('cashOpeningModal').style.display = 'flex';
-  document.getElementById('openingAmount').value = '0';
 }
 
 async function confirmCashOpening() {
@@ -727,18 +634,14 @@ window.printPOSReportAdmin = function() {
     <body>
       <div class="text-center" style="font-size: 20px;">** CORTE DE CAJA Z **</div>
       ${headerHtml}
-      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Fecha: ${now}</div>
-      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Periodo: ${r.filter.toUpperCase()}</div>
+      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Fecha Impresión: ${now}</div>
+      <div class="text-center" style="font-size: 14px; margin-bottom: 8px;">Periodo: ${r.filter === 'current_shift' ? 'Turno Actual' : r.filter.toUpperCase()}</div>
       
       <div style="border-top:1px dashed #000; padding-top:8px; margin-top:8px;">
-        <div style="display:flex; margin-top:10px;">
-          <span>Periodo:</span>
-          <span style="font-weight:bold; margin-left:auto;">${r.filter === 'today' ? 'Hoy' : r.filter === 'yesterday' ? 'Ayer' : r.filter === 'this_week' ? 'Esta Semana' : r.filter === 'current_shift' ? 'Turno Actual' : 'Este Mes'}</span>
-        </div>
-        ${r.openedBy ? `<div style="display:flex;"><span>Abierto por:</span> <span style="font-weight:bold; margin-left:auto;">${r.openedBy}</span></div>` : ''}
-        ${r.startDateStr ? `<div style="display:flex;"><span>Hora Apertura:</span> <span style="font-weight:bold; margin-left:auto;">${r.startDateStr}</span></div>` : ''}
-        ${r.closedBy ? `<div style="display:flex;"><span>Cerrado por:</span> <span style="font-weight:bold; margin-left:auto;">${r.closedBy}</span></div>` : ''}
-        ${r.closedAt ? `<div style="display:flex;"><span>Hora Cierre:</span> <span style="font-weight:bold; margin-left:auto;">${new Date(r.closedAt).toLocaleString()}</span></div>` : ''}
+        ${r.openedBy ? `<div class="flex"><span>Abierto por:</span> <span>${r.openedBy}</span></div>` : ''}
+        ${r.startDateStr ? `<div class="flex"><span>Hora Apertura:</span> <span>${r.startDateStr}</span></div>` : ''}
+        ${r.closedBy ? `<div class="flex"><span>Cerrado por:</span> <span>${r.closedBy}</span></div>` : ''}
+        ${r.closedAt ? `<div class="flex"><span>Hora Cierre:</span> <span>${new Date(r.closedAt).toLocaleString()}</span></div>` : ''}
       </div>
 
       <div style="border-top:1px dashed #000; padding-top:8px; margin-top:8px;">
