@@ -263,10 +263,28 @@ async function bridgePrintComanda(order, settings) {
 
 // Print a report via PrintBridge
 async function bridgePrintReport(reportData, settings) {
+  const pm = {today:'Hoy',yesterday:'Ayer',this_week:'Esta Semana',this_month:'Este Mes',current_shift:'Turno Actual'};
   const data = {
     business_name: settings?.business_name || settings?.name || 'MI NEGOCIO',
     date: new Date().toLocaleString(),
-    ...reportData
+    ...reportData,
+    // Android Kiosk Compatibility Mappings
+    period: pm[reportData.filter] || reportData.filter || reportData.period || 'Hoy',
+    total_orders: reportData.orderCount || reportData.total_orders || 0,
+    average_ticket: reportData.ticketPromedio || reportData.average_ticket || 0,
+    origin_pos: reportData.originPOS || reportData.origin_pos || 0,
+    origin_kiosk: reportData.originKiosko || reportData.origin_kiosk || 0,
+    origin_qr: reportData.originMenu || reportData.origin_qr || 0,
+    payment_cash: reportData.cash || reportData.payment_cash || 0,
+    payment_nequi: reportData.card || reportData.payment_nequi || 0,
+    payment_transfer: reportData.transfer || reportData.payment_transfer || 0,
+    total_sales: reportData.total || reportData.total_sales || 0,
+    opening_amount: reportData.openingCash || reportData.opening_amount || 0,
+    cash_in: reportData.cashIn || reportData.cash_in || 0,
+    cash_out: reportData.cashOut || reportData.cash_out || 0,
+    expected_cash: reportData.expectedCash || reportData.expected_cash || 0,
+    declared_cash: reportData.declaredCash !== undefined ? reportData.declaredCash : reportData.declared_cash,
+    difference: reportData.difference
   };
 
   // 1. Electron Desktop
