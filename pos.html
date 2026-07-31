@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Punto de Venta (POS) | Cajero</title>
+  <!-- CSS pre-compilado para máxima compatibilidad con tablets antiguas -->
+  <link rel="stylesheet" href="css/tailwind-compiled.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
@@ -161,7 +163,7 @@
   <!-- HEADER -->
   <header class="bg-[#111] border-b border-[#222] p-3 md:p-4 flex justify-between items-center z-10 shrink-0">
     <div class="flex items-center gap-3 cursor-pointer select-none" onclick="handlePosLogoClick()">
-      <div class="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-orange-500/20" id="headerLogo">💰</div>
+      <div class="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-orange-500/20" id="headerLogo">ðŸ’°</div>
       <div>
         <h1 class="font-black text-base md:text-lg leading-tight" id="headerBizName">PUNTO DE VENTA</h1>
         <p class="text-[10px] md:text-xs text-orange-500 font-bold tracking-widest" id="cashierName">CAJERO ACTIVO</p>
@@ -169,39 +171,39 @@
     </div>
     <div class="flex items-center gap-2">
       <button onclick="openNotificationsModal()" class="relative bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2" id="btnNotifications">
-        <span>🔔</span> <span class="hidden sm:inline">Pedidos</span>
+        <span>ðŸ””</span> <span class="hidden sm:inline">Pedidos</span>
         <span id="notifBadge" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center hidden shadow-lg shadow-red-600/50 border-2 border-[#111]">0</span>
       </button>
       
       <div class="relative">
         <button onclick="document.getElementById('posMoreMenu').classList.toggle('hidden')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-          <span>⚙️</span> <span class="hidden sm:inline">Opciones</span>
+          <span>âš™ï¸</span> <span class="hidden sm:inline">Opciones</span>
         </button>
         
         <!-- Dropdown Menu -->
         <div id="posMoreMenu" class="absolute right-0 top-full mt-2 w-56 bg-[#111] border border-[#333] rounded-2xl shadow-2xl hidden flex-col overflow-hidden z-50 py-2">
           <button onclick="openTablesModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-white text-sm font-bold flex items-center gap-3">
-            <span>🗺️</span> Mesas
+            <span>ðŸ—ºï¸</span> Mesas
           </button>
           <button onclick="openCashModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-green-400 text-sm font-bold flex items-center gap-3">
-            <span>💵</span> Gestión de Caja
+            <span>ðŸ’µ</span> GestiÃ³n de Caja
           </button>
           <button onclick="openPOSReport(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-orange-400 text-sm font-bold flex items-center gap-3">
-            <span>📊</span> Corte de Caja
+            <span>ðŸ“Š</span> Corte de Caja
           </button>
           <div class="h-px bg-[#333] my-1 w-full"></div>
           <button id="btnAutoPrint" onclick="toggleAutoPrint(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span>🖨️</span> <span id="autoPrintText">Auto-Print: OFF</span>
+            <span>ðŸ–¨ï¸</span> <span id="autoPrintText">Auto-Print: OFF</span>
           </button>
           <button onclick="toggleTheme(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span id="themeIcon">🌙</span> Cambiar Tema
+            <span id="themeIcon">ðŸŒ™</span> Cambiar Tema
           </button>
           <button onclick="window.location.reload()" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span>🔄</span> Recargar POS
+            <span>ðŸ”„</span> Recargar POS
           </button>
           <div class="h-px bg-[#333] my-1 w-full"></div>
           <button onclick="logout()" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-500 text-sm font-bold flex items-center gap-3">
-            <span>🚪</span> Cerrar Turno
+            <span>ðŸšª</span> Cerrar Turno
           </button>
         </div>
       </div>
@@ -216,7 +218,7 @@
       <!-- Search & Categories -->
       <div class="p-3 md:p-4 shrink-0 bg-[#111]">
         <div class="relative mb-3">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">ðŸ”</span>
           <input type="text" id="searchInput" onkeyup="renderProducts()" class="w-full bg-[#222] border border-[#333] rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-orange-500 transition-colors" placeholder="Buscar producto...">
         </div>
         <div class="flex gap-2 overflow-x-auto custom-scroll pb-2" id="categoriesList">
@@ -237,19 +239,19 @@
       <!-- Cart Header (clickable on mobile to expand/collapse) -->
       <div class="p-3 md:p-4 border-b border-[#222] shrink-0 flex justify-between items-center cursor-pointer md:cursor-default" onclick="toggleMobileCart()">
         <div class="flex items-center gap-3">
-          <h2 class="font-black text-base md:text-lg">📝 TICKET</h2>
+          <h2 class="font-black text-base md:text-lg">ðŸ“ TICKET</h2>
           <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-full" id="cartBadge">0</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="font-black text-orange-500 text-lg" id="cartTotalMini">$0</span>
           <button onclick="event.stopPropagation(); clearCart()" class="text-red-400 hover:text-red-300 text-xs font-bold bg-red-400/10 px-2 py-1 rounded-lg">Vaciar</button>
-          <span class="md:hidden text-gray-400 text-lg" id="cartChevron">▲</span>
+          <span class="md:hidden text-gray-400 text-lg" id="cartChevron">â–²</span>
         </div>
       </div>
       
       <!-- Cart Items -->
       <div class="flex-1 overflow-y-auto custom-scroll p-3 md:p-4 space-y-2" id="cartList">
-        <div class="text-center text-gray-500 mt-6 text-sm font-bold">Carrito vacío<br>Selecciona productos</div>
+        <div class="text-center text-gray-500 mt-6 text-sm font-bold">Carrito vacÃ­o<br>Selecciona productos</div>
       </div>
       
       <!-- Cart Footer & Checkout -->
@@ -268,7 +270,7 @@
         </div>
         
         <button id="btnCheckout" onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 md:py-4 rounded-xl shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-95 transition-all text-base md:text-lg opacity-50 cursor-not-allowed" disabled>
-          💰 COBRAR TICKET
+          ðŸ’° COBRAR TICKET
         </button>
       </div>
     </div>
@@ -281,9 +283,9 @@
       <!-- Header -->
       <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
         <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3">
-          <span>📊</span> Dashboard Financiero
+          <span>ðŸ“Š</span> Dashboard Financiero
         </h3>
-        <button onclick="closePOSReport()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
+        <button onclick="closePOSReport()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">âœ•</button>
       </div>
 
       <!-- Content -->
@@ -302,17 +304,17 @@
             </select>
           </div>
           <button onclick="printPOSReport()" id="btnPrintPOSReport" class="bg-white text-black font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
-            <span>🖨️</span> Imprimir Ticket Z
+            <span>ðŸ–¨ï¸</span> Imprimir Ticket Z
           </button>
           <button onclick="closeCashAndPrintZ()" id="btnCloseCashAndPrintZ" class="bg-red-500 text-white font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
-            <span>🔒</span> Cerrar Caja e Imprimir Z
+            <span>ðŸ”’</span> Cerrar Caja e Imprimir Z
           </button>
         </div>
 
         <!-- KPIs -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6" id="posReportKPIs">
            <!-- Rendered via JS -->
-           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando métricas...</div>
+           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando mÃ©tricas...</div>
         </div>
 
         <!-- Charts Grid -->
@@ -322,7 +324,7 @@
             <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartOrigin"></canvas></div>
           </div>
           <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Métodos de Pago</h4>
+            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">MÃ©todos de Pago</h4>
             <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartPayment"></canvas></div>
           </div>
         </div>
@@ -341,7 +343,7 @@
                   <th class="px-4 py-3 text-center">Origen</th>
                   <th class="px-4 py-3 text-center">Pago</th>
                   <th class="px-4 py-3 text-right">Total</th>
-                  <th class="px-4 py-3 text-center">Acción</th>
+                  <th class="px-4 py-3 text-center">AcciÃ³n</th>
                 </tr>
               </thead>
               <tbody id="posReportHistoryBody" class="divide-y divide-[#222]">
@@ -360,8 +362,8 @@
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeTablesModal()"></div>
     <div class="bg-[#111] border border-[#333] w-full max-w-4xl h-[90vh] md:h-auto md:max-h-[85vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4">
       <div class="p-4 md:p-6 border-b border-[#222] flex justify-between items-center shrink-0">
-        <h2 class="text-xl md:text-2xl font-black text-white">🗺️ Estado de Mesas</h2>
-        <button onclick="closeTablesModal()" class="text-gray-400 hover:text-white bg-[#222] hover:bg-[#333] w-8 h-8 rounded-full transition-all">✕</button>
+        <h2 class="text-xl md:text-2xl font-black text-white">ðŸ—ºï¸ Estado de Mesas</h2>
+        <button onclick="closeTablesModal()" class="text-gray-400 hover:text-white bg-[#222] hover:bg-[#333] w-8 h-8 rounded-full transition-all">âœ•</button>
       </div>
       <div class="p-4 md:p-6 overflow-y-auto custom-scroll flex-1">
         <div id="tablesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -381,7 +383,7 @@
           <h3 class="text-lg md:text-xl font-black text-white" id="extrasModalTitle">Extras</h3>
           <p class="text-xs text-orange-500 font-bold mt-1" id="extrasModalLimit"></p>
         </div>
-        <button onclick="closeExtrasModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
+        <button onclick="closeExtrasModal()" class="text-gray-400 hover:text-white text-xl">âœ•</button>
       </div>
       
       <div id="extrasModalContent" class="space-y-4 mb-4 overflow-y-auto custom-scroll flex-1 pr-2">
@@ -405,8 +407,8 @@
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeCheckoutModal()"></div>
     <div class="bg-[#1a1a1a] border border-[#333] rounded-t-2xl md:rounded-2xl w-full md:max-w-md p-5 md:p-6 relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
       <div class="flex justify-between items-center mb-5">
-        <h3 class="text-lg md:text-xl font-black text-white">💳 Procesar Pago</h3>
-        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
+        <h3 class="text-lg md:text-xl font-black text-white">ðŸ’³ Procesar Pago</h3>
+        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-xl">âœ•</button>
       </div>
       
       <div class="text-center mb-5">
@@ -420,16 +422,16 @@
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Tipo de Pedido</label>
           <div class="grid grid-cols-3 gap-2">
-            <button class="order-type-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectOrderType('A la mesa', this)">🪑 Mesa</button>
-            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Para Llevar', this)">🛍️ Llevar</button>
-            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Domicilio', this)">🛵 Domicilio</button>
+            <button class="order-type-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectOrderType('A la mesa', this)">ðŸª‘ Mesa</button>
+            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Para Llevar', this)">ðŸ›ï¸ Llevar</button>
+            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Domicilio', this)">ðŸ›µ Domicilio</button>
           </div>
           <input type="hidden" id="orderType" value="A la mesa">
         </div>
 
         <!-- MESA SELECTOR -->
         <div id="tableSelector">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Número de Mesa</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">NÃºmero de Mesa</label>
           <select id="tableNumber" onchange="handleTableSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500">
             <option value="">Seleccionar mesa</option>
           </select>
@@ -439,9 +441,9 @@
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest flex justify-between items-end mb-2">
             <span>Nombre (Opcional)</span>
-            <button class="bg-[#333] hover:bg-[#444] text-white px-2 py-1 rounded text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95" onclick="setVentaRapida()">⚡ RÁPIDA</button>
+            <button class="bg-[#333] hover:bg-[#444] text-white px-2 py-1 rounded text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95" onclick="setVentaRapida()">âš¡ RÃPIDA</button>
           </label>
-          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Juan Pérez" autocomplete="off">
+          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Juan PÃ©rez" autocomplete="off">
           <datalist id="customersDataList"></datalist>
         </div>
 
@@ -452,9 +454,9 @@
           <span class="absolute right-4 top-[35px] text-[9px] font-black text-red-500 uppercase tracking-widest bg-[#222] px-1" id="posPhoneRequiredMark">*Obligatorio</span>
         </div>
 
-        <!-- DIRECCIÓN -->
+        <!-- DIRECCIÃ“N -->
         <div id="addressField" class="hidden">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Dirección de Entrega</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">DirecciÃ³n de Entrega</label>
           <input type="text" id="deliveryAddress" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Calle 9 # 14-58">
         </div>
 
@@ -473,21 +475,21 @@
           </select>
         </div>
 
-        <!-- MÉTODO DE PAGO -->
+        <!-- MÃ‰TODO DE PAGO -->
         <div id="paymentMethodSection">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de Pago</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">MÃ©todo de Pago</label>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="paymentButtonsGrid">
-            <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">💵 Efectivo</button>
-            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">🏦 Transf.</button>
-            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">✂️ Dividir</button>
-            <button id="btnContraEntrega" class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs hidden" onclick="selectPayment('Contra Entrega', this)">🚚 Contra Entr.</button>
+            <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">ðŸ’µ Efectivo</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">ðŸ¦ Transf.</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">âœ‚ï¸ Dividir</button>
+            <button id="btnContraEntrega" class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs hidden" onclick="selectPayment('Contra Entrega', this)">ðŸšš Contra Entr.</button>
           </div>
           <input type="hidden" id="paymentMethod" value="Efectivo">
         </div>
 
         <!-- MONTO RECIBIDO (solo Efectivo) -->
         <div id="cashAmountSection">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">¿Con cuánto paga?</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Â¿Con cuÃ¡nto paga?</label>
           <input type="number" id="cashReceived" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-lg font-black outline-none focus:border-orange-500" placeholder="$ Monto recibido" oninput="calculateChange()">
           <div class="grid grid-cols-4 gap-2 mt-2">
             <button class="bg-[#222] hover:bg-[#333] border border-[#333] text-gray-300 font-bold py-2 rounded-xl text-xs transition-all" onclick="setCashAmount(10000)">+$10k</button>
@@ -500,7 +502,7 @@
             <p class="text-2xl font-black text-green-400" id="changeAmount">$0</p>
           </div>
           <div id="insufficientDisplay" class="hidden mt-2 bg-red-500/10 border border-red-500/20 rounded-xl p-2 text-center">
-            <p class="text-xs text-red-400 font-bold">⚠️ Monto insuficiente</p>
+            <p class="text-xs text-red-400 font-bold">âš ï¸ Monto insuficiente</p>
           </div>
         </div>
 
@@ -509,17 +511,17 @@
            <!-- Renderizado desde JS -->
         </div>
 
-        <!-- DIVIDIR CUENTA (Múltiples Montos) -->
+        <!-- DIVIDIR CUENTA (MÃºltiples Montos) -->
         <div id="splitPaymentSection" class="hidden bg-[#222] p-4 rounded-xl border border-[#333]">
-          <label class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-3 text-center border-b border-[#444] pb-2">Distribución de Pagos</label>
+          <label class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-3 text-center border-b border-[#444] pb-2">DistribuciÃ³n de Pagos</label>
           
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold">💵 Efectivo:</span>
+              <span class="text-sm font-bold">ðŸ’µ Efectivo:</span>
               <input type="number" id="splitCash" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold">🏦 Transf:</span>
+              <span class="text-sm font-bold">ðŸ¦ Transf:</span>
               <input type="number" id="splitTransfer" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
           </div>
@@ -534,14 +536,14 @@
       <div class="flex flex-col gap-3">
         <div class="flex gap-3">
           <button id="btnManualComanda" onclick="manualPrintComanda()" class="flex-1 bg-[#333] border-2 border-[#444] text-white font-black py-3.5 rounded-xl hover:bg-[#444] active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-            <span>🖨️ Comanda</span>
+            <span>ðŸ–¨ï¸ Comanda</span>
           </button>
           <button id="btnSaveTable" onclick="saveTableOrder()" class="flex-1 bg-[#222] border-2 border-orange-500 text-orange-500 font-black py-3.5 rounded-xl hover:bg-orange-500 hover:text-white active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-            <span>⏳ Guardar</span>
+            <span>â³ Guardar</span>
           </button>
         </div>
         <button id="btnConfirmSale" onclick="confirmSale()" class="w-full bg-white text-black font-black py-3.5 rounded-xl shadow-lg hover:bg-gray-200 active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-          <span>✅ Confirmar Venta</span>
+          <span>âœ… Confirmar Venta</span>
         </button>
       </div>
     </div>
@@ -561,13 +563,13 @@
       <!-- Action Buttons -->
       <div class="flex gap-3 w-full shrink-0">
         <button onclick="printTicketFromPreview()" class="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          🖨️ Imprimir
+          ðŸ–¨ï¸ Imprimir
         </button>
         <button onclick="downloadTicketFromPreview()" class="flex-1 bg-white text-black font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          📥 Descargar
+          ðŸ“¥ Descargar
         </button>
         <button onclick="closeTicketPreview()" class="flex-1 bg-[#333] text-white font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          ✕ Cerrar
+          âœ• Cerrar
         </button>
       </div>
     </div>
@@ -583,20 +585,20 @@
       <!-- Header -->
       <div class="p-4 md:p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
         <h3 class="text-lg md:text-xl font-black text-white flex items-center gap-3">
-          <span>🔔</span> Pedidos Entrantes <span id="notifModalCount" class="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">0</span>
+          <span>ðŸ””</span> Pedidos Entrantes <span id="notifModalCount" class="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">0</span>
         </h3>
         <div class="flex items-center gap-2">
-          <button onclick="refreshNotifications()" class="bg-[#222] hover:bg-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all">🔄 Actualizar</button>
-          <button onclick="closeNotificationsModal()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
+          <button onclick="refreshNotifications()" class="bg-[#222] hover:bg-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all">ðŸ”„ Actualizar</button>
+          <button onclick="closeNotificationsModal()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">âœ•</button>
         </div>
       </div>
 
       <!-- Filters -->
       <div class="px-4 md:px-5 py-3 bg-[#111] border-b border-[#222] flex gap-2 shrink-0">
         <button onclick="filterNotifications('all')" class="notif-filter-btn active bg-orange-500 text-white font-bold py-2 px-4 rounded-xl border-2 border-orange-500 transition-all text-xs">Todos</button>
-        <button onclick="filterNotifications('kiosko')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">🖥️ Kiosko</button>
-        <button onclick="filterNotifications('menu')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">📱 Menú QR</button>
-        <button onclick="filterNotifications('pendiente')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">⏳ Pendientes</button>
+        <button onclick="filterNotifications('kiosko')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">ðŸ–¥ï¸ Kiosko</button>
+        <button onclick="filterNotifications('menu')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">ðŸ“± MenÃº QR</button>
+        <button onclick="filterNotifications('pendiente')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">â³ Pendientes</button>
       </div>
 
       <!-- Orders List -->
@@ -615,9 +617,9 @@
     <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
       <div class="p-4 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a]">
         <h3 class="text-xl font-black text-white flex items-center gap-2">
-          <span>💵</span> <span id="cashModalTitle">Gestión de Caja</span>
+          <span>ðŸ’µ</span> <span id="cashModalTitle">GestiÃ³n de Caja</span>
         </h3>
-        <button onclick="closeCashModal()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">✕</button>
+        <button onclick="closeCashModal()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">âœ•</button>
       </div>
       
       <div class="p-5 bg-[#0a0a0a]" id="cashModalContent">
@@ -634,23 +636,23 @@
         <!-- Movimientos de Caja Form -->
         <div id="cashMovementSection" class="hidden">
           <div class="grid grid-cols-2 gap-2 mb-4">
-            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs">📤 Retiro (Caja)</button>
-            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📥 Ingreso (Caja)</button>
-            <button onclick="selectCashMovement('expense')" id="btnMoveExpense" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">💰 Nuevo Gasto</button>
-            <button onclick="selectCashMovement('purchase')" id="btnMovePurchase" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📦 Nueva Compra</button>
+            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¤ Retiro (Caja)</button>
+            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¥ Ingreso (Caja)</button>
+            <button onclick="selectCashMovement('expense')" id="btnMoveExpense" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ’° Nuevo Gasto</button>
+            <button onclick="selectCashMovement('purchase')" id="btnMovePurchase" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¦ Nueva Compra</button>
           </div>
           <input type="hidden" id="cashMoveType" value="withdrawal">
           
-          <!-- Categoría para Gastos (hidden by default) -->
+          <!-- CategorÃ­a para Gastos (hidden by default) -->
           <div id="cashMoveExpenseCatContainer" class="hidden mb-3">
-            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Categoría del Gasto</label>
+            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">CategorÃ­a del Gasto</label>
             <select id="cashMoveExpenseCat" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-sm focus:border-orange-500 outline-none">
-              <option value="Ingredientes">🧂 Ingredientes</option>
-              <option value="Servicios">💡 Servicios</option>
-              <option value="Personal">👤 Personal</option>
-              <option value="Arriendo">🏠 Arriendo</option>
-              <option value="Transporte">🚚 Transporte</option>
-              <option value="Otro">📦 Otro</option>
+              <option value="Ingredientes">ðŸ§‚ Ingredientes</option>
+              <option value="Servicios">ðŸ’¡ Servicios</option>
+              <option value="Personal">ðŸ‘¤ Personal</option>
+              <option value="Arriendo">ðŸ  Arriendo</option>
+              <option value="Transporte">ðŸšš Transporte</option>
+              <option value="Otro">ðŸ“¦ Otro</option>
             </select>
           </div>
 
@@ -674,14 +676,14 @@
     <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
       <div class="p-4 border-b border-[#222] bg-red-500/10">
         <h3 class="text-xl font-black text-red-500 flex items-center gap-2 justify-center">
-          <span>🛑</span> Cierre de Turno
+          <span>ðŸ›‘</span> Cierre de Turno
         </h3>
       </div>
       
       <div class="p-5 bg-[#0a0a0a]">
-        <p class="text-sm text-gray-300 mb-4 text-center">Para cerrar el turno, debes contar el efectivo físico en caja (incluyendo el fondo inicial).</p>
+        <p class="text-sm text-gray-300 mb-4 text-center">Para cerrar el turno, debes contar el efectivo fÃ­sico en caja (incluyendo el fondo inicial).</p>
         
-        <label class="text-xs font-bold text-gray-500 uppercase block mb-2 text-center">Efectivo Físico Contado</label>
+        <label class="text-xs font-bold text-gray-500 uppercase block mb-2 text-center">Efectivo FÃ­sico Contado</label>
         <input type="number" id="blindCashAmount" class="w-full bg-[#222] border border-[#333] rounded-xl p-4 text-center text-white text-3xl font-black mb-6 focus:border-red-500 outline-none" placeholder="$0">
         
         <div class="flex gap-3">
@@ -707,20 +709,20 @@
       const body = document.body;
       const isLight = body.classList.toggle('light-mode');
       localStorage.setItem('pos_theme', isLight ? 'light' : 'dark');
-      document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+      document.getElementById('themeIcon').textContent = isLight ? 'ðŸŒ™' : 'â˜€ï¸';
     }
     
     document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('pos_theme') === 'dark') {
         document.body.classList.remove('light-mode');
         const icon = document.getElementById('themeIcon');
-        if (icon) icon.textContent = '☀️';
+        if (icon) icon.textContent = 'â˜€ï¸';
       }
     });
   </script>
-  <!-- Botón Retroceso a Admin (Solo Admin/Superadmin) -->
-  <button id="globalAdminBackBtn" onclick="window.location.href='admin.html'" class="hidden fixed bottom-6 left-6 bg-[#222] hover:bg-orange-500 border border-[#333] hover:border-orange-500 text-white font-bold w-14 h-14 rounded-full shadow-2xl z-[9999] flex items-center justify-center transition-all duration-300 active:scale-95 group" title="Volver al Panel de Administración">
-    <span class="text-2xl group-hover:-translate-x-1 transition-transform">⬅️</span>
+  <!-- BotÃ³n Retroceso a Admin (Solo Admin/Superadmin) -->
+  <button id="globalAdminBackBtn" onclick="window.location.href='admin.html'" class="hidden fixed bottom-6 left-6 bg-[#222] hover:bg-orange-500 border border-[#333] hover:border-orange-500 text-white font-bold w-14 h-14 rounded-full shadow-2xl z-[9999] flex items-center justify-center transition-all duration-300 active:scale-95 group" title="Volver al Panel de AdministraciÃ³n">
+    <span class="text-2xl group-hover:-translate-x-1 transition-transform">â¬…ï¸</span>
   </button>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
