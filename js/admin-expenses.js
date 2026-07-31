@@ -189,6 +189,70 @@ async function submitCashClosing() {
     const expectedCash = Number(activeCashSession.opening_amount || 0) + cash + totalDeposits - totalWithdrawals;
     const diff = declared - expectedCash;
     
+    // BUILD Z REPORT DATA FOR AUTO PRINT
+    let oKiosko = 0, oPOS = 0, oMenu = 0;
+    let productsSold = {};
+    let totalSales = cash + transfer + card;
+    
+    orders.forEach(o => {
+      const t = Number(o.total) || 0;
+      const n = o.notes || '';
+      if (n.includes('[ORIGIN:KIOSKO]')) oKiosko += t;
+      else if (n.includes('[ORIGIN:MENU]')) oMenu += t;
+      else oPOS += t;
+
+      let orderItems = o.items || [];
+      if (typeof orderItems === 'string') {
+        try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+      }
+      if (Array.isArray(orderItems)) {
+        orderItems.forEach(item => {
+          const qty = Number(item.quantity || item.qty) || 1;
+          const price = Number(item.price) || 0;
+          let name = item.name || 'Desconocido';
+          if (item.extrasLabel) name += ` (${item.extrasLabel})`;
+          if (!productsSold[name]) productsSold[name] = { qty: 0, total: 0 };
+          productsSold[name].qty += qty;
+          productsSold[name].total += (qty * price);
+        });
+      }
+    });
+
+    const closedAt = new Date().toISOString();
+    const currentUserEmail = (await supabaseClient.auth.getSession()).data?.session?.user?.email || 'Desconocido';
+
+    window.currentPOSReportAdmin = {
+      filter: 'current_shift',
+      orderCount: orders.length,
+      total: totalSales,
+      cash: cash,
+      card: card,
+      transfer: transfer,
+      originKiosko: oKiosko,
+      originPOS: oPOS,
+      originMenu: oMenu,
+      openedBy: activeCashSession.opened_by,
+      closedBy: currentUserEmail,
+      closedAt: closedAt,
+      startDateStr: new Date(openedAt).toLocaleString(),
+      ticketPromedio: orders.length > 0 ? (totalSales / orders.length) : 0,
+      openingCash: Number(activeCashSession.opening_amount) || 0,
+      cashIn: totalDeposits,
+      cashOut: totalWithdrawals,
+      expectedCash: expectedCash,
+      declaredCash: declared,
+      difference: diff,
+      productsSold: productsSold
+    };
+
+    // Imprimir Z report automáticamente
+    showToast('🖨️ Imprimiendo Ticket Z...', 'success');
+    try {
+      await printPOSReportAdmin();
+    } catch (printErr) {
+      console.error('Error imprimiendo Z:', printErr);
+    }
+
     const { data: updateData, error } = await supabaseClient.from('cash_closings')
       .update({
         date: today,
@@ -202,8 +266,8 @@ async function submitCashClosing() {
         total_orders: orders.length,
         notes: notes,
         is_open: false,
-        closed_by: (await supabaseClient.auth.getSession()).data?.session?.user?.email || 'Desconocido',
-        closed_at: new Date().toISOString()
+        closed_by: currentUserEmail,
+        closed_at: closedAt
       })
       .eq('id', activeCashSession.id)
       .select();
@@ -669,10 +733,23 @@ window.closePOSReportAdmin = function() {
   document.getElementById('posReportModalAdmin').classList.add('hidden');
 };
 
-window.printPOSReportAdmin = function() {
+window.printPOSReportAdmin = async function() {
   if (!window.currentPOSReportAdmin) return;
   const r = window.currentPOSReportAdmin;
   const customHeader = localStorage.getItem('receipt_cash_header') || '';
+  const businessName = localStorage.getItem('business_name') || 'MI NEGOCIO';
+
+  // Try PrintBridge first (if available in admin)
+  if (typeof bridgePrintReport === 'function') {
+    const settings = { business_name: businessName };
+    const ok = await bridgePrintReport(r, settings);
+    if (ok) { 
+      showToast('🖨️ Reporte Z impreso exitosamente'); 
+      return; 
+    }
+  }
+
+  // Fallback al navegador
   const headerHtml = customHeader ? `<div class="text-center mb-2" style="font-size: 12px; white-space: pre-wrap;">${customHeader}</div>` : '';
   const now = new Date().toLocaleString();
 
@@ -756,20 +833,9 @@ window.printPOSReportAdmin = function() {
     </body>
   </html>`;
   
-  if (typeof bridgePrintRawHtml === 'function') {
-    bridgePrintRawHtml(html).then(ok => {
-      if(ok) showToast('🖨️ Ticket Z enviado a imprimir');
-      else {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(html);
-        printWindow.document.close();
-      }
-    });
-  } else {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(html);
-    printWindow.document.close();
-  }
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(html);
+  printWindow.document.close();
 };
 
 // ==========================================

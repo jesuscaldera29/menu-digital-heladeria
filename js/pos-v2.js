@@ -2367,6 +2367,9 @@ window.closeCashAndPrintZ = async function() {
         alert('⚠️ ERROR DE PERMISOS (RLS) EN SUPABASE\n\nNo se pudo cerrar la caja porque falta la política de UPDATE en Supabase.\n\nVe a Supabase -> SQL Editor y ejecuta:\n\nCREATE POLICY "Enable update for users" ON "public"."cash_closings" FOR UPDATE USING (true);');
         throw new Error('Fallo al cerrar caja por falta de permisos RLS en Supabase.');
     }
+    // Set closing info in the report before printing
+    window.currentPOSReport.closedBy = userEmail;
+    window.currentPOSReport.closedAt = new Date().toISOString();
 
     showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
     
@@ -3042,12 +3045,14 @@ window.submitBlindClose = async function() {
     const expectedCash = Number(closingInfo.opening_amount) + cashSales + totalDeposits - totalWithdrawals;
     const difference = declaredCash - expectedCash;
 
+    const closedAt = new Date().toISOString();
+
     // Update the cash_closing record
     await supabaseClient
       .from('cash_closings')
       .update({
         is_open: false,
-        closed_at: new Date().toISOString(),
+        closed_at: closedAt,
         expected_total: expectedCash,
         declared_total: declaredCash,
         difference: difference,
@@ -3072,7 +3077,7 @@ window.submitBlindClose = async function() {
       originKiosko: 0,
       originPOS: cashSales + transferSales + cardSales,
       originMenu: 0,
-      openedBy: closingInfo.opened_by_email,
+      openedBy: closingInfo.opened_by,
       closedBy: user?.email,
       closedAt: closedAt,
       startDateStr: new Date(closingInfo.opened_at).toLocaleString(),
