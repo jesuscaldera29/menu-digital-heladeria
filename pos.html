@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Punto de Venta (POS) | Cajero</title>
-  <!-- CSS pre-compilado para máxima compatibilidad con tablets antiguas -->
-  <link rel="stylesheet" href="css/tailwind-compiled.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
@@ -72,25 +70,37 @@
     .light-mode header,
     .light-mode #cartPanel,
     .light-mode #posReportModal > div:nth-child(2),
+    .light-mode #modalDetalleMesaPOS > div:nth-child(2),
     .light-mode #tablesModal > div:nth-child(2),
     .light-mode #extrasModal > div:nth-child(2),
     .light-mode #checkoutModal > div:nth-child(2),
+    .light-mode #notificationsModal > div:nth-child(2),
+    .light-mode #cashRegisterModal > div:nth-child(2),
     .light-mode .bg-\[\#111\],
     .light-mode .bg-\[\#1a1a1a\],
-    .light-mode .bg-\[\#0a0a0a\] {
+    .light-mode .bg-\[\#0a0a0a\],
+    .light-mode .bg-\[\#0b0c10\],
+    .light-mode .bg-\[\#0e1017\],
+    .light-mode .bg-\[\#10121a\] {
       background-color: #ffffff !important;
       border-color: #e5e7eb !important;
+      color: #111827 !important;
     }
     
     .light-mode #productsSection { background-color: #f3f4f6 !important; }
     
-    .light-mode .bg-\[\#222\] {
+    .light-mode .bg-\[\#222\],
+    .light-mode .bg-\[\#131622\],
+    .light-mode .bg-\[\#181b26\] {
       background-color: #f9fafb !important;
       border-color: #e5e7eb !important;
       color: #111827 !important;
     }
     
-    .light-mode .bg-\[\#333\] {
+    .light-mode .bg-\[\#333\],
+    .light-mode .bg-\[\#161926\],
+    .light-mode .bg-\[\#1c2030\],
+    .light-mode .bg-\[\#1e2333\] {
       background-color: #f3f4f6 !important;
       border-color: #d1d5db !important;
       color: #111827 !important;
@@ -98,30 +108,53 @@
     
     .light-mode .border-\[\#222\],
     .light-mode .border-\[\#333\],
-    .light-mode .border-\[\#444\] {
+    .light-mode .border-\[\#444\],
+    .light-mode .border-\[\#1c2030\],
+    .light-mode .border-\[\#232738\],
+    .light-mode .border-\[\#2b3049\] {
       border-color: #e5e7eb !important;
     }
     
-    .light-mode .text-white { color: #111827 !important; }
+    .light-mode .text-white,
+    .light-mode .text-slate-100,
+    .light-mode .text-slate-200 { 
+      color: #111827 !important; 
+    }
     
-    /* Preserve white text on colored buttons/badges */
+    .light-mode .text-slate-300,
+    .light-mode .text-gray-300 { 
+      color: #374151 !important; 
+    }
+    
+    .light-mode .text-slate-400,
+    .light-mode .text-gray-400 { 
+      color: #4b5563 !important; 
+    }
+    
+    .light-mode .text-slate-500,
+    .light-mode .text-gray-500 { 
+      color: #6b7280 !important; 
+    }
+
+    /* Preserve high-contrast colored buttons and badges */
     .light-mode .bg-orange-500.text-white,
     .light-mode .bg-orange-500 .text-white,
     .light-mode .from-orange-500.text-white,
     .light-mode .from-orange-500 .text-white,
     .light-mode .bg-green-500.text-white,
+    .light-mode .bg-emerald-500.text-white,
     .light-mode .bg-red-500.text-white,
-    .light-mode .bg-blue-500.text-white {
+    .light-mode .bg-red-600.text-white,
+    .light-mode .bg-blue-500.text-white,
+    .light-mode .bg-indigo-600.text-white {
       color: #ffffff !important;
     }
     
-    .light-mode .text-gray-300 { color: #4b5563 !important; }
-    .light-mode .text-gray-400 { color: #6b7280 !important; }
-    .light-mode .text-gray-500 { color: #374151 !important; }
-    
     .light-mode input.bg-\[\#222\],
     .light-mode select.bg-\[\#222\],
-    .light-mode textarea.bg-\[\#222\] {
+    .light-mode textarea.bg-\[\#222\],
+    .light-mode input.bg-\[\#131622\],
+    .light-mode select.bg-\[\#131622\] {
       background-color: #ffffff !important;
       color: #111827 !important;
       border-color: #d1d5db !important;
@@ -163,47 +196,53 @@
   <!-- HEADER -->
   <header class="bg-[#111] border-b border-[#222] p-3 md:p-4 flex justify-between items-center z-10 shrink-0">
     <div class="flex items-center gap-3 cursor-pointer select-none" onclick="handlePosLogoClick()">
-      <div class="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-orange-500/20" id="headerLogo">ðŸ’°</div>
+      <div class="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-orange-500/20" id="headerLogo">💰</div>
       <div>
         <h1 class="font-black text-base md:text-lg leading-tight" id="headerBizName">PUNTO DE VENTA</h1>
         <p class="text-[10px] md:text-xs text-orange-500 font-bold tracking-widest" id="cashierName">CAJERO ACTIVO</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <!-- BOTÓN DIRECTO MESAS -->
+      <button onclick="openTablesModal()" class="relative bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2" id="btnHeaderTables" title="Mapa y Estado de Mesas">
+        <span>🗺️</span> <span class="hidden sm:inline">Mesas</span>
+        <span id="tablesOccupiedBadge" class="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full hidden shadow-lg shadow-red-600/50 border border-[#111]">0</span>
+      </button>
+
       <button onclick="openNotificationsModal()" class="relative bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2" id="btnNotifications">
-        <span>ðŸ””</span> <span class="hidden sm:inline">Pedidos</span>
+        <span>🔔</span> <span class="hidden sm:inline">Pedidos</span>
         <span id="notifBadge" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center hidden shadow-lg shadow-red-600/50 border-2 border-[#111]">0</span>
       </button>
       
       <div class="relative">
         <button onclick="document.getElementById('posMoreMenu').classList.toggle('hidden')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-          <span>âš™ï¸</span> <span class="hidden sm:inline">Opciones</span>
+          <span>⚙️</span> <span class="hidden sm:inline">Opciones</span>
         </button>
         
         <!-- Dropdown Menu -->
         <div id="posMoreMenu" class="absolute right-0 top-full mt-2 w-56 bg-[#111] border border-[#333] rounded-2xl shadow-2xl hidden flex-col overflow-hidden z-50 py-2">
           <button onclick="openTablesModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-white text-sm font-bold flex items-center gap-3">
-            <span>ðŸ—ºï¸</span> Mesas
+            <span>🗺️</span> Mesas
           </button>
           <button onclick="openCashModal(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-green-400 text-sm font-bold flex items-center gap-3">
-            <span>ðŸ’µ</span> GestiÃ³n de Caja
+            <span>💵</span> Gestión de Caja
           </button>
           <button onclick="openPOSReport(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-orange-400 text-sm font-bold flex items-center gap-3">
-            <span>ðŸ“Š</span> Corte de Caja
+            <span>📊</span> Corte de Caja
           </button>
           <div class="h-px bg-[#333] my-1 w-full"></div>
           <button id="btnAutoPrint" onclick="toggleAutoPrint(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span>ðŸ–¨ï¸</span> <span id="autoPrintText">Auto-Print: OFF</span>
+            <span>🖨️</span> <span id="autoPrintText">Auto-Print: OFF</span>
           </button>
           <button onclick="toggleTheme(); document.getElementById('posMoreMenu').classList.add('hidden')" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span id="themeIcon">ðŸŒ™</span> Cambiar Tema
+            <span id="themeIcon">🌙</span> Cambiar Tema
           </button>
           <button onclick="window.location.reload()" class="w-full text-left px-4 py-3 hover:bg-[#222] text-gray-300 text-sm font-bold flex items-center gap-3">
-            <span>ðŸ”„</span> Recargar POS
+            <span>🔄</span> Recargar POS
           </button>
           <div class="h-px bg-[#333] my-1 w-full"></div>
           <button onclick="logout()" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-500 text-sm font-bold flex items-center gap-3">
-            <span>ðŸšª</span> Cerrar Turno
+            <span>🚪</span> Cerrar Turno
           </button>
         </div>
       </div>
@@ -218,7 +257,7 @@
       <!-- Search & Categories -->
       <div class="p-3 md:p-4 shrink-0 bg-[#111]">
         <div class="relative mb-3">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">ðŸ”</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
           <input type="text" id="searchInput" onkeyup="renderProducts()" class="w-full bg-[#222] border border-[#333] rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-orange-500 transition-colors" placeholder="Buscar producto...">
         </div>
         <div class="flex gap-2 overflow-x-auto custom-scroll pb-2" id="categoriesList">
@@ -239,19 +278,31 @@
       <!-- Cart Header (clickable on mobile to expand/collapse) -->
       <div class="p-3 md:p-4 border-b border-[#222] shrink-0 flex justify-between items-center cursor-pointer md:cursor-default" onclick="toggleMobileCart()">
         <div class="flex items-center gap-3">
-          <h2 class="font-black text-base md:text-lg">ðŸ“ TICKET</h2>
+          <h2 class="font-black text-base md:text-lg">📝 TICKET</h2>
           <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-full" id="cartBadge">0</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="font-black text-orange-500 text-lg" id="cartTotalMini">$0</span>
           <button onclick="event.stopPropagation(); clearCart()" class="text-red-400 hover:text-red-300 text-xs font-bold bg-red-400/10 px-2 py-1 rounded-lg">Vaciar</button>
-          <span class="md:hidden text-gray-400 text-lg" id="cartChevron">â–²</span>
+          <span class="md:hidden text-gray-400 text-lg" id="cartChevron">▲</span>
         </div>
+      </div>
+
+      <!-- ACTIVE TABLE INDICATOR BANNER IN CART -->
+      <div id="cartTableBanner" class="hidden bg-orange-500/15 border-b border-orange-500/30 px-3.5 py-2.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-lg">🪑</span>
+          <div class="min-w-0">
+            <span class="font-black text-xs text-orange-400 block truncate" id="cartTableBannerText">Mesa 1 (Pedido #1162)</span>
+            <span class="text-[10px] text-gray-300 block font-medium" id="cartTableBannerSub">Modo adición y cobro</span>
+          </div>
+        </div>
+        <button onclick="clearCart()" class="text-[11px] font-bold text-gray-300 hover:text-white bg-[#222] hover:bg-[#333] px-2.5 py-1 rounded-lg border border-[#444] transition-all shrink-0" title="Cerrar modo mesa">✕ Salir</button>
       </div>
       
       <!-- Cart Items -->
       <div class="flex-1 overflow-y-auto custom-scroll p-3 md:p-4 space-y-2" id="cartList">
-        <div class="text-center text-gray-500 mt-6 text-sm font-bold">Carrito vacÃ­o<br>Selecciona productos</div>
+        <div class="text-center text-gray-500 mt-6 text-sm font-bold">Carrito vacío<br>Selecciona productos</div>
       </div>
       
       <!-- Cart Footer & Checkout -->
@@ -269,90 +320,299 @@
           <span class="text-2xl md:text-3xl font-black text-orange-500" id="cartTotal">$0</span>
         </div>
         
-        <button id="btnCheckout" onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 md:py-4 rounded-xl shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-95 transition-all text-base md:text-lg opacity-50 cursor-not-allowed" disabled>
-          ðŸ’° COBRAR TICKET
-        </button>
+        <div class="flex flex-col gap-2">
+          <!-- Botón de Guardar / Pagar Luego (visible cuando es pedido de mesa) -->
+          <button id="btnSaveTableDirect" onclick="saveTableOrderFromCart()" class="hidden w-full bg-[#222] border-2 border-orange-500/70 hover:border-orange-500 text-orange-400 hover:text-white hover:bg-orange-500 font-black py-2.5 rounded-xl shadow-lg transition-all text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95">
+            <span>💾</span> <span>Guardar / Enviar a Cocina (Pagar Luego)</span>
+          </button>
+          
+          <button id="btnCheckout" onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 md:py-3.5 rounded-xl shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-95 transition-all text-base md:text-lg opacity-50 cursor-not-allowed" disabled>
+            💰 COBRAR TICKET
+          </button>
+        </div>
       </div>
     </div>
   </main>
-  <!-- POS REPORT / ANALYTICS MODAL -->
-  <div id="posReportModal" class="hidden fixed inset-0 z-[900] flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePOSReport()"></div>
-    <div class="bg-[#111] border border-[#333] w-full max-w-6xl h-[95vh] md:h-[90vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
+  <!-- POS REPORT / EXECUTIVE FINANCIAL DASHBOARD & TURNOS MODAL -->
+  <div id="posReportModal" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-2 sm:p-4">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity" onclick="closePOSReport()"></div>
+    <div class="bg-[#0b0c10] border border-[#232738] w-full max-w-6xl max-h-[94vh] rounded-3xl relative z-10 flex flex-col shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden text-slate-100 font-sans animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Header -->
-      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
-        <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3">
-          <span>ðŸ“Š</span> Dashboard Financiero
-        </h3>
-        <button onclick="closePOSReport()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">âœ•</button>
+      <div class="p-4 sm:p-5 border-b border-[#1c2030] flex flex-wrap justify-between items-center bg-[#10121a] shrink-0 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-orange-500/20">
+            📊
+          </div>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2 tracking-tight">
+              Dashboard Financiero & Corte Z
+            </h3>
+            <p class="text-xs text-slate-400 font-medium" id="posReportSubheader">
+              Auditoría financiera consolidada, desglose multicanal y arqueo de caja
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="exportPOSReportCSV()" id="btnExportPOSReportCSV" class="bg-[#181b26] hover:bg-[#232738] active:scale-95 text-slate-200 border border-[#2b3049] font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm" title="Exportar a CSV">
+            <span>📥</span> <span class="hidden md:inline">Exportar CSV</span>
+          </button>
+          <button onclick="printPOSReportExecutive()" id="btnPrintPOSReportExecutive" class="bg-[#181b26] hover:bg-[#232738] active:scale-95 text-slate-200 border border-[#2b3049] font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm" title="Informe Imprimible">
+            <span>📄</span> <span class="hidden md:inline">Informe A4</span>
+          </button>
+          <button onclick="printPOSReport()" id="btnPrintPOSReport" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50">
+            <span>🖨️</span> <span>Ticket Térmico Z</span>
+          </button>
+          <button onclick="logout()" id="btnCloseCashAndPrintZ" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-red-600/25 transition-all">
+            <span>🔒</span> <span>Cerrar Turno</span>
+          </button>
+          <button onclick="closePOSReport()" class="w-9 h-9 flex items-center justify-center bg-[#1c2030] text-slate-400 rounded-full hover:bg-white hover:text-black transition-all text-lg font-bold ml-1">✕</button>
+        </div>
       </div>
 
-      <!-- Content -->
-      <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 bg-[#0a0a0a]">
-        
-        <!-- Filters -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222]">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">PERIODO:</span>
-            <select id="posReportDateFilter" class="bg-[#222] text-white text-sm font-bold p-2.5 rounded-xl border border-[#333] focus:border-orange-500 outline-none cursor-pointer" onchange="openPOSReport()">
-              <option value="current_shift">Turno Actual (Abierto)</option>
-              <option value="today">Hoy</option>
-              <option value="yesterday">Ayer</option>
-              <option value="this_week">Esta Semana</option>
-              <option value="this_month">Este Mes</option>
+      <!-- Filters Toolbar & View Switcher -->
+      <div class="px-4 py-3 bg-[#131622] border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- View Navigation Tabs -->
+          <div class="inline-flex bg-[#0b0c10] p-1 rounded-xl border border-[#232738] gap-1">
+            <button id="posTabBtnOverview" onclick="switchPOSReportTab('overview')" class="px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center gap-1.5">
+              <span>📊</span> <span>Visión Financiera</span>
+            </button>
+            <button id="posTabBtnTurnos" onclick="switchPOSReportTab('turnos')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030] flex items-center gap-1.5">
+              <span>👥</span> <span>Turnos y Cajeros</span>
+              <span id="posTabTurnosBadge" class="bg-[#1c2030] text-orange-400 text-[10px] font-black px-1.5 py-0.2 rounded-full border border-orange-500/20">0</span>
+            </button>
+          </div>
+
+          <!-- Period Pills -->
+          <div class="inline-flex bg-[#0b0c10] p-1 rounded-xl border border-[#232738] gap-1" id="posPeriodPillsContainer">
+            <button onclick="setPOSReportPeriod('today')" data-period="today" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm">Hoy</button>
+            <button onclick="setPOSReportPeriod('yesterday')" data-period="yesterday" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Ayer</button>
+            <button onclick="setPOSReportPeriod('this_week')" data-period="this_week" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Esta Semana</button>
+            <button onclick="setPOSReportPeriod('this_month')" data-period="this_month" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Este Mes</button>
+            <button onclick="togglePOSCustomDates()" id="btnCustomDatesToggle" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Personalizado</button>
+          </div>
+
+          <input type="hidden" id="posReportDateFilter" value="today">
+
+          <!-- Custom Date Range picker (expandable) -->
+          <div id="posCustomDatesContainer" class="hidden items-center gap-2 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Desde:</span>
+            <input type="date" id="posCustomStartDate" class="bg-[#161926] text-white text-xs px-2 py-1 rounded-lg border border-[#2b3049] outline-none">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Hasta:</span>
+            <input type="date" id="posCustomEndDate" class="bg-[#161926] text-white text-xs px-2 py-1 rounded-lg border border-[#2b3049] outline-none">
+            <button onclick="applyPOSCustomDates()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg transition-all">Filtrar</button>
+          </div>
+        </div>
+
+        <!-- Filter Dropdowns (Cajero & Turno) & Refresh -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Filtro Cajero -->
+          <div class="flex items-center gap-1.5 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-xs">👤</span>
+            <select id="posReportCashierFilter" onchange="onPOSReportCashierFilterChanged()" class="bg-transparent text-slate-200 text-xs font-bold outline-none cursor-pointer">
+              <option value="all" class="bg-[#10121a] text-white">Todos los Cajeros</option>
             </select>
           </div>
-          <button onclick="printPOSReport()" id="btnPrintPOSReport" class="bg-white text-black font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
-            <span>ðŸ–¨ï¸</span> Imprimir Ticket Z
+
+          <!-- Filtro Turno -->
+          <div class="flex items-center gap-1.5 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-xs">📋</span>
+            <select id="posReportTurnoFilter" onchange="onPOSReportTurnoFilterChanged()" class="bg-transparent text-slate-200 text-xs font-bold outline-none cursor-pointer">
+              <option value="all" class="bg-[#10121a] text-white">Todos los Turnos</option>
+            </select>
+          </div>
+
+          <button onclick="openPOSReport()" class="text-xs text-slate-400 hover:text-white bg-[#0b0c10] border border-[#232738] hover:border-slate-500 px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5">
+            <span>🔄</span> <span>Actualizar</span>
           </button>
-          <button onclick="closeCashAndPrintZ()" id="btnCloseCashAndPrintZ" class="bg-red-500 text-white font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
-            <span>ðŸ”’</span> Cerrar Caja e Imprimir Z
+        </div>
+      </div>
+
+      <!-- Scrollable Dashboard Body -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 bg-[#08090d]" id="posReportMainScroll">
+        
+        <!-- ============================================== -->
+        <!-- TAB 1: VISIÓN FINANCIERA (OVERVIEW) -->
+        <!-- ============================================== -->
+        <div id="posReportOverviewTabContent" class="space-y-6">
+          
+          <!-- KPIs Container -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="posReportKPIs">
+            <div class="col-span-full text-center text-slate-400 animate-pulse font-bold text-sm py-16">
+              ⏳ Cargando métricas financieras consolidadas...
+            </div>
+          </div>
+
+          <!-- Charts & Breakdowns Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 hidden" id="posReportCharts">
+            
+            <!-- Metodos de Pago Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>💳</span> Métodos de Pago
+                  </h4>
+                  <span class="text-[10px] bg-[#1c2030] text-slate-400 px-2 py-0.5 rounded-full font-bold" id="badgePaymentTotal">$0</span>
+                </div>
+                <div class="relative h-44 w-full flex items-center justify-center my-2">
+                  <canvas id="chartPayment"></canvas>
+                </div>
+              </div>
+              <div class="space-y-2 pt-3 border-t border-[#1c2030]" id="posReportPaymentList">
+                <!-- Dynamically populated payment list with % -->
+              </div>
+            </div>
+
+            <!-- Canales de Venta Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>🌐</span> Canales de Origen
+                  </h4>
+                  <span class="text-[10px] bg-[#1c2030] text-slate-400 px-2 py-0.5 rounded-full font-bold" id="badgeOriginTotal">$0</span>
+                </div>
+                <div class="relative h-44 w-full flex items-center justify-center my-2">
+                  <canvas id="chartOrigin"></canvas>
+                </div>
+              </div>
+              <div class="space-y-2 pt-3 border-t border-[#1c2030]" id="posReportOriginList">
+                <!-- Dynamically populated origin list with % -->
+              </div>
+            </div>
+
+            <!-- Top Productos Vendidos Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <span>🏆</span> Top Productos
+                </h4>
+                <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold" id="badgeProductsCount">0 items</span>
+              </div>
+              <div class="flex-1 overflow-y-auto max-h-72 custom-scroll pr-1 space-y-2" id="posReportTopProducts">
+                <!-- Dynamically populated products ranking -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Order History Table Section -->
+          <div class="bg-[#10121a] rounded-2xl border border-[#1c2030] overflow-hidden hidden" id="posReportHistoryContainer">
+            <div class="p-4 border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 bg-[#131622]">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                  <span>📋</span> Pedidos del Periodo (<span id="posReportOrderCountLabel">0</span>)
+                </h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="relative">
+                  <input type="text" id="posReportOrderSearchInput" placeholder="🔍 Buscar cliente, ID o notas..." oninput="filterPOSReportOrdersTable()" class="bg-[#0b0c10] text-slate-200 text-xs px-3 py-1.5 pl-8 rounded-xl border border-[#232738] focus:border-orange-500 outline-none w-56 sm:w-64 transition-all">
+                  <span class="absolute left-2.5 top-1.5 text-xs text-slate-500">🔍</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="text-[11px] text-slate-400 uppercase bg-[#0c0d12] border-b border-[#1c2030] font-bold">
+                  <tr>
+                    <th class="px-4 py-3">ID / Hora</th>
+                    <th class="px-4 py-3">Cliente</th>
+                    <th class="px-4 py-3 text-center">Canal</th>
+                    <th class="px-4 py-3 text-center">Método</th>
+                    <th class="px-4 py-3">Productos</th>
+                    <th class="px-4 py-3 text-right">Total</th>
+                    <th class="px-4 py-3 text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="posReportHistoryBody" class="divide-y divide-[#181b26]">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: AUDITORÍA DE TURNOS Y CAJEROS -->
+        <!-- ============================================== -->
+        <div id="posReportTurnosTabContent" class="space-y-6 hidden">
+          
+          <!-- Turnos & Cajeros KPI Summary Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="posReportTurnosKPIs">
+            <!-- Dynamically rendered Turnos KPIs -->
+          </div>
+
+          <!-- Section A: Rendimiento por Cajero -->
+          <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030]">
+            <div class="flex items-center justify-between mb-4 border-b border-[#1c2030] pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-base font-bold">👥</span>
+                <div>
+                  <h4 class="text-sm font-black text-white tracking-tight">Rendimiento por Cajero</h4>
+                  <p class="text-[11px] text-slate-400">Total recaudado, pedidos procesados y arqueo neto por cada cajero</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="posReportCashiersList">
+              <!-- Dynamically populated cashier cards -->
+            </div>
+          </div>
+
+          <!-- Section B: Historial de Turnos de Caja (Sesiones Z) -->
+          <div class="bg-[#10121a] rounded-2xl border border-[#1c2030] overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 bg-[#131622]">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base font-bold">📋</span>
+                <div>
+                  <h4 class="text-sm font-black text-white tracking-tight">Sesiones y Turnos de Caja (Cierres Z)</h4>
+                  <p class="text-[11px] text-slate-400">Arqueo ciego, base inicial, diferencias y auditoría detallada de cada turno</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-4" id="posReportShiftsList">
+              <!-- Dynamically populated turnos cards -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE Y AUDITORÍA DE TURNO / CAJA POS -->
+  <div id="modalDetalleTurnoPOS" class="hidden fixed inset-0 z-[1300] flex items-center justify-center p-3 sm:p-4">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-md" onclick="closeTurnoDetail()"></div>
+    <div class="bg-[#111] border border-[#2a2a2a] w-full max-w-4xl max-h-[92vh] rounded-3xl relative z-10 flex flex-col shadow-2xl overflow-hidden text-white animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-[#222] flex justify-between items-center bg-[#181818] shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold">📋</div>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2" id="turnoDetailTitle">
+              Auditoría del Turno
+            </h3>
+            <p class="text-xs text-gray-400" id="turnoDetailSubtitle">Cargando información del turno...</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnReprintTurnoModal" onclick="reprintCurrentTurnoModal()" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold px-3 sm:px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-900/30">
+            <span>🖨️</span> <span class="hidden sm:inline">Reimprimir Ticket Z</span><span class="sm:hidden">Ticket Z</span>
           </button>
+          <button onclick="closeTurnoDetail()" class="w-9 h-9 flex items-center justify-center bg-[#282828] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-lg font-bold">✕</button>
         </div>
+      </div>
 
-        <!-- KPIs -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6" id="posReportKPIs">
-           <!-- Rendered via JS -->
-           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando mÃ©tricas...</div>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden" id="posReportCharts">
-          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Ventas por Origen</h4>
-            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartOrigin"></canvas></div>
-          </div>
-          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">MÃ©todos de Pago</h4>
-            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartPayment"></canvas></div>
-          </div>
-        </div>
-
-        <!-- Order History Table -->
-        <div class="bg-[#1a1a1a] rounded-2xl border border-[#222] overflow-hidden hidden" id="posReportHistoryContainer">
-          <div class="p-4 border-b border-[#222]">
-            <h4 class="text-sm text-white font-bold uppercase tracking-widest">Historial de Pedidos</h4>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-400">
-              <thead class="text-xs text-gray-500 uppercase bg-[#111] border-b border-[#222]">
-                <tr>
-                  <th class="px-4 py-3">ID / Hora</th>
-                  <th class="px-4 py-3">Cliente</th>
-                  <th class="px-4 py-3 text-center">Origen</th>
-                  <th class="px-4 py-3 text-center">Pago</th>
-                  <th class="px-4 py-3 text-right">Total</th>
-                  <th class="px-4 py-3 text-center">AcciÃ³n</th>
-                </tr>
-              </thead>
-              <tbody id="posReportHistoryBody" class="divide-y divide-[#222]">
-                <!-- Rows -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
+      <!-- Modal Body (Scrollable) -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 bg-[#0d0d0d] space-y-6" id="turnoDetailBody">
+        <div class="text-center py-16 text-gray-500 font-bold animate-pulse">Cargando reporte detallado del turno...</div>
       </div>
     </div>
   </div>
@@ -362,14 +622,48 @@
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeTablesModal()"></div>
     <div class="bg-[#111] border border-[#333] w-full max-w-4xl h-[90vh] md:h-auto md:max-h-[85vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4">
       <div class="p-4 md:p-6 border-b border-[#222] flex justify-between items-center shrink-0">
-        <h2 class="text-xl md:text-2xl font-black text-white">ðŸ—ºï¸ Estado de Mesas</h2>
-        <button onclick="closeTablesModal()" class="text-gray-400 hover:text-white bg-[#222] hover:bg-[#333] w-8 h-8 rounded-full transition-all">âœ•</button>
+        <h2 class="text-xl md:text-2xl font-black text-white">🗺️ Estado de Mesas</h2>
+        <button onclick="closeTablesModal()" class="text-gray-400 hover:text-white bg-[#222] hover:bg-[#333] w-8 h-8 rounded-full transition-all">✕</button>
       </div>
       <div class="p-4 md:p-6 overflow-y-auto custom-scroll flex-1">
         <div id="tablesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <!-- Tables injected here via JS -->
           <div class="col-span-full py-10 text-center text-gray-500">Cargando mesas...</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE DE MESA (Auditoría, Adición y Cobro de Mesa Ocupada) -->
+  <div id="modalDetalleMesaPOS" class="hidden fixed inset-0 z-[950] flex items-center justify-center p-3 sm:p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closeTableDetailModal()"></div>
+    <div class="bg-[#111] border border-[#333] w-full max-w-lg max-h-[92vh] rounded-3xl relative z-10 flex flex-col shadow-2xl overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Header -->
+      <div class="p-4 sm:p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
+        <div class="flex items-center gap-3">
+          <div id="mesaDetailIcon" class="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center text-2xl font-bold shadow-md">
+            🪑
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-lg sm:text-xl font-black text-white" id="mesaDetailTitle">Mesa 1</h3>
+              <span id="mesaDetailStatusBadge" class="bg-red-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-sm">Ocupada</span>
+            </div>
+            <p class="text-xs text-gray-400 font-medium mt-0.5" id="mesaDetailSubtitle">Pedido #1162 • Hace 15 min</p>
+          </div>
+        </div>
+        <button onclick="closeTableDetailModal()" class="w-8 h-8 flex items-center justify-center bg-[#222] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all font-bold text-sm">✕</button>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto custom-scroll flex-1 space-y-4 bg-[#0a0a0a]" id="mesaDetailBody">
+        <div class="text-center py-10 text-gray-400 font-bold">Cargando cuenta de la mesa...</div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="p-4 bg-[#1a1a1a] border-t border-[#222] flex flex-col gap-2.5 shrink-0" id="mesaDetailFooter">
+        <!-- Injected via JS -->
       </div>
     </div>
   </div>
@@ -383,7 +677,7 @@
           <h3 class="text-lg md:text-xl font-black text-white" id="extrasModalTitle">Extras</h3>
           <p class="text-xs text-orange-500 font-bold mt-1" id="extrasModalLimit"></p>
         </div>
-        <button onclick="closeExtrasModal()" class="text-gray-400 hover:text-white text-xl">âœ•</button>
+        <button onclick="closeExtrasModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
       </div>
       
       <div id="extrasModalContent" class="space-y-4 mb-4 overflow-y-auto custom-scroll flex-1 pr-2">
@@ -407,8 +701,8 @@
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeCheckoutModal()"></div>
     <div class="bg-[#1a1a1a] border border-[#333] rounded-t-2xl md:rounded-2xl w-full md:max-w-md p-5 md:p-6 relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
       <div class="flex justify-between items-center mb-5">
-        <h3 class="text-lg md:text-xl font-black text-white">ðŸ’³ Procesar Pago</h3>
-        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-xl">âœ•</button>
+        <h3 class="text-lg md:text-xl font-black text-white">💳 Procesar Pago</h3>
+        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
       </div>
       
       <div class="text-center mb-5">
@@ -422,16 +716,16 @@
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Tipo de Pedido</label>
           <div class="grid grid-cols-3 gap-2">
-            <button class="order-type-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectOrderType('A la mesa', this)">ðŸª‘ Mesa</button>
-            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Para Llevar', this)">ðŸ›ï¸ Llevar</button>
-            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Domicilio', this)">ðŸ›µ Domicilio</button>
+            <button class="order-type-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectOrderType('A la mesa', this)">🪑 Mesa</button>
+            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Para Llevar', this)">🛍️ Llevar</button>
+            <button class="order-type-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectOrderType('Domicilio', this)">🛵 Domicilio</button>
           </div>
           <input type="hidden" id="orderType" value="A la mesa">
         </div>
 
         <!-- MESA SELECTOR -->
         <div id="tableSelector">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">NÃºmero de Mesa</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Número de Mesa</label>
           <select id="tableNumber" onchange="handleTableSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500">
             <option value="">Seleccionar mesa</option>
           </select>
@@ -441,9 +735,9 @@
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-widest flex justify-between items-end mb-2">
             <span>Nombre (Opcional)</span>
-            <button class="bg-[#333] hover:bg-[#444] text-white px-2 py-1 rounded text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95" onclick="setVentaRapida()">âš¡ RÃPIDA</button>
+            <button class="bg-[#333] hover:bg-[#444] text-white px-2 py-1 rounded text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95" onclick="setVentaRapida()">⚡ RÁPIDA</button>
           </label>
-          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Juan PÃ©rez" autocomplete="off">
+          <input type="text" id="customerName" list="customersDataList" oninput="handleCustomerSelection()" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Juan Pérez" autocomplete="off">
           <datalist id="customersDataList"></datalist>
         </div>
 
@@ -454,9 +748,9 @@
           <span class="absolute right-4 top-[35px] text-[9px] font-black text-red-500 uppercase tracking-widest bg-[#222] px-1" id="posPhoneRequiredMark">*Obligatorio</span>
         </div>
 
-        <!-- DIRECCIÃ“N -->
+        <!-- DIRECCIÓN -->
         <div id="addressField" class="hidden">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">DirecciÃ³n de Entrega</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Dirección de Entrega</label>
           <input type="text" id="deliveryAddress" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-sm outline-none focus:border-orange-500" placeholder="Ej: Calle 9 # 14-58">
         </div>
 
@@ -475,21 +769,21 @@
           </select>
         </div>
 
-        <!-- MÃ‰TODO DE PAGO -->
+        <!-- MÉTODO DE PAGO -->
         <div id="paymentMethodSection">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">MÃ©todo de Pago</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de Pago</label>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="paymentButtonsGrid">
-            <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">ðŸ’µ Efectivo</button>
-            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">ðŸ¦ Transf.</button>
-            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">âœ‚ï¸ Dividir</button>
-            <button id="btnContraEntrega" class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs hidden" onclick="selectPayment('Contra Entrega', this)">ðŸšš Contra Entr.</button>
+            <button class="payment-btn active bg-orange-500 text-white font-bold py-2.5 rounded-xl border-2 border-orange-500 transition-all text-xs" onclick="selectPayment('Efectivo', this)">💵 Efectivo</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Transferencia', this)">🏦 Transf.</button>
+            <button class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs" onclick="selectPayment('Dividido', this)">✂️ Dividir</button>
+            <button id="btnContraEntrega" class="payment-btn bg-[#222] text-gray-300 font-bold py-2.5 rounded-xl border-2 border-[#333] hover:border-gray-500 transition-all text-xs hidden" onclick="selectPayment('Contra Entrega', this)">🚚 Contra Entr.</button>
           </div>
           <input type="hidden" id="paymentMethod" value="Efectivo">
         </div>
 
         <!-- MONTO RECIBIDO (solo Efectivo) -->
         <div id="cashAmountSection">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Â¿Con cuÃ¡nto paga?</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">¿Con cuánto paga?</label>
           <input type="number" id="cashReceived" class="w-full bg-[#222] border border-[#333] rounded-xl p-2.5 text-white text-lg font-black outline-none focus:border-orange-500" placeholder="$ Monto recibido" oninput="calculateChange()">
           <div class="grid grid-cols-4 gap-2 mt-2">
             <button class="bg-[#222] hover:bg-[#333] border border-[#333] text-gray-300 font-bold py-2 rounded-xl text-xs transition-all" onclick="setCashAmount(10000)">+$10k</button>
@@ -502,7 +796,7 @@
             <p class="text-2xl font-black text-green-400" id="changeAmount">$0</p>
           </div>
           <div id="insufficientDisplay" class="hidden mt-2 bg-red-500/10 border border-red-500/20 rounded-xl p-2 text-center">
-            <p class="text-xs text-red-400 font-bold">âš ï¸ Monto insuficiente</p>
+            <p class="text-xs text-red-400 font-bold">⚠️ Monto insuficiente</p>
           </div>
         </div>
 
@@ -511,17 +805,17 @@
            <!-- Renderizado desde JS -->
         </div>
 
-        <!-- DIVIDIR CUENTA (MÃºltiples Montos) -->
+        <!-- DIVIDIR CUENTA (Múltiples Montos) -->
         <div id="splitPaymentSection" class="hidden bg-[#222] p-4 rounded-xl border border-[#333]">
-          <label class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-3 text-center border-b border-[#444] pb-2">DistribuciÃ³n de Pagos</label>
+          <label class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-3 text-center border-b border-[#444] pb-2">Distribución de Pagos</label>
           
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold">ðŸ’µ Efectivo:</span>
+              <span class="text-sm font-bold">💵 Efectivo:</span>
               <input type="number" id="splitCash" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold">ðŸ¦ Transf:</span>
+              <span class="text-sm font-bold">🏦 Transf:</span>
               <input type="number" id="splitTransfer" class="w-1/2 bg-[#1a1a1a] border border-[#444] rounded-lg p-2 text-white text-right font-black outline-none focus:border-orange-500" placeholder="$0" oninput="calculateSplitTotal()">
             </div>
           </div>
@@ -536,14 +830,14 @@
       <div class="flex flex-col gap-3">
         <div class="flex gap-3">
           <button id="btnManualComanda" onclick="manualPrintComanda()" class="flex-1 bg-[#333] border-2 border-[#444] text-white font-black py-3.5 rounded-xl hover:bg-[#444] active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-            <span>ðŸ–¨ï¸ Comanda</span>
+            <span>🖨️ Comanda</span>
           </button>
           <button id="btnSaveTable" onclick="saveTableOrder()" class="flex-1 bg-[#222] border-2 border-orange-500 text-orange-500 font-black py-3.5 rounded-xl hover:bg-orange-500 hover:text-white active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-            <span>â³ Guardar</span>
+            <span>⏳ Guardar</span>
           </button>
         </div>
         <button id="btnConfirmSale" onclick="confirmSale()" class="w-full bg-white text-black font-black py-3.5 rounded-xl shadow-lg hover:bg-gray-200 active:scale-95 transition-all text-base flex items-center justify-center gap-2">
-          <span>âœ… Confirmar Venta</span>
+          <span>✅ Confirmar Venta</span>
         </button>
       </div>
     </div>
@@ -563,13 +857,13 @@
       <!-- Action Buttons -->
       <div class="flex gap-3 w-full shrink-0">
         <button onclick="printTicketFromPreview()" class="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          ðŸ–¨ï¸ Imprimir
+          🖨️ Imprimir
         </button>
         <button onclick="downloadTicketFromPreview()" class="flex-1 bg-white text-black font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          ðŸ“¥ Descargar
+          📥 Descargar
         </button>
         <button onclick="closeTicketPreview()" class="flex-1 bg-[#333] text-white font-black py-3.5 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-          âœ• Cerrar
+          ✕ Cerrar
         </button>
       </div>
     </div>
@@ -585,20 +879,24 @@
       <!-- Header -->
       <div class="p-4 md:p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
         <h3 class="text-lg md:text-xl font-black text-white flex items-center gap-3">
-          <span>ðŸ””</span> Pedidos Entrantes <span id="notifModalCount" class="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">0</span>
+          <span>🔔</span> Pedidos Entrantes <span id="notifModalCount" class="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">0</span>
         </h3>
         <div class="flex items-center gap-2">
-          <button onclick="refreshNotifications()" class="bg-[#222] hover:bg-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all">ðŸ”„ Actualizar</button>
-          <button onclick="closeNotificationsModal()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">âœ•</button>
+          <button onclick="refreshNotifications()" class="bg-[#222] hover:bg-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all">🔄 Actualizar</button>
+          <button onclick="closeNotificationsModal()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="px-4 md:px-5 py-3 bg-[#111] border-b border-[#222] flex gap-2 shrink-0">
-        <button onclick="filterNotifications('all')" class="notif-filter-btn active bg-orange-500 text-white font-bold py-2 px-4 rounded-xl border-2 border-orange-500 transition-all text-xs">Todos</button>
-        <button onclick="filterNotifications('kiosko')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">ðŸ–¥ï¸ Kiosko</button>
-        <button onclick="filterNotifications('menu')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">ðŸ“± MenÃº QR</button>
-        <button onclick="filterNotifications('pendiente')" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs">â³ Pendientes</button>
+      <div class="px-4 md:px-5 py-3 bg-[#111] border-b border-[#222] flex gap-2 flex-wrap shrink-0" id="notifFiltersContainer">
+        <button onclick="filterNotifications('pendiente')" id="btnNotifPendiente" class="notif-filter-btn active bg-orange-500 text-white font-black py-2 px-4 rounded-xl border-2 border-orange-500 transition-all text-xs flex items-center gap-1.5 shadow-sm">
+          <span>⏳ Pendientes</span>
+          <span id="notifFilterPendingBadge" class="bg-white text-orange-600 text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1">0</span>
+        </button>
+        <button onclick="filterNotifications('kiosko')" id="btnNotifKiosko" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs hover:text-white">🖥️ Kiosko</button>
+        <button onclick="filterNotifications('menu')" id="btnNotifMenu" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs hover:text-white">📱 Menú QR</button>
+        <button onclick="filterNotifications('my_shift')" id="btnNotifMyShift" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs hover:text-white">👤 Mi Turno</button>
+        <button onclick="filterNotifications('all')" id="btnNotifAll" class="notif-filter-btn bg-[#222] text-gray-300 font-bold py-2 px-4 rounded-xl border-2 border-[#333] transition-all text-xs hover:text-white">📋 Todos</button>
       </div>
 
       <!-- Orders List -->
@@ -617,9 +915,9 @@
     <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
       <div class="p-4 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a]">
         <h3 class="text-xl font-black text-white flex items-center gap-2">
-          <span>ðŸ’µ</span> <span id="cashModalTitle">GestiÃ³n de Caja</span>
+          <span>💵</span> <span id="cashModalTitle">Gestión de Caja</span>
         </h3>
-        <button onclick="closeCashModal()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">âœ•</button>
+        <button onclick="closeCashModal()" class="w-8 h-8 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all">✕</button>
       </div>
       
       <div class="p-5 bg-[#0a0a0a]" id="cashModalContent">
@@ -636,23 +934,23 @@
         <!-- Movimientos de Caja Form -->
         <div id="cashMovementSection" class="hidden">
           <div class="grid grid-cols-2 gap-2 mb-4">
-            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¤ Retiro (Caja)</button>
-            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¥ Ingreso (Caja)</button>
-            <button onclick="selectCashMovement('expense')" id="btnMoveExpense" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ’° Nuevo Gasto</button>
-            <button onclick="selectCashMovement('purchase')" id="btnMovePurchase" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">ðŸ“¦ Nueva Compra</button>
+            <button onclick="selectCashMovement('withdrawal')" id="btnMoveWithdrawal" class="bg-red-500/20 border border-red-500 text-red-500 font-bold py-2 rounded-lg transition-all text-xs">📤 Retiro (Caja)</button>
+            <button onclick="selectCashMovement('deposit')" id="btnMoveDeposit" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📥 Ingreso (Caja)</button>
+            <button onclick="selectCashMovement('expense')" id="btnMoveExpense" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">💰 Nuevo Gasto</button>
+            <button onclick="selectCashMovement('purchase')" id="btnMovePurchase" class="bg-[#222] border border-[#333] text-gray-400 font-bold py-2 rounded-lg transition-all text-xs">📦 Nueva Compra</button>
           </div>
           <input type="hidden" id="cashMoveType" value="withdrawal">
           
-          <!-- CategorÃ­a para Gastos (hidden by default) -->
+          <!-- Categoría para Gastos (hidden by default) -->
           <div id="cashMoveExpenseCatContainer" class="hidden mb-3">
-            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">CategorÃ­a del Gasto</label>
+            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Categoría del Gasto</label>
             <select id="cashMoveExpenseCat" class="w-full bg-[#222] border border-[#333] rounded-xl p-3 text-white text-sm focus:border-orange-500 outline-none">
-              <option value="Ingredientes">ðŸ§‚ Ingredientes</option>
-              <option value="Servicios">ðŸ’¡ Servicios</option>
-              <option value="Personal">ðŸ‘¤ Personal</option>
-              <option value="Arriendo">ðŸ  Arriendo</option>
-              <option value="Transporte">ðŸšš Transporte</option>
-              <option value="Otro">ðŸ“¦ Otro</option>
+              <option value="Ingredientes">🧂 Ingredientes</option>
+              <option value="Servicios">💡 Servicios</option>
+              <option value="Personal">👤 Personal</option>
+              <option value="Arriendo">🏠 Arriendo</option>
+              <option value="Transporte">🚚 Transporte</option>
+              <option value="Otro">📦 Otro</option>
             </select>
           </div>
 
@@ -676,14 +974,14 @@
     <div class="bg-[#111] border border-[#333] w-full max-w-md rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden">
       <div class="p-4 border-b border-[#222] bg-red-500/10">
         <h3 class="text-xl font-black text-red-500 flex items-center gap-2 justify-center">
-          <span>ðŸ›‘</span> Cierre de Turno
+          <span>🛑</span> Cierre de Turno
         </h3>
       </div>
       
       <div class="p-5 bg-[#0a0a0a]">
-        <p class="text-sm text-gray-300 mb-4 text-center">Para cerrar el turno, debes contar el efectivo fÃ­sico en caja (incluyendo el fondo inicial).</p>
+        <p class="text-sm text-gray-300 mb-4 text-center">Para cerrar el turno, debes contar el efectivo físico en caja (incluyendo el fondo inicial).</p>
         
-        <label class="text-xs font-bold text-gray-500 uppercase block mb-2 text-center">Efectivo FÃ­sico Contado</label>
+        <label class="text-xs font-bold text-gray-500 uppercase block mb-2 text-center">Efectivo Físico Contado</label>
         <input type="number" id="blindCashAmount" class="w-full bg-[#222] border border-[#333] rounded-xl p-4 text-center text-white text-3xl font-black mb-6 focus:border-red-500 outline-none" placeholder="$0">
         
         <div class="flex gap-3">
@@ -703,26 +1001,26 @@
   <script src="js/sounds.js?v=1780775000000"></script>
   <script src="js/supabase-config.js?v=1780775000000"></script>
   <script src="js/printbridge.js?v=1780777000002"></script>
-  <script src="js/pos-v2.js?v=1781800000001"></script>
+  <script src="js/pos-v2.js?v=1781800000016"></script>
   <script>
     function toggleTheme() {
       const body = document.body;
       const isLight = body.classList.toggle('light-mode');
       localStorage.setItem('pos_theme', isLight ? 'light' : 'dark');
-      document.getElementById('themeIcon').textContent = isLight ? 'ðŸŒ™' : 'â˜€ï¸';
+      document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
     }
     
     document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('pos_theme') === 'dark') {
         document.body.classList.remove('light-mode');
         const icon = document.getElementById('themeIcon');
-        if (icon) icon.textContent = 'â˜€ï¸';
+        if (icon) icon.textContent = '☀️';
       }
     });
   </script>
-  <!-- BotÃ³n Retroceso a Admin (Solo Admin/Superadmin) -->
-  <button id="globalAdminBackBtn" onclick="window.location.href='admin.html'" class="hidden fixed bottom-6 left-6 bg-[#222] hover:bg-orange-500 border border-[#333] hover:border-orange-500 text-white font-bold w-14 h-14 rounded-full shadow-2xl z-[9999] flex items-center justify-center transition-all duration-300 active:scale-95 group" title="Volver al Panel de AdministraciÃ³n">
-    <span class="text-2xl group-hover:-translate-x-1 transition-transform">â¬…ï¸</span>
+  <!-- Botón Retroceso a Admin (Solo Admin/Superadmin) -->
+  <button id="globalAdminBackBtn" onclick="window.location.href='admin.html'" class="hidden fixed bottom-6 left-6 bg-[#222] hover:bg-orange-500 border border-[#333] hover:border-orange-500 text-white font-bold w-14 h-14 rounded-full shadow-2xl z-[9999] flex items-center justify-center transition-all duration-300 active:scale-95 group" title="Volver al Panel de Administración">
+    <span class="text-2xl group-hover:-translate-x-1 transition-transform">⬅️</span>
   </button>
   <script>
     document.addEventListener('DOMContentLoaded', () => {

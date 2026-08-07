@@ -13,6 +13,7 @@ let selectedVisualExtras = [];
 let selectedAccompaniments = [];
 let posSettings = {};
 let currentOpenOrderId = null;
+let currentActiveTableNumber = null;
 let posCustomers = [];
 let activeCashClosingId = null;
 
@@ -53,8 +54,9 @@ async function initPOS() {
   updateAutoPrintUI();
   subscribeToOnlineOrders();
 
-  // Load initial notifications badge count
+  // Load initial notifications badge count & tables badge
   loadInitialNotifBadge();
+  refreshTablesBadge();
   startOrderPolling();
 
   const loading = document.getElementById('loadingBizScreen');
@@ -187,10 +189,34 @@ function startOrderPolling() {
           setTimeout(() => badge.classList.remove('animate-bounce'), 3000);
         }
       }
+
+      // Refresh active tables occupied count badge
+      refreshTablesBadge();
     } catch(err) {
       console.log('Polling error silently ignored', err);
     }
   }, 10000);
+}
+
+async function refreshTablesBadge() {
+  if (!businessId) return;
+  try {
+    const { data: activeOrders } = await supabaseClient
+      .from('orders')
+      .select('id')
+      .eq('business_id', businessId)
+      .eq('delivery_method', 'A la mesa')
+      .in('status', ['Pendiente', 'En preparación']);
+      
+    const count = (activeOrders || []).length;
+    const badge = document.getElementById('tablesOccupiedBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.classList.toggle('hidden', count === 0);
+    }
+  } catch (e) {
+    // silent
+  }
 }
 
 let autoPrintEnabled = false;
@@ -780,7 +806,17 @@ function addOneMore(key) {
   }
 }
 
-function clearCart() { posCart = {}; currentOpenOrderId = null; window.currentOpenOrderNotes = ''; updateCartUI(); }
+function clearCart() { 
+  posCart = {}; 
+  currentOpenOrderId = null; 
+  currentActiveTableNumber = null;
+  window.currentOpenOrderNotes = ''; 
+  const banner = document.getElementById('cartTableBanner');
+  if (banner) banner.classList.add('hidden');
+  const btnSave = document.getElementById('btnSaveTableDirect');
+  if (btnSave) btnSave.classList.add('hidden');
+  updateCartUI(); 
+}
 
 function getCartTotal() {
   let total = 0;
@@ -791,24 +827,53 @@ function getCartTotal() {
 function updateCartUI() {
   const container = document.getElementById('cartList');
   const btnCheckout = document.getElementById('btnCheckout');
+  const btnSaveDirect = document.getElementById('btnSaveTableDirect');
+  const banner = document.getElementById('cartTableBanner');
   const keys = Object.keys(posCart);
   const total = getCartTotal();
   const itemCount = Object.values(posCart).reduce((s, i) => s + i.qty, 0);
 
   // Badge
   const badge = document.getElementById('cartBadge');
-  badge.textContent = itemCount;
-  badge.classList.remove('animate-ping');
-  void badge.offsetWidth; // trigger reflow
-  badge.classList.add('animate-pulse');
-  document.getElementById('cartTotalMini').textContent = '$' + total.toLocaleString();
+  if (badge) {
+    badge.textContent = itemCount;
+    badge.classList.remove('animate-ping');
+    void badge.offsetWidth; // trigger reflow
+    badge.classList.add('animate-pulse');
+  }
+  const mini = document.getElementById('cartTotalMini');
+  if (mini) mini.textContent = '$' + total.toLocaleString();
+
+  // Table Banner state
+  if (currentActiveTableNumber || currentOpenOrderId) {
+    if (banner) {
+      banner.classList.remove('hidden');
+      const bannerText = document.getElementById('cartTableBannerText');
+      if (bannerText) {
+        bannerText.textContent = `Mesa ${currentActiveTableNumber || ''} ${currentOpenOrderId ? `• Pedido #${String(currentOpenOrderId).slice(-6)}` : '• Nueva'}`;
+      }
+      const bannerSub = document.getElementById('cartTableBannerSub');
+      const hasNewItems = keys.some(k => !posCart[k].fromDB);
+      if (bannerSub) {
+        bannerSub.textContent = hasNewItems ? '✨ Hay nuevos productos sin enviar' : '🍽️ Todos los consumos al día';
+      }
+    }
+    if (btnSaveDirect) {
+      btnSaveDirect.classList.remove('hidden');
+    }
+  } else {
+    if (banner) banner.classList.add('hidden');
+    if (btnSaveDirect) btnSaveDirect.classList.add('hidden');
+  }
 
   if (!keys.length) {
     container.innerHTML = '<div class="text-center text-gray-500 mt-6 text-sm font-bold">Carrito vacío<br>Selecciona productos</div>';
     document.getElementById('cartSubtotal').textContent = '$0';
     document.getElementById('cartTotal').textContent = '$0';
-    btnCheckout.disabled = true;
-    btnCheckout.classList.add('opacity-50', 'cursor-not-allowed');
+    if (btnCheckout) {
+      btnCheckout.disabled = true;
+      btnCheckout.classList.add('opacity-50', 'cursor-not-allowed');
+    }
     return;
   }
 
@@ -816,20 +881,27 @@ function updateCartUI() {
   keys.forEach(k => {
     const item = posCart[k];
     const sub = item.price * item.qty;
+    const isFromDB = !!item.fromDB;
+    
     html += `
-      <div class="bg-[#1a1a1a] rounded-xl p-2.5 border border-[#333]">
+      <div class="bg-[#1a1a1a] rounded-xl p-2.5 border ${isFromDB ? 'border-blue-500/30 bg-blue-950/10' : 'border-[#333]'} relative">
         <div class="flex justify-between items-start gap-2">
           <div class="min-w-0 flex-1">
-            <span class="font-bold text-xs md:text-sm leading-tight block truncate">${item.name}</span>
-            ${item.extrasLabel ? `<span class="text-[10px] text-gray-500 block truncate mt-0.5">${item.extrasLabel}</span>` : ''}
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-xs md:text-sm leading-tight text-white">${item.name}</span>
+              ${isFromDB 
+                ? '<span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-black px-1.5 py-0.2 rounded uppercase">🍽️ En Cuenta</span>' 
+                : '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-black px-1.5 py-0.2 rounded uppercase">✨ Nuevo</span>'}
+            </div>
+            ${item.extrasLabel ? `<span class="text-[10px] text-gray-400 block truncate mt-0.5">${item.extrasLabel}</span>` : ''}
           </div>
-          <span class="font-black text-orange-500 text-sm shrink-0">$${sub.toLocaleString()}</span>
+          <span class="font-black ${isFromDB ? 'text-blue-400' : 'text-orange-500'} text-sm shrink-0">$${sub.toLocaleString()}</span>
         </div>
         <div class="flex items-center justify-between mt-1.5">
-          <span class="text-[10px] text-gray-500">$${item.price.toLocaleString()} c/u</span>
+          <span class="text-[10px] text-gray-400">$${item.price.toLocaleString()} c/u</span>
           <div class="flex items-center gap-2 bg-[#0a0a0a] rounded-lg p-0.5 border border-[#222]">
             <button class="w-6 h-6 rounded flex items-center justify-center font-bold bg-[#222] text-gray-300 hover:text-white text-sm" onclick="removeFromCart('${k}')">−</button>
-            <span class="font-bold text-xs min-w-[1rem] text-center">${item.qty}</span>
+            <span class="font-bold text-xs min-w-[1rem] text-center text-white">${item.qty}</span>
             <button class="w-6 h-6 rounded flex items-center justify-center font-bold bg-[#222] text-gray-300 hover:text-white text-sm" onclick="addOneMore('${k}')">+</button>
           </div>
         </div>
@@ -839,8 +911,10 @@ function updateCartUI() {
   container.innerHTML = html;
   document.getElementById('cartSubtotal').textContent = '$' + total.toLocaleString();
   document.getElementById('cartTotal').textContent = '$' + total.toLocaleString();
-  btnCheckout.disabled = false;
-  btnCheckout.classList.remove('opacity-50', 'cursor-not-allowed');
+  if (btnCheckout) {
+    btnCheckout.disabled = false;
+    btnCheckout.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
 }
 
 // === MOBILE CART TOGGLE ===
@@ -1242,6 +1316,14 @@ async function confirmSale() {
       }
     }
 
+    const cashierTag = `[CASHIER:${staffName || 'Cajero'}|${staffEmail || ''}|SHIFT_${activeCashClosingId || 'NONE'}]`;
+    let finalNotes = (window.currentOpenOrderNotes && window.currentOpenOrderNotes.includes('[ORIGIN:')) ? window.currentOpenOrderNotes : '[ORIGIN:POS]';
+    if (finalNotes.includes('[CASHIER:')) {
+      finalNotes = finalNotes.replace(/\[CASHIER:[^\]]+\]/, cashierTag);
+    } else {
+      finalNotes += ` ${cashierTag}`;
+    }
+
     if (currentOpenOrderId) {
       const { data: updatedOrder, error } = await supabaseClient.from('orders').update({
         customer_name: customerName,
@@ -1252,7 +1334,7 @@ async function confirmSale() {
         total: total,
         delivery_fee: appliedDeliveryFee,
         status: 'Entregado',
-        notes: (window.currentOpenOrderNotes && window.currentOpenOrderNotes.includes('[ORIGIN:')) ? window.currentOpenOrderNotes : '[ORIGIN:POS]'
+        notes: finalNotes
       }).eq('id', currentOpenOrderId).select();
       if (error) throw error;
       showToast('✅ Venta cobrada (Mesa cerrada)');
@@ -1270,7 +1352,7 @@ async function confirmSale() {
         total: total,
         delivery_fee: appliedDeliveryFee,
         status: 'Entregado',
-        notes: '[ORIGIN:POS]'
+        notes: `[ORIGIN:POS] ${cashierTag}`
       }]).select();
       if (error) throw error;
       showToast('✅ Venta registrada');
@@ -1888,241 +1970,1935 @@ window.reprintTableComanda = function(e, orderId) {
   showToast('🖨️ Comanda generada');
 };
 
-// TABLES MODAL LOGIC
+// ==========================================
+// TABLES MODAL & ADVANCED TABLE MANAGEMENT
+// ==========================================
 window.openTablesModal = async function () {
-  document.getElementById('tablesModal').classList.remove('hidden');
+  const modal = document.getElementById('tablesModal');
+  if (modal) modal.classList.remove('hidden');
 
   const container = document.getElementById('tablesGrid');
-  container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">Cargando estado de mesas...</div>';
+  if (container) {
+    container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500 font-bold animate-pulse">Cargando estado de mesas...</div>';
+  }
 
   if (!posSettings || !posSettings.table_count) {
-    container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">No hay mesas configuradas en el administrador.</div>';
+    if (container) container.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500">No hay mesas configuradas en el administrador.</div>';
     return;
   }
 
   try {
     const { data: activeOrders, error } = await supabaseClient
       .from('orders')
-      .select('id, address, status, total, created_at, items')
+      .select('id, address, status, total, created_at, items, customer_name, customer_phone, notes')
       .eq('business_id', businessId)
       .eq('delivery_method', 'A la mesa')
       .in('status', ['Pendiente', 'En preparación']);
 
     if (error) throw error;
     
-    window.currentActiveOrders = activeOrders;
+    window.currentActiveOrders = activeOrders || [];
+
+    // Update Header Badge
+    const occupiedCount = window.currentActiveOrders.length;
+    const headerBadge = document.getElementById('tablesOccupiedBadge');
+    if (headerBadge) {
+      headerBadge.textContent = occupiedCount;
+      headerBadge.classList.toggle('hidden', occupiedCount === 0);
+    }
 
     let html = '';
     for (let i = 1; i <= posSettings.table_count; i++) {
       // Look for an order matching "Mesa X"
-      const order = activeOrders?.find(o => String(o.address) === `Mesa ${i}`);
+      const order = window.currentActiveOrders.find(o => String(o.address) === `Mesa ${i}`);
 
       if (order) {
         // Ocupada
-        const timeDiff = Math.floor((new Date() - new Date(order.created_at)) / 60000);
+        const timeDiff = Math.max(0, Math.floor((new Date() - new Date(order.created_at)) / 60000));
+        const itemCount = (order.items || []).reduce((sum, item) => sum + (Number(item.qty) || Number(item.quantity) || 1), 0);
+        
         html += `
-          <div onclick="openTableOrder('${order.id}')" class="relative bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-red-500/20 transition-all text-center group">
-            <button onclick="reprintTableComanda(event, '${order.id}')" class="absolute top-2 right-2 bg-[#222] border border-[#333] hover:bg-white hover:text-black w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg text-sm" title="Reimprimir Comanda">
-              🖨️
-            </button>
-            <span class="text-3xl mb-2">🔴</span>
-            <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
-            <span class="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-widest">Ocupada</span>
-            <span class="text-[10px] text-gray-400 mt-1">Pedido #${order.id}</span>
-            <span class="text-[10px] text-gray-400">${timeDiff} min</span>
+          <div onclick="openTableDetailModal('${order.id}', ${i})" class="relative bg-red-500/10 border-2 border-red-500/40 hover:border-red-500 rounded-2xl p-4 flex flex-col items-center justify-between cursor-pointer hover:bg-red-500/15 hover:scale-[1.02] active:scale-95 transition-all text-center group shadow-md min-h-[160px]">
+            <div class="w-full flex justify-between items-center text-xs">
+              <span class="bg-red-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">Ocupada</span>
+              <div class="flex gap-1.5">
+                <button onclick="event.stopPropagation(); printPreCuentaMesa('${order.id}')" class="bg-[#222] border border-[#333] hover:bg-orange-500 hover:text-white w-7 h-7 rounded-lg flex items-center justify-center transition-all text-xs shadow" title="Imprimir Pre-Cuenta">
+                  🧾
+                </button>
+                <button onclick="reprintTableComanda(event, '${order.id}')" class="bg-[#222] border border-[#333] hover:bg-orange-500 hover:text-white w-7 h-7 rounded-lg flex items-center justify-center transition-all text-xs shadow" title="Reimprimir Comanda Cocina">
+                  🖨️
+                </button>
+              </div>
+            </div>
+
+            <div class="my-2">
+              <span class="text-3xl block mb-1">🔴</span>
+              <span class="font-black text-white text-lg tracking-tight">Mesa ${i}</span>
+              <span class="text-sm font-black text-red-500 block mt-0.5">$${Number(order.total || 0).toLocaleString()}</span>
+            </div>
+
+            <div class="w-full flex justify-between items-center text-[10px] text-gray-400 border-t border-red-500/20 pt-2 mt-1 font-semibold">
+              <span>#${String(order.id).slice(-4)}</span>
+              <span>${itemCount} prod.</span>
+              <span class="text-orange-400 font-bold">${timeDiff}m</span>
+            </div>
           </div>
         `;
       } else {
         // Libre
         html += `
-          <div onclick="startTableOrder(${i})" class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-green-500/20 transition-all text-center">
-            <span class="text-3xl mb-2">🟢</span>
-            <span class="font-black text-white text-lg whitespace-nowrap">Mesa ${i}</span>
-            <span class="text-[10px] font-bold text-green-400 mt-1 uppercase tracking-widest">Libre</span>
-            <span class="text-[10px] text-gray-400 mt-1 opacity-0">-</span>
-            <span class="text-[10px] text-gray-400 opacity-0">-</span>
+          <div onclick="startTableOrder(${i})" class="bg-emerald-500/10 border-2 border-emerald-500/30 hover:border-emerald-500 rounded-2xl p-4 flex flex-col items-center justify-between cursor-pointer hover:bg-emerald-500/15 hover:scale-[1.02] active:scale-95 transition-all text-center shadow-sm min-h-[160px]">
+            <div class="w-full flex justify-start">
+              <span class="bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Libre</span>
+            </div>
+            
+            <div class="my-2">
+              <span class="text-3xl block mb-1">🟢</span>
+              <span class="font-black text-white text-lg tracking-tight">Mesa ${i}</span>
+              <span class="text-xs text-emerald-500 font-bold block mt-0.5">Disponible</span>
+            </div>
+
+            <div class="w-full text-center text-[11px] font-bold text-gray-400 border-t border-[#222] pt-2 mt-1">
+              Tocar para abrir
+            </div>
           </div>
         `;
       }
     }
 
-    container.innerHTML = html;
+    if (container) container.innerHTML = html;
   } catch (err) {
-    container.innerHTML = '<div class="col-span-full py-10 text-center text-red-500">Error cargando mesas.</div>';
-    console.error(err);
+    if (container) container.innerHTML = '<div class="col-span-full py-10 text-center text-red-500 font-bold">Error cargando mesas. Reintenta.</div>';
+    console.error('Error cargando mesas:', err);
   }
 };
 
 window.closeTablesModal = function () {
-  document.getElementById('tablesModal').classList.add('hidden');
-};
-
-window.openTableOrder = function(orderId) {
-  const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
-  if (!order) return;
-  
-  closeTablesModal();
-  clearCart();
-  
-  currentOpenOrderId = order.id;
-  
-  // Load existing items into the cart, marked as fromDB so they won't be re-sent
-  // to the kitchen or duplicated when saving
-  order.items.forEach((item, index) => {
-    const key = `existing_${index}`;
-    posCart[key] = {
-      id: item.id || `custom_${index}`,
-      qty: item.qty || item.quantity || 1,
-      price: item.price,
-      name: item.name,
-      extrasLabel: '',
-      fromDB: true  // Mark as already-saved item
-    };
-  });
-  
-  updateCartUI();
-  
-  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
-  if (btnMesa) selectOrderType('A la mesa', btnMesa);
-  
-  const tableNumStr = order.address.replace('Mesa ', '');
-  const sel = document.getElementById('tableNumber');
-  if (sel) sel.value = tableNumStr;
-  
-  showToast(`✅ Mesa ${tableNumStr} reabierta`);
-};
-
-window.startTableOrder = function (tableNum) {
-  closeTablesModal();
-  clearCart();
-  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
-  if (btnMesa) selectOrderType('A la mesa', btnMesa);
-  const sel = document.getElementById('tableNumber');
-  if (sel) sel.value = tableNum;
-  showToast(`✅ Iniciando pedido para Mesa ${tableNum}`);
+  const m = document.getElementById('tablesModal');
+  if (m) m.classList.add('hidden');
 };
 
 // ==========================================
-// POS REPORTS (CORTE DE CAJA)
+// MODAL DETALLE DE MESA (Auditoría, Adición y Cobro)
+// ==========================================
+window.openTableDetailModal = async function(orderId, tableNum) {
+  const modal = document.getElementById('modalDetalleMesaPOS');
+  const title = document.getElementById('mesaDetailTitle');
+  const subtitle = document.getElementById('mesaDetailSubtitle');
+  const body = document.getElementById('mesaDetailBody');
+  const footer = document.getElementById('mesaDetailFooter');
+
+  if (!modal || !body) return;
+  modal.classList.remove('hidden');
+
+  let order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
+
+  if (!order) {
+    body.innerHTML = '<div class="text-center py-10 text-gray-400 font-bold animate-pulse">Obteniendo datos de la mesa...</div>';
+    try {
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+      if (error || !data) throw new Error("Pedido no encontrado");
+      order = data;
+    } catch (e) {
+      body.innerHTML = '<div class="text-center py-10 text-red-400 font-bold">No se pudo cargar el pedido de la mesa.</div>';
+      return;
+    }
+  }
+
+  const timeDiff = Math.max(0, Math.floor((new Date() - new Date(order.created_at)) / 60000));
+  const orderTotal = Number(order.total || 0);
+
+  if (title) title.textContent = `Mesa ${tableNum}`;
+  if (subtitle) {
+    subtitle.textContent = `Pedido #${order.id} • ${order.customer_name || 'Venta Rápida'} • Hace ${timeDiff} min`;
+  }
+
+  // Render items list
+  const items = order.items || [];
+  let itemsHtml = '';
+  
+  if (items.length > 0) {
+    items.forEach((item, idx) => {
+      const qty = Number(item.qty) || Number(item.quantity) || 1;
+      const price = Number(item.price) || 0;
+      const subtotal = qty * price;
+      
+      // Accompaniments / notes
+      let extrasHtml = '';
+      if (item.accompaniments && Array.isArray(item.accompaniments) && item.accompaniments.length > 0) {
+        extrasHtml = `
+          <div class="mt-1 flex flex-wrap gap-1">
+            ${item.accompaniments.map(acc => `<span class="bg-[#222] border border-[#333] text-gray-300 text-[10px] font-semibold px-2 py-0.5 rounded-md">➕ ${acc.name || acc}</span>`).join('')}
+          </div>
+        `;
+      } else if (item.notes) {
+        extrasHtml = `<p class="text-[11px] text-gray-400 italic mt-0.5">Nota: ${item.notes}</p>`;
+      }
+      
+      itemsHtml += `
+        <div class="flex items-start justify-between p-3.5 bg-[#1a1a1a] rounded-2xl border border-[#2b2b2b] shadow-sm hover:border-orange-500/40 transition-all">
+          <div class="min-w-0 flex-1 pr-3">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <span class="font-extrabold text-white text-sm sm:text-base tracking-tight leading-snug">${item.name || 'Producto'}</span>
+              <span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">🍽️ En Cuenta</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-400 font-medium">
+              <span class="bg-[#262626] px-2 py-0.5 rounded-md font-bold text-gray-300">${qty}x</span>
+              <span>$${price.toLocaleString()} c/u</span>
+            </div>
+            ${extrasHtml}
+          </div>
+          <div class="text-right shrink-0">
+            <span class="font-black text-orange-400 text-sm sm:text-base">$${subtotal.toLocaleString()}</span>
+          </div>
+        </div>
+      `;
+    });
+  } else {
+    itemsHtml = '<div class="text-center py-6 text-gray-400 text-sm font-bold bg-[#1a1a1a] rounded-2xl border border-[#2b2b2b]">Sin productos registrados en esta mesa</div>';
+  }
+
+  body.innerHTML = `
+    <!-- Client & Order Info Card -->
+    <div class="grid grid-cols-2 gap-3 bg-[#1a1a1a] p-3.5 rounded-2xl border border-[#2b2b2b] text-xs">
+      <div>
+        <span class="text-gray-400 block text-[10px] uppercase font-black tracking-wider mb-0.5">Cliente</span>
+        <span class="text-white font-extrabold text-sm block truncate">${order.customer_name || 'Venta Rápida'}</span>
+      </div>
+      <div>
+        <span class="text-gray-400 block text-[10px] uppercase font-black tracking-wider mb-0.5">Teléfono / WhatsApp</span>
+        <span class="text-white font-bold text-sm block truncate">${order.customer_phone || 'N/A'}</span>
+      </div>
+      <div class="mt-1">
+        <span class="text-gray-400 block text-[10px] uppercase font-black tracking-wider mb-0.5">Hora de Pedido</span>
+        <span class="text-white font-bold text-sm block">${new Date(order.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+      <div class="mt-1">
+        <span class="text-gray-400 block text-[10px] uppercase font-black tracking-wider mb-0.5">Estado</span>
+        <span class="text-amber-400 font-black inline-flex items-center gap-1.5 text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          En preparación
+        </span>
+      </div>
+    </div>
+
+    <!-- Items Section -->
+    <div>
+      <div class="flex justify-between items-center mb-2.5 px-0.5">
+        <h4 class="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+          <span>📋</span> <span>Productos Consumidos</span>
+        </h4>
+        <span class="text-xs bg-[#222] text-gray-300 border border-[#333] font-black px-2.5 py-0.5 rounded-full">${items.length} ${items.length === 1 ? 'ítem' : 'ítems'}</span>
+      </div>
+      <div class="space-y-2.5 max-h-56 overflow-y-auto custom-scroll pr-1">
+        ${itemsHtml}
+      </div>
+    </div>
+
+    <!-- Subtotal & Total Box -->
+    <div class="bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-orange-500/15 border-2 border-orange-500/40 p-4 rounded-2xl flex justify-between items-center shadow-lg">
+      <div>
+        <span class="text-[11px] font-black text-orange-400 uppercase tracking-widest block">Total Acumulado</span>
+        <span class="text-xs text-gray-400 font-medium">Incluye todos los consumos en comanda</span>
+      </div>
+      <span class="text-2xl sm:text-3xl font-black text-orange-400">$${orderTotal.toLocaleString()}</span>
+    </div>
+  `;
+
+  // Action Footer Buttons
+  if (footer) {
+    footer.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 w-full">
+        <button onclick="printPreCuentaMesa('${order.id}')" class="bg-[#222] hover:bg-[#333] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 border border-[#333] active:scale-95 transition-all shadow-sm">
+          <span>🧾</span> <span>Imprimir Pre-Cuenta</span>
+        </button>
+        <button onclick="reprintTableComanda(event, '${order.id}')" class="bg-[#222] hover:bg-[#333] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 border border-[#333] active:scale-95 transition-all shadow-sm">
+          <span>🖨️</span> <span>Reimprimir Cocina</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full pt-1">
+        <button onclick="loadTableToCart('${order.id}', ${tableNum}, false)" class="bg-[#222] hover:bg-orange-500 hover:text-white border-2 border-orange-500 text-orange-500 font-black py-3 px-4 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md">
+          <span>➕</span> <span>Adicionar Más Productos</span>
+        </button>
+        
+        <button onclick="loadTableToCart('${order.id}', ${tableNum}, true)" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-orange-500/25">
+          <span>💰</span> <span>Cobrar Cuenta (Checkout)</span>
+        </button>
+      </div>
+    `;
+  }
+};
+
+window.closeTableDetailModal = function() {
+  const modal = document.getElementById('modalDetalleMesaPOS');
+  if (modal) modal.classList.add('hidden');
+};
+
+// Carga la mesa al carrito de forma controlada
+window.loadTableToCart = function(orderId, tableNum, goToCheckout = false) {
+  const order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
+  if (!order) return;
+
+  closeTableDetailModal();
+  closeTablesModal();
+  
+  posCart = {};
+  currentOpenOrderId = order.id;
+  currentActiveTableNumber = tableNum;
+
+  // Load existing items with fromDB = true
+  (order.items || []).forEach((item, index) => {
+    const key = `existing_${index}`;
+    posCart[key] = {
+      id: item.id || `custom_${index}`,
+      qty: Number(item.qty) || Number(item.quantity) || 1,
+      price: Number(item.price) || 0,
+      name: item.name,
+      extrasLabel: '',
+      fromDB: true
+    };
+  });
+
+  updateCartUI();
+
+  // Set order type to 'A la mesa'
+  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
+  if (btnMesa) selectOrderType('A la mesa', btnMesa);
+
+  const sel = document.getElementById('tableNumber');
+  if (sel) sel.value = String(tableNum);
+
+  if (goToCheckout) {
+    openCheckoutModal();
+  } else {
+    showToast(`🪑 Editando Mesa ${tableNum}. Selecciona productos para adicionar.`);
+  }
+};
+
+// Iniciar orden para una mesa libre
+window.startTableOrder = function (tableNum) {
+  closeTablesModal();
+  closeTableDetailModal();
+  clearCart();
+  
+  currentActiveTableNumber = tableNum;
+  currentOpenOrderId = null;
+
+  const btnMesa = document.querySelector('.order-type-btn[onclick*="A la mesa"]');
+  if (btnMesa) selectOrderType('A la mesa', btnMesa);
+  
+  const sel = document.getElementById('tableNumber');
+  if (sel) sel.value = String(tableNum);
+  
+  updateCartUI();
+  showToast(`✅ Iniciando pedido para Mesa ${tableNum}`);
+};
+
+// Guardar / Adicionar a la mesa directamente desde el carrito (Pagar Luego)
+window.saveTableOrderFromCart = async function() {
+  const keys = Object.keys(posCart);
+  if (!keys.length) {
+    showToast('⚠️ El carrito está vacío', 'error');
+    return;
+  }
+
+  const tableNum = currentActiveTableNumber || document.getElementById('tableNumber')?.value;
+  if (!tableNum) {
+    showToast('⚠️ Seleccione una mesa', 'error');
+    return;
+  }
+
+  // Open checkout modal or save directly
+  saveTableOrder();
+};
+
+// IMPRIMIR PRE-CUENTA DE CONSUMO (Ticket Informativo para el Cliente)
+window.printPreCuentaMesa = async function(orderId) {
+  let order = window.currentActiveOrders?.find(o => String(o.id) === String(orderId));
+  
+  if (!order) {
+    try {
+      const { data } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+      order = data;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  if (!order) {
+    showToast('⚠️ No se encontró el pedido para la pre-cuenta', 'error');
+    return;
+  }
+
+  const businessName = posSettings?.name || 'Mi Negocio';
+  const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:48px;height:48px;border-radius:24px;margin:0 auto 8px auto;display:block;">` : '';
+  const dateStr = new Date(order.created_at || Date.now()).toLocaleString('es-ES');
+  const items = order.items || [];
+  const total = Number(order.total || 0);
+
+  const html = `
+    <html>
+      <head>
+        <title>Pre-Cuenta - ${order.address || 'Mesa'}</title>
+        <style>
+          body { font-family: 'Courier New', Courier, monospace, Arial; font-size: 13px; margin: 0; padding: 10px; width: 80mm; color: #000; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .font-bold { font-weight: bold; }
+          .mb-1 { margin-bottom: 4px; }
+          .mb-2 { margin-bottom: 8px; }
+          .border-b { border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
+          .border-t { border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
+          .flex { display: flex; justify-content: space-between; }
+          @media print { body { width: 100%; margin: 0; padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="text-center mb-1">${logoUrl}</div>
+        <div class="text-center font-bold" style="font-size: 15px;">${businessName}</div>
+        <div class="text-center font-bold mb-1" style="font-size: 14px; letter-spacing: 1px;">*** PRE-CUENTA DE CONSUMO ***</div>
+        <div class="text-center border-b" style="font-size: 11px;">
+          DOCUMENTO INFORMATIVO (NO FISCAL)
+        </div>
+
+        <div class="flex" style="margin-top: 6px;">
+          <span class="font-bold">${order.address || 'MESA'}</span>
+          <span>Pedido: #${order.id}</span>
+        </div>
+        <div class="flex" style="font-size: 11px;">
+          <span>Cliente: ${order.customer_name || 'Venta Rápida'}</span>
+        </div>
+        <div class="flex border-b" style="font-size: 11px; margin-bottom: 8px;">
+          <span>Fecha: ${dateStr}</span>
+        </div>
+
+        <div class="border-b" style="padding-bottom: 6px;">
+          <div class="font-bold mb-1" style="font-size: 11px; text-transform: uppercase;">DESGLOSE DE CONSUMOS:</div>
+          ${items.map(it => {
+            const qty = Number(it.qty) || Number(it.quantity) || 1;
+            const price = Number(it.price) || 0;
+            const sub = qty * price;
+            return `
+              <div class="flex" style="font-size: 12px; margin-bottom: 3px;">
+                <span style="flex: 1; padding-right: 6px;">${qty}x ${it.name}</span>
+                <span class="font-bold">$${sub.toLocaleString()}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="flex border-t font-bold" style="font-size: 16px; margin-top: 8px; padding-top: 6px;">
+          <span>TOTAL A PAGAR:</span>
+          <span>$${total.toLocaleString()}</span>
+        </div>
+
+        <div class="text-center border-t" style="margin-top: 15px; padding-top: 8px; font-size: 11px;">
+          ¡Gracias por su visita!<br>
+          Por favor acerque este ticket a caja para pagar.
+        </div>
+
+        <script>
+          setTimeout(() => { window.print(); window.close(); }, 500);
+        </script>
+      </body>
+    </html>
+  `;
+
+  const pWin = window.open('', '_blank', 'width=400,height=600');
+  if (pWin) {
+    pWin.document.write(html);
+    pWin.document.close();
+    showToast('🧾 Imprimiendo pre-cuenta...');
+  }
+};
+
+// ==========================================
+// POS REPORTS (CORTE DE CAJA Z & DASHBOARD FINANCIERO CON TURNOS Y CAJEROS)
 // ==========================================
 window.chartOriginInstance = null;
 window.chartPaymentInstance = null;
 window.currentPOSReport = null;
+window.currentPOSReportRawOrders = [];
+window.currentPOSReportRawClosings = [];
+window.currentPOSReportRawMovements = [];
+window.currentPOSReportActiveTab = 'overview';
+window.currentPOSReportCashierFilter = 'all';
+window.currentPOSReportTurnoFilter = 'all';
+window.currentTurnoDetailData = null;
 
+// Helper to extract staff name reliably
+function extractStaffName(item) {
+  if (!item) return 'Admin';
+  if (item.staff_name && typeof item.staff_name === 'string' && item.staff_name.trim()) {
+    return item.staff_name.trim();
+  }
+  if (item.notes && typeof item.notes === 'string') {
+    if (item.notes.includes('Apertura por:')) {
+      const parts = item.notes.split('Apertura por:');
+      if (parts[1]) return parts[1].split('\n')[0].split('•')[0].trim();
+    }
+    if (item.notes.includes('[STAFF:')) {
+      const match = item.notes.match(/\[STAFF:([^\]]+)\]/);
+      if (match && match[1]) return match[1].trim();
+    }
+  }
+  if (item.cashier_name) return String(item.cashier_name).trim();
+  return 'Admin';
+}
+
+// Format readable date and time
+function formatTurnoDateTime(dateStr) {
+  if (!dateStr) return 'N/A';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleString('es-ES', { 
+      day: 'numeric', 
+      month: 'short', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  } catch (e) {
+    return String(dateStr);
+  }
+}
+
+// Switch between Financial Overview and Turnos/Cajeros Tabs
+window.switchPOSReportTab = function(tab) {
+  window.currentPOSReportActiveTab = tab;
+  const overviewContent = document.getElementById('posReportOverviewTabContent');
+  const turnosContent = document.getElementById('posReportTurnosTabContent');
+  const btnOverview = document.getElementById('posTabBtnOverview');
+  const btnTurnos = document.getElementById('posTabBtnTurnos');
+
+  if (tab === 'overview') {
+    if (overviewContent) overviewContent.classList.remove('hidden');
+    if (turnosContent) turnosContent.classList.add('hidden');
+    if (btnOverview) btnOverview.className = 'px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center gap-1.5';
+    if (btnTurnos) btnTurnos.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030] flex items-center gap-1.5';
+  } else {
+    if (overviewContent) overviewContent.classList.add('hidden');
+    if (turnosContent) turnosContent.classList.remove('hidden');
+    if (btnTurnos) btnTurnos.className = 'px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center gap-1.5';
+    if (btnOverview) btnOverview.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030] flex items-center gap-1.5';
+  }
+};
+
+window.setPOSReportPeriod = function(period) {
+  const filterInput = document.getElementById('posReportDateFilter');
+  if (filterInput) filterInput.value = period;
+
+  // Reset shift & cashier filters on period change
+  window.currentPOSReportCashierFilter = 'all';
+  window.currentPOSReportTurnoFilter = 'all';
+
+  // Update pills styling
+  document.querySelectorAll('.pos-period-btn').forEach(btn => {
+    if (btn.getAttribute('data-period') === period) {
+      btn.className = 'pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm';
+    } else {
+      btn.className = 'pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]';
+    }
+  });
+
+  const customContainer = document.getElementById('posCustomDatesContainer');
+  if (customContainer) {
+    customContainer.classList.add('hidden');
+    customContainer.classList.remove('flex');
+  }
+
+  openPOSReport();
+};
+
+window.togglePOSCustomDates = function() {
+  const container = document.getElementById('posCustomDatesContainer');
+  if (!container) return;
+  
+  const isHidden = container.classList.contains('hidden');
+  if (isHidden) {
+    container.classList.remove('hidden');
+    container.classList.add('flex');
+
+    const startInput = document.getElementById('posCustomStartDate');
+    const endInput = document.getElementById('posCustomEndDate');
+    const now = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(now.getDate() - 7);
+
+    if (startInput && !startInput.value) startInput.value = weekAgo.toISOString().split('T')[0];
+    if (endInput && !endInput.value) endInput.value = now.toISOString().split('T')[0];
+
+    document.querySelectorAll('.pos-period-btn').forEach(btn => {
+      btn.className = 'pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]';
+    });
+    const customBtn = document.getElementById('btnCustomDatesToggle');
+    if (customBtn) customBtn.className = 'pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm';
+  } else {
+    container.classList.add('hidden');
+    container.classList.remove('flex');
+  }
+};
+
+window.applyPOSCustomDates = function() {
+  const startVal = document.getElementById('posCustomStartDate')?.value;
+  const endVal = document.getElementById('posCustomEndDate')?.value;
+  if (!startVal || !endVal) {
+    if (typeof showToast === 'function') showToast('Selecciona ambas fechas', 'warning');
+    return;
+  }
+  const filterInput = document.getElementById('posReportDateFilter');
+  if (filterInput) filterInput.value = 'custom';
+  window.currentPOSReportCashierFilter = 'all';
+  window.currentPOSReportTurnoFilter = 'all';
+  openPOSReport();
+};
+
+// Filter change events
+window.onPOSReportCashierFilterChanged = function() {
+  const select = document.getElementById('posReportCashierFilter');
+  window.currentPOSReportCashierFilter = select ? select.value : 'all';
+  recalculateAndRenderPOSReport();
+};
+
+window.onPOSReportTurnoFilterChanged = function() {
+  const select = document.getElementById('posReportTurnoFilter');
+  window.currentPOSReportTurnoFilter = select ? select.value : 'all';
+  recalculateAndRenderPOSReport();
+};
+
+window.filterPOSReportByCashier = function(cashierName) {
+  const select = document.getElementById('posReportCashierFilter');
+  if (select) select.value = cashierName;
+  window.currentPOSReportCashierFilter = cashierName;
+  window.switchPOSReportTab('overview');
+  recalculateAndRenderPOSReport();
+};
+
+window.filterPOSReportByTurno = function(turnoId) {
+  const select = document.getElementById('posReportTurnoFilter');
+  if (select) select.value = turnoId;
+  window.currentPOSReportTurnoFilter = turnoId;
+  window.switchPOSReportTab('overview');
+  recalculateAndRenderPOSReport();
+};
+
+// Main Data Fetcher
 window.openPOSReport = async function() {
-  document.getElementById('posReportModal').classList.remove('hidden');
-  document.getElementById('posReportKPIs').innerHTML = '<div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando métricas...</div>';
-  document.getElementById('posReportCharts').classList.add('hidden');
-  document.getElementById('posReportHistoryContainer').classList.add('hidden');
-  document.getElementById('btnPrintPOSReport').disabled = true;
+  const modal = document.getElementById('posReportModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const kpisContainer = document.getElementById('posReportKPIs');
+  const chartsContainer = document.getElementById('posReportCharts');
+  const historyContainer = document.getElementById('posReportHistoryContainer');
+  const btnPrint = document.getElementById('btnPrintPOSReport');
+  const subheader = document.getElementById('posReportSubheader');
+
+  if (kpisContainer) {
+    kpisContainer.innerHTML = `
+      <div class="col-span-full text-center py-16 text-slate-400 animate-pulse font-bold text-sm flex flex-col items-center justify-center gap-3">
+        <div class="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <span>Calculando métricas financieras consolidadas...</span>
+      </div>
+    `;
+  }
+  if (chartsContainer) chartsContainer.classList.add('hidden');
+  if (historyContainer) historyContainer.classList.add('hidden');
+  if (btnPrint) btnPrint.disabled = true;
 
   try {
-    const filter = document.getElementById('posReportDateFilter').value;
+    const filter = document.getElementById('posReportDateFilter')?.value || 'today';
     const now = new Date();
     let startDate = new Date();
     let endDate = new Date();
+    let periodLabel = 'Hoy';
 
     if (filter === 'today') {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
+      periodLabel = `Hoy (${now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })})`;
     } else if (filter === 'yesterday') {
       startDate.setDate(now.getDate() - 1);
       startDate.setHours(0, 0, 0, 0);
       endDate.setDate(now.getDate() - 1);
       endDate.setHours(23, 59, 59, 999);
+      periodLabel = `Ayer (${startDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })})`;
     } else if (filter === 'this_week') {
-      const day = now.getDay() || 7; // Get current day number, converting Sun. to 7
-      startDate.setDate(now.getDate() - day + 1); // Monday
+      const day = now.getDay() || 7; 
+      startDate.setDate(now.getDate() - day + 1);
       startDate.setHours(0,0,0,0);
       endDate.setHours(23,59,59,999);
+      periodLabel = `Esta Semana (${startDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - ${now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })})`;
     } else if (filter === 'this_month') {
       startDate.setDate(1);
       startDate.setHours(0,0,0,0);
       endDate.setHours(23,59,59,999);
+      periodLabel = `Este Mes (${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })})`;
+    } else if (filter === 'custom') {
+      const startVal = document.getElementById('posCustomStartDate')?.value;
+      const endVal = document.getElementById('posCustomEndDate')?.value;
+      if (startVal) {
+        startDate = new Date(startVal + 'T00:00:00');
+      }
+      if (endVal) {
+        endDate = new Date(endVal + 'T23:59:59.999');
+      }
+      periodLabel = `Personalizado (${startDate.toLocaleDateString('es-ES', { day:'numeric', month:'short' })} - ${endDate.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })})`;
     }
 
+    if (subheader) {
+      subheader.textContent = `Periodo: ${periodLabel} • Auditoría financiera consolidada`;
+    }
+
+    // 1. Query orders in date range
     const { data: orders, error } = await supabaseClient
       .from('orders')
-      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items')
+      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items, cart')
       .eq('business_id', businessId)
-      .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado'])
+      .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado', 'Aceptado'])
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    // Fetch opening cash
-    const { data: closings, error: closingsErr } = await supabaseClient
+    // 2. Query cash closings / turnos in date range
+    const { data: closings } = await supabaseClient
       .from('cash_closings')
-      .select('opening_amount')
+      .select('*')
       .eq('business_id', businessId)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
-      .order('created_at', { ascending: true })
-      .limit(1);
-    
-    let openingCash = 0;
-    if (!closingsErr && closings && closings.length > 0) {
-      openingCash = Number(closings[0].opening_amount) || 0;
-    }
+      .order('created_at', { ascending: false });
 
-    // Fetch cash movements
-    const { data: movements, error: movementsErr } = await supabaseClient
+    // 3. Query cash movements in date range
+    const { data: movements } = await supabaseClient
       .from('cash_movements')
-      .select('type, amount')
+      .select('*')
       .eq('business_id', businessId)
       .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
+      .lte('created_at', endDate.toISOString())
+      .order('created_at', { ascending: false });
+
+    window.currentPOSReportRawOrders = orders || [];
+    window.currentPOSReportRawClosings = closings || [];
+    window.currentPOSReportRawMovements = movements || [];
+
+    // Populate Dynamic Filter Dropdowns (Cashier and Turnos)
+    populateFilterDropdowns(window.currentPOSReportRawClosings, window.currentPOSReportRawOrders);
+
+    // Update Turnos Tab Badge
+    const turnosBadge = document.getElementById('posTabTurnosBadge');
+    if (turnosBadge) {
+      turnosBadge.textContent = window.currentPOSReportRawClosings.length;
+    }
+
+    // Calculate & Render All Tabs
+    recalculateAndRenderPOSReport();
+
+  } catch (err) {
+    console.error('Error loading report:', err);
+    if (kpisContainer) {
+      kpisContainer.innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-8">Error cargando métricas del reporte. Revisa la consola o conexión.</div>';
+    }
+  }
+};
+
+// Dynamically populate cashier and shift dropdowns
+function populateFilterDropdowns(closings, orders) {
+  const cashierSelect = document.getElementById('posReportCashierFilter');
+  const turnoSelect = document.getElementById('posReportTurnoFilter');
+
+  // Extract unique cashiers
+  const cashiersSet = new Set();
+  closings.forEach(c => cashiersSet.add(extractStaffName(c)));
+  orders.forEach(o => {
+    const staff = extractStaffName(o);
+    if (staff && staff !== 'Admin') cashiersSet.add(staff);
+  });
+
+  const currentCashier = window.currentPOSReportCashierFilter || 'all';
+  if (cashierSelect) {
+    let cashierOpts = `<option value="all" class="bg-[#10121a] text-white">👤 Todos los Cajeros (${cashiersSet.size})</option>`;
+    Array.from(cashiersSet).sort().forEach(cName => {
+      cashierOpts += `<option value="${cName}" class="bg-[#10121a] text-white" ${currentCashier === cName ? 'selected' : ''}>👤 ${cName}</option>`;
+    });
+    cashierSelect.innerHTML = cashierOpts;
+  }
+
+  // Populate shifts
+  const currentTurno = window.currentPOSReportTurnoFilter || 'all';
+  if (turnoSelect) {
+    let turnoOpts = `<option value="all" class="bg-[#10121a] text-white">📋 Todos los Turnos (${closings.length})</option>`;
+    closings.forEach(c => {
+      const shortId = String(c.id).slice(-6).toUpperCase();
+      const staff = extractStaffName(c);
+      const statusStr = c.is_open ? '🟢 Abierta' : '⚪ Cerrada';
+      turnoOpts += `<option value="${c.id}" class="bg-[#10121a] text-white" ${currentTurno === c.id ? 'selected' : ''}>Turno #${shortId} • ${staff} (${statusStr})</option>`;
+    });
+    turnoSelect.innerHTML = turnoOpts;
+  }
+}
+
+// Master calculation and rendering function
+window.recalculateAndRenderPOSReport = function() {
+  const allOrders = window.currentPOSReportRawOrders || [];
+  const allClosings = window.currentPOSReportRawClosings || [];
+  const allMovements = window.currentPOSReportRawMovements || [];
+
+  const selectedCashier = window.currentPOSReportCashierFilter || 'all';
+  const selectedTurnoId = window.currentPOSReportTurnoFilter || 'all';
+
+  let filteredOrders = [...allOrders];
+  let filteredClosings = [...allClosings];
+  let filteredMovements = [...allMovements];
+  let openingCash = 0;
+  let activeShiftObject = null;
+
+  // 1. Shift specific filtering
+  if (selectedTurnoId !== 'all') {
+    activeShiftObject = allClosings.find(c => String(c.id) === String(selectedTurnoId));
+    if (activeShiftObject) {
+      const shiftOpenedAt = activeShiftObject.opened_at || new Date(0).toISOString();
+      const shiftClosedAt = activeShiftObject.is_open ? new Date().toISOString() : (activeShiftObject.closed_at || activeShiftObject.date || activeShiftObject.created_at);
       
-    let cashIn = 0;
-    let cashOut = 0;
-    if (!movementsErr && movements) {
-      movements.forEach(m => {
-        const amt = Number(m.amount) || 0;
-        if (m.type === 'deposit') cashIn += amt;
-        else if (m.type === 'withdrawal') cashOut += amt;
+      filteredOrders = allOrders.filter(o => {
+        const orderTime = o.created_at;
+        return orderTime >= shiftOpenedAt && orderTime <= shiftClosedAt;
+      });
+
+      filteredMovements = allMovements.filter(m => {
+        const mTime = m.created_at;
+        return mTime >= shiftOpenedAt && mTime <= shiftClosedAt;
+      });
+
+      filteredClosings = [activeShiftObject];
+      openingCash = Number(activeShiftObject.opening_amount) || 0;
+    }
+  } else if (selectedCashier !== 'all') {
+    // 2. Cashier specific filtering
+    const cashierShifts = allClosings.filter(c => extractStaffName(c) === selectedCashier);
+    filteredClosings = cashierShifts;
+
+    if (cashierShifts.length > 0) {
+      openingCash = cashierShifts.reduce((sum, c) => sum + (Number(c.opening_amount) || 0), 0);
+      
+      // Order belongs to cashier if within any of their shifts or matching note
+      filteredOrders = allOrders.filter(o => {
+        const oStaff = extractStaffName(o);
+        if (oStaff === selectedCashier) return true;
+        return cashierShifts.some(s => {
+          const sOpen = s.opened_at || new Date(0).toISOString();
+          const sClose = s.is_open ? new Date().toISOString() : (s.closed_at || s.date || s.created_at);
+          return o.created_at >= sOpen && o.created_at <= sClose;
+        });
+      });
+    } else {
+      filteredOrders = allOrders.filter(o => extractStaffName(o) === selectedCashier);
+    }
+  } else {
+    // General period
+    if (allClosings.length > 0) {
+      openingCash = Number(allClosings[allClosings.length - 1]?.opening_amount) || 0;
+    }
+  }
+
+  // Calculate Cash Movements
+  let cashIn = 0, cashOut = 0;
+  filteredMovements.forEach(m => {
+    const amt = Number(m.amount) || 0;
+    if (m.type === 'deposit' || m.type === 'in') cashIn += amt;
+    else if (m.type === 'withdrawal' || m.type === 'out') cashOut += amt;
+  });
+
+  // Calculate Financial Aggregates
+  let totalCashSales = 0, totalCardSales = 0, totalTransferSales = 0, totalSplitSales = 0, totalSales = 0;
+  let countCash = 0, countCard = 0, countTransfer = 0, countSplit = 0;
+  let originKiosko = 0, originPOS = 0, originMenu = 0, originDelivery = 0;
+  let productsSold = {};
+  let totalItemsCount = 0;
+
+  filteredOrders.forEach(o => {
+    const total = Number(o.total) || 0;
+    totalSales += total;
+
+    const pMethod = (o.payment_method || 'Efectivo').toLowerCase();
+    if (pMethod.includes('dividid') && o.split_payments) {
+      totalSplitSales += total;
+      countSplit++;
+      totalCashSales += Number(o.split_payments.cash || 0);
+      totalCardSales += Number(o.split_payments.card || 0);
+      totalTransferSales += Number(o.split_payments.transfer || 0);
+    } else if (pMethod.includes('efectivo') || pMethod.includes('cash')) {
+      totalCashSales += total;
+      countCash++;
+    } else if (pMethod.includes('nequi') || pMethod.includes('tarjeta') || pMethod.includes('card') || pMethod.includes('datafono')) {
+      totalCardSales += total;
+      countCard++;
+    } else if (pMethod.includes('transferencia') || pMethod.includes('banco') || pMethod.includes('daviplata')) {
+      totalTransferSales += total;
+      countTransfer++;
+    } else {
+      totalCashSales += total;
+      countCash++;
+    }
+
+    // Origin determination
+    const notes = (o.notes || '');
+    if (notes.includes('[ORIGIN:KIOSKO]') || notes.includes('Kiosko Auto-Servicio')) {
+      originKiosko += total;
+    } else if (notes.includes('[ORIGIN:MENU]') || notes.includes('Menú Digital QR')) {
+      originMenu += total;
+    } else if (notes.includes('[ORIGIN:DELIVERY]') || notes.includes('Domicilio')) {
+      originDelivery += total;
+    } else {
+      originPOS += total;
+    }
+
+    // Products breakdown
+    let orderItems = o.cart || o.items || [];
+    if (typeof orderItems === 'string') {
+      try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+    }
+    if (Array.isArray(orderItems)) {
+      orderItems.forEach(item => {
+        const qty = Number(item.quantity || item.qty) || 1;
+        const price = Number(item.price) || 0;
+        let name = item.name || 'Producto';
+        if (item.extrasLabel) name += ` (${item.extrasLabel})`;
+        
+        totalItemsCount += qty;
+        if (!productsSold[name]) productsSold[name] = { qty: 0, total: 0, price };
+        productsSold[name].qty += qty;
+        productsSold[name].total += (qty * price);
+      });
+    }
+  });
+
+  const orderCount = filteredOrders.length;
+  const ticketPromedio = orderCount > 0 ? (totalSales / orderCount) : 0;
+  const avgItemsPerTicket = orderCount > 0 ? (totalItemsCount / orderCount).toFixed(1) : '0';
+  const expectedCash = openingCash + totalCashSales + cashIn - cashOut;
+
+  // Cache state
+  window.currentPOSReport = {
+    filter: document.getElementById('posReportDateFilter')?.value || 'today',
+    selectedCashier,
+    selectedTurnoId,
+    activeShiftObject,
+    orderCount,
+    total: totalSales,
+    cash: totalCashSales,
+    card: totalCardSales,
+    transfer: totalTransferSales,
+    split: totalSplitSales,
+    originKiosko,
+    originPOS,
+    originMenu,
+    originDelivery,
+    ticketPromedio,
+    avgItemsPerTicket,
+    openingCash,
+    cashIn,
+    cashOut,
+    expectedCash,
+    productsSold,
+    filteredOrders,
+    filteredClosings
+  };
+
+  // 1. RENDER TAB 1: FINANCIAL OVERVIEW
+  renderFinancialOverviewTab(window.currentPOSReport);
+
+  // 2. RENDER TAB 2: TURNOS Y CAJEROS
+  renderTurnosAndCashiersTab(allClosings, allOrders, allMovements);
+
+  const btnPrint = document.getElementById('btnPrintPOSReport');
+  if (btnPrint) btnPrint.disabled = false;
+};
+
+// Render Tab 1 (Financial KPIs, Charts, Ranking, Table)
+function renderFinancialOverviewTab(r) {
+  const kpisContainer = document.getElementById('posReportKPIs');
+  const chartsContainer = document.getElementById('posReportCharts');
+  const historyContainer = document.getElementById('posReportHistoryContainer');
+
+  if (kpisContainer) {
+    let filterNotice = '';
+    if (r.selectedTurnoId !== 'all') {
+      filterNotice = `<div class="col-span-full bg-orange-500/10 border border-orange-500/30 text-orange-400 p-2.5 rounded-xl text-xs font-bold flex items-center justify-between">
+        <span>🔍 Filtrando por Turno #${String(r.selectedTurnoId).slice(-6).toUpperCase()}</span>
+        <button onclick="filterPOSReportByTurno('all')" class="underline hover:text-white">Ver todos los turnos</button>
+      </div>`;
+    } else if (r.selectedCashier !== 'all') {
+      filterNotice = `<div class="col-span-full bg-blue-500/10 border border-blue-500/30 text-blue-400 p-2.5 rounded-xl text-xs font-bold flex items-center justify-between">
+        <span>👤 Filtrando por Cajero: ${r.selectedCashier}</span>
+        <button onclick="filterPOSReportByCashier('all')" class="underline hover:text-white">Ver todos los cajeros</button>
+      </div>`;
+    }
+
+    kpisContainer.innerHTML = `
+      ${filterNotice}
+      <!-- Card 1: Ingresos Totales -->
+      <div class="bg-gradient-to-br from-[#11131a] to-[#171b26] p-5 rounded-2xl border border-[#232738] relative overflow-hidden shadow-lg group hover:border-emerald-500/50 transition-all flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 ${r.orderCount > 0 ? 'animate-ping' : ''}"></span> Ingresos Totales
+            </span>
+            <span class="text-[10px] bg-emerald-500/15 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Ventas</span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight my-1">$${r.total.toLocaleString()}</div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-[#232738]">
+          <span>Nº Pedidos: <strong class="text-white">${r.orderCount}</strong></span>
+          <span class="text-emerald-400 font-bold">100% Recaudado</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Total Pedidos -->
+      <div class="bg-gradient-to-br from-[#11131a] to-[#171b26] p-5 rounded-2xl border border-[#232738] relative overflow-hidden shadow-lg group hover:border-blue-500/50 transition-all flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-black uppercase tracking-wider text-blue-400">Total Pedidos</span>
+            <span class="text-[10px] bg-blue-500/15 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30">Volumen</span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-black text-white tracking-tight my-1">${r.orderCount}</div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-[#232738]">
+          <span>Items prom./ticket: <strong class="text-white">${r.avgItemsPerTicket}</strong></span>
+          <span class="text-blue-400 font-bold">Transacciones</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Ticket Promedio -->
+      <div class="bg-gradient-to-br from-[#11131a] to-[#171b26] p-5 rounded-2xl border border-[#232738] relative overflow-hidden shadow-lg group hover:border-amber-500/50 transition-all flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-black uppercase tracking-wider text-amber-400">Ticket Promedio</span>
+            <span class="text-[10px] bg-amber-500/15 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">Consumo</span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight my-1">$${Math.round(r.ticketPromedio).toLocaleString()}</div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2 border-t border-[#232738]">
+          <span>Por cliente</span>
+          <span class="text-amber-400 font-bold">Eficiencia</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Arqueo / Flujo de Caja -->
+      <div class="bg-gradient-to-br from-[#11131a] to-[#171b26] p-5 rounded-2xl border border-[#232738] relative overflow-hidden shadow-lg group hover:border-orange-500/50 transition-all flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-black uppercase tracking-wider text-orange-400">Esperado en Caja</span>
+            <span class="text-[10px] bg-orange-500/15 text-orange-300 font-bold px-2 py-0.5 rounded-full border border-orange-500/30">Efectivo</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-black text-white tracking-tight">$${r.expectedCash.toLocaleString()}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-400 mt-2 pt-2 border-t border-[#232738]">
+          <div>Base: <strong class="text-orange-400">+$${r.openingCash.toLocaleString()}</strong></div>
+          <div>Vtas Efec: <strong class="text-emerald-400">+$${r.cash.toLocaleString()}</strong></div>
+          <div>Ingresos: <strong class="text-blue-400">+$${r.cashIn.toLocaleString()}</strong></div>
+          <div>Gastos: <strong class="text-red-400">-$${r.cashOut.toLocaleString()}</strong></div>
+        </div>
+      </div>
+    `;
+
+    if (r.orderCount === 0) {
+      kpisContainer.innerHTML += `
+        <div class="col-span-full bg-[#121520]/80 border border-dashed border-[#2b3049] rounded-2xl p-6 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+          <span class="text-3xl">ℹ️</span>
+          <p class="text-sm font-bold text-slate-300">No se encontraron ventas para este filtro o periodo</p>
+          <p class="text-xs text-slate-500">Prueba cambiando el filtro de cajero, turno o periodo de tiempo.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Payment Breakdown
+  const paymentListEl = document.getElementById('posReportPaymentList');
+  const badgePaymentTotal = document.getElementById('badgePaymentTotal');
+  if (badgePaymentTotal) badgePaymentTotal.textContent = `$${r.total.toLocaleString()}`;
+
+  if (paymentListEl) {
+    const calcPct = (amt) => r.total > 0 ? ((amt / r.total) * 100).toFixed(1) : '0';
+    paymentListEl.innerHTML = `
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-bold text-slate-300">Efectivo</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-emerald-400">$${r.cash.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.cash)}%)</span>
+        </div>
+      </div>
+
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+          <span class="text-xs font-bold text-slate-300">NEQUI / Tarjeta</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-cyan-400">$${r.card.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.card)}%)</span>
+        </div>
+      </div>
+
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+          <span class="text-xs font-bold text-slate-300">Transferencia</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-purple-400">$${r.transfer.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.transfer)}%)</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Origin Breakdown
+  const originListEl = document.getElementById('posReportOriginList');
+  const badgeOriginTotal = document.getElementById('badgeOriginTotal');
+  if (badgeOriginTotal) badgeOriginTotal.textContent = `$${r.total.toLocaleString()}`;
+
+  if (originListEl) {
+    const calcPct = (amt) => r.total > 0 ? ((amt / r.total) * 100).toFixed(1) : '0';
+    originListEl.innerHTML = `
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+          <span class="text-xs font-bold text-slate-300">Caja (POS)</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-orange-400">$${r.originPOS.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.originPOS)}%)</span>
+        </div>
+      </div>
+
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+          <span class="text-xs font-bold text-slate-300">Kiosko Auto</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-blue-400">$${r.originKiosko.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.originKiosko)}%)</span>
+        </div>
+      </div>
+
+      <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-bold text-slate-300">Menú QR Digital</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-black text-emerald-400">$${r.originMenu.toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 ml-1.5 font-bold">(${calcPct(r.originMenu)}%)</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Top Products Ranking
+  const topProductsEl = document.getElementById('posReportTopProducts');
+  const badgeProductsCount = document.getElementById('badgeProductsCount');
+  const productKeys = Object.keys(r.productsSold || {});
+  if (badgeProductsCount) badgeProductsCount.textContent = `${productKeys.length} productos`;
+
+  if (topProductsEl) {
+    if (productKeys.length === 0) {
+      topProductsEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-10">No hay productos vendidos en este periodo</p>';
+    } else {
+      const sortedProducts = productKeys.sort((a,b) => (r.productsSold[b]?.qty || 0) - (r.productsSold[a]?.qty || 0));
+      const maxQty = sortedProducts.length > 0 ? (r.productsSold[sortedProducts[0]]?.qty || 1) : 1;
+
+      topProductsEl.innerHTML = sortedProducts.map((name, index) => {
+        const p = r.productsSold[name];
+        const pctWidth = Math.min(100, Math.round((p.qty / maxQty) * 100));
+        let medal = `<span class="w-5 h-5 rounded-full bg-[#1c2030] text-slate-400 text-[10px] font-black flex items-center justify-center">${index + 1}</span>`;
+        if (index === 0) medal = '<span class="text-sm">🥇</span>';
+        else if (index === 1) medal = '<span class="text-sm">🥈</span>';
+        else if (index === 2) medal = '<span class="text-sm">🥉</span>';
+
+        return `
+          <div class="bg-[#0b0c10] p-2.5 rounded-xl border border-[#1c2030] flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 truncate max-w-[180px]">
+                ${medal}
+                <span class="font-bold text-slate-200 truncate" title="${name}">${name}</span>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-black text-amber-400">$${p.total.toLocaleString()}</span>
+                <span class="text-[10px] bg-[#1c2030] text-slate-300 font-bold px-1.5 py-0.5 rounded ml-1">${p.qty}x</span>
+              </div>
+            </div>
+            <div class="w-full bg-[#161926] h-1.5 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full" style="width: ${pctWidth}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // Render Charts
+  if (chartsContainer) chartsContainer.classList.remove('hidden');
+
+  if (typeof Chart !== 'undefined') {
+    if (window.chartOriginInstance) window.chartOriginInstance.destroy();
+    const ctxOrigin = document.getElementById('chartOrigin')?.getContext('2d');
+    if (ctxOrigin) {
+      window.chartOriginInstance = new Chart(ctxOrigin, {
+        type: 'doughnut',
+        data: {
+          labels: ['Caja (POS)', 'Kiosko', 'Menú QR'],
+          datasets: [{
+            data: [r.originPOS || 0.001, r.originKiosko, r.originMenu],
+            backgroundColor: ['#f97316', '#3b82f6', '#10b981'],
+            borderWidth: 2,
+            borderColor: '#10121a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' } } }
+          },
+          cutout: '68%'
+        }
       });
     }
 
-    let totalEfectivo = 0;
-    let totalTarjeta = 0;
-    let totalTransferencia = 0;
-    let totalVendido = 0;
+    if (window.chartPaymentInstance) window.chartPaymentInstance.destroy();
+    const ctxPayment = document.getElementById('chartPayment')?.getContext('2d');
+    if (ctxPayment) {
+      window.chartPaymentInstance = new Chart(ctxPayment, {
+        type: 'doughnut',
+        data: {
+          labels: ['Efectivo', 'NEQUI/Tarjeta', 'Transferencia'],
+          datasets: [{
+            data: [r.cash || 0.001, r.card, r.transfer],
+            backgroundColor: ['#10b981', '#06b6d4', '#8b5cf6'],
+            borderWidth: 2,
+            borderColor: '#10121a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' } } }
+          },
+          cutout: '68%'
+        }
+      });
+    }
+  }
 
-    let originKiosko = 0;
-    let originPOS = 0;
-    let originMenu = 0;
+  // Render Orders Table
+  const orderCountLabel = document.getElementById('posReportOrderCountLabel');
+  if (orderCountLabel) orderCountLabel.textContent = r.orderCount;
 
-    let historyHtml = '';
+  if (historyContainer) historyContainer.classList.remove('hidden');
+  renderPOSReportOrdersTable(r.filteredOrders || []);
+}
+
+// Render Tab 2: Turnos y Rendimiento de Cajeros
+function renderTurnosAndCashiersTab(closings, orders, movements) {
+  const turnosKPIs = document.getElementById('posReportTurnosKPIs');
+  const cashiersList = document.getElementById('posReportCashiersList');
+  const shiftsList = document.getElementById('posReportShiftsList');
+
+  // Compute Turno Totals & Discrepancies
+  const totalShifts = closings.length;
+  const openShifts = closings.filter(c => c.is_open).length;
+  const closedShifts = closings.filter(c => !c.is_open);
+  
+  let netDifference = 0;
+  let totalDeclared = 0;
+  let totalSessionSales = 0;
+
+  closedShifts.forEach(c => {
+    netDifference += Number(c.difference || 0);
+    totalDeclared += Number(c.declared_total || 0);
+  });
+
+  closings.forEach(c => {
+    totalSessionSales += Number((c.cash_sales || 0) + (c.transfer_sales || 0) + (c.card_sales || 0));
+  });
+
+  // Group performance by Cashier
+  const cashiersMap = {};
+  closings.forEach(c => {
+    const sName = extractStaffName(c);
+    if (!cashiersMap[sName]) {
+      cashiersMap[sName] = {
+        name: sName,
+        shiftsCount: 0,
+        hasActiveShift: false,
+        totalSales: 0,
+        declaredTotal: 0,
+        netDifference: 0,
+        orderCount: 0
+      };
+    }
+    cashiersMap[sName].shiftsCount++;
+    if (c.is_open) cashiersMap[sName].hasActiveShift = true;
+    cashiersMap[sName].totalSales += Number((c.cash_sales || 0) + (c.transfer_sales || 0) + (c.card_sales || 0));
+    if (!c.is_open) {
+      cashiersMap[sName].declaredTotal += Number(c.declared_total || 0);
+      cashiersMap[sName].netDifference += Number(c.difference || 0);
+    }
+  });
+
+  // Count orders per cashier
+  orders.forEach(o => {
+    const sName = extractStaffName(o);
+    if (cashiersMap[sName]) {
+      cashiersMap[sName].orderCount++;
+    }
+  });
+
+  const uniqueCashiersCount = Object.keys(cashiersMap).length;
+
+  // 1. Turnos KPI Summary Strip
+  if (turnosKPIs) {
+    let diffBadgeColor = 'text-emerald-400';
+    let diffLabel = 'Cuadre Exacto ($0)';
+    if (netDifference > 0) {
+      diffBadgeColor = 'text-emerald-400';
+      diffLabel = `+$${netDifference.toLocaleString()} Sobrante`;
+    } else if (netDifference < 0) {
+      diffBadgeColor = 'text-rose-400';
+      diffLabel = `-$${Math.abs(netDifference).toLocaleString()} Faltante`;
+    }
+
+    turnosKPIs.innerHTML = `
+      <div class="bg-[#10121a] p-4 rounded-2xl border border-[#1c2030]">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-bold uppercase mb-1">
+          <span>Turnos en Periodo</span>
+          <span>📋</span>
+        </div>
+        <div class="text-2xl font-black text-white">${totalShifts}</div>
+        <div class="text-[11px] text-slate-400 mt-1">
+          <strong class="text-emerald-400">${openShifts} Abiertos</strong> • ${totalShifts - openShifts} Cerrados
+        </div>
+      </div>
+
+      <div class="bg-[#10121a] p-4 rounded-2xl border border-[#1c2030]">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-bold uppercase mb-1">
+          <span>Cajeros Activos</span>
+          <span>👤</span>
+        </div>
+        <div class="text-2xl font-black text-white">${uniqueCashiersCount}</div>
+        <div class="text-[11px] text-slate-400 mt-1">Personal en operación</div>
+      </div>
+
+      <div class="bg-[#10121a] p-4 rounded-2xl border border-[#1c2030]">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-bold uppercase mb-1">
+          <span>Ventas en Sesiones</span>
+          <span>💵</span>
+        </div>
+        <div class="text-2xl font-black text-emerald-400">$${totalSessionSales.toLocaleString()}</div>
+        <div class="text-[11px] text-slate-400 mt-1">Suma en sesiones de caja</div>
+      </div>
+
+      <div class="bg-[#10121a] p-4 rounded-2xl border border-[#1c2030]">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-bold uppercase mb-1">
+          <span>Balance Arqueo Neto</span>
+          <span>⚖️</span>
+        </div>
+        <div class="text-2xl font-black ${diffBadgeColor}">${netDifference === 0 ? '$0' : (netDifference > 0 ? '+$' + netDifference.toLocaleString() : '-$' + Math.abs(netDifference).toLocaleString())}</div>
+        <div class="text-[11px] text-slate-400 mt-1 font-bold ${diffBadgeColor}">${diffLabel}</div>
+      </div>
+    `;
+  }
+
+  // 2. Rendimiento por Cajero Cards
+  if (cashiersList) {
+    const cashiersArray = Object.values(cashiersMap);
+    if (cashiersArray.length === 0) {
+      cashiersList.innerHTML = '<div class="col-span-full text-center py-6 text-slate-500 font-bold text-xs">No hay cajeros registrados en este periodo</div>';
+    } else {
+      cashiersList.innerHTML = cashiersArray.map(c => {
+        let diffColor = 'text-emerald-400';
+        let diffText = 'Exacto ($0)';
+        if (c.netDifference > 0) {
+          diffColor = 'text-emerald-400';
+          diffText = `+$${c.netDifference.toLocaleString()} Sobrante`;
+        } else if (c.netDifference < 0) {
+          diffColor = 'text-rose-400';
+          diffText = `-$${Math.abs(c.netDifference).toLocaleString()} Faltante`;
+        }
+
+        return `
+          <div class="bg-[#0b0c10] border border-[#1c2030] hover:border-orange-500/40 rounded-2xl p-4 transition-all flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white font-black flex items-center justify-center text-sm shadow-md">
+                  ${c.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 class="font-black text-white text-sm">${c.name}</h4>
+                  <span class="text-[10px] text-slate-400 font-bold">${c.shiftsCount} turno(s)</span>
+                </div>
+              </div>
+              <div>
+                ${c.hasActiveShift 
+                  ? '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">● EN TURNO</span>' 
+                  : '<span class="bg-[#1c2030] text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-bold">Cerrado</span>'
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 bg-[#131622] p-2.5 rounded-xl text-xs">
+              <div>
+                <span class="text-[9px] text-slate-400 font-bold uppercase block">Vendido</span>
+                <span class="font-black text-emerald-400">$${c.totalSales.toLocaleString()}</span>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-400 font-bold uppercase block">Discrepancia</span>
+                <span class="font-black ${diffColor}">${diffText}</span>
+              </div>
+            </div>
+
+            <button onclick="filterPOSReportByCashier('${c.name}')" class="w-full bg-[#181b26] hover:bg-orange-500 hover:text-white text-slate-200 border border-[#2b3049] hover:border-transparent font-bold text-xs py-2 rounded-xl transition-all flex items-center justify-center gap-1.5">
+              <span>🔍</span> <span>Ver Ventas en Dashboard</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 3. Historial de Turnos de Caja (Shifts List)
+  if (shiftsList) {
+    if (closings.length === 0) {
+      shiftsList.innerHTML = '<div class="text-center py-8 text-slate-500 font-bold text-xs">No hay turnos registrados en este periodo</div>';
+    } else {
+      shiftsList.innerHTML = closings.map(c => {
+        const staffName = extractStaffName(c);
+        const turnShortId = String(c.id).slice(-6).toUpperCase();
+        const totalSales = Number((c.cash_sales || 0) + (c.transfer_sales || 0) + (c.card_sales || 0));
+        const diff = Number(c.difference || 0);
+
+        return `
+          <div class="bg-[#0b0c10] border border-[#1c2030] hover:border-emerald-500/40 rounded-2xl p-4 sm:p-5 transition-all space-y-3">
+            <div class="flex items-center justify-between border-b border-[#181b26] pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+                  👤
+                </div>
+                <div>
+                  <h4 class="font-black text-white text-sm flex items-center gap-2">
+                    <span>${staffName}</span>
+                    <span class="text-[10px] text-slate-400 font-mono font-bold bg-[#161926] px-1.5 py-0.5 rounded">Turno #${turnShortId}</span>
+                  </h4>
+                  <span class="text-[10px] text-slate-500">
+                    Apertura: ${formatTurnoDateTime(c.opened_at)} ${c.is_open ? '• <strong class="text-emerald-400 font-bold">● En curso</strong>' : '• Cierre: ' + formatTurnoDateTime(c.date || c.created_at)}
+                  </span>
+                </div>
+              </div>
+              <div>
+                ${c.is_open 
+                  ? '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-black animate-pulse">● ABIERTA</span>' 
+                  : '<span class="bg-[#1c2030] text-slate-400 text-[10px] px-2.5 py-1 rounded-full font-black">CERRADA</span>'
+                }
+              </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div class="bg-[#131622] p-2 rounded-xl text-center border border-[#1c2030]">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Base Inicial</span>
+                <span class="font-black text-xs text-white">$${Number(c.opening_amount || 0).toLocaleString()}</span>
+              </div>
+              <div class="bg-[#131622] p-2 rounded-xl text-center border border-[#1c2030]">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Ventas</span>
+                <span class="font-black text-xs text-emerald-400">$${totalSales.toLocaleString()}</span>
+              </div>
+              <div class="bg-[#131622] p-2 rounded-xl text-center border border-[#1c2030]">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Declarado</span>
+                <span class="font-black text-xs text-white">${c.is_open ? '<span class="text-slate-500">-</span>' : '$' + Number(c.declared_total || 0).toLocaleString()}</span>
+              </div>
+              <div class="bg-[#131622] p-2 rounded-xl text-center border border-[#1c2030]">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Diferencia</span>
+                <span class="font-black text-xs ${c.is_open ? 'text-slate-500' : (diff >= 0 ? 'text-emerald-400' : 'text-rose-400')}">
+                  ${c.is_open ? '-' : (diff >= 0 ? (diff === 0 ? 'Exacta ($0)' : '+$' + diff.toLocaleString()) : '-$' + Math.abs(diff).toLocaleString())}
+                </span>
+              </div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="flex items-center justify-between pt-2 border-t border-[#181b26] flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <button onclick="openTurnoDetail('${c.id}')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-sm">
+                  <span>👁️</span> <span>Auditoría Detallada</span>
+                </button>
+                <button onclick="reprintTurnoZ('${c.id}', event)" class="bg-[#1c2030] hover:bg-[#282d44] active:scale-95 text-slate-200 border border-[#2b3049] font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-sm">
+                  <span>🖨️</span> <span>Ticket Z</span>
+                </button>
+              </div>
+              <button onclick="filterPOSReportByTurno('${c.id}')" class="bg-[#181b26] hover:bg-orange-500 hover:text-white text-orange-400 border border-orange-500/30 hover:border-transparent font-bold text-xs px-3 py-1.5 rounded-xl transition-all flex items-center gap-1">
+                <span>📊</span> <span>Filtrar Dashboard</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+function renderPOSReportOrdersTable(orders) {
+  const tbody = document.getElementById('posReportHistoryBody');
+  if (!tbody) return;
+
+  if (!orders || orders.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500 font-bold">No hay pedidos registrados en este filtro/periodo.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = orders.map(o => {
+    const total = Number(o.total) || 0;
+    const dateStr = new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const fullDate = new Date(o.created_at).toLocaleDateString([], { day: '2-digit', month: 'short' });
+
+    // Determine channel badge
+    const notes = o.notes || '';
+    let originBadge = '<span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">POS</span>';
+    if (notes.includes('[ORIGIN:KIOSKO]') || notes.includes('Kiosko Auto-Servicio')) {
+      originBadge = '<span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">Kiosko</span>';
+    } else if (notes.includes('[ORIGIN:MENU]') || notes.includes('Menú Digital QR')) {
+      originBadge = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">Menú QR</span>';
+    }
+
+    // Determine items summary
+    let orderItems = o.cart || o.items || [];
+    if (typeof orderItems === 'string') {
+      try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
+    }
+    let itemsSummary = 'Productos varios';
+    if (Array.isArray(orderItems) && orderItems.length > 0) {
+      itemsSummary = orderItems.map(i => `${i.quantity || i.qty || 1}x ${i.name || 'Prod'}`).slice(0, 2).join(', ');
+      if (orderItems.length > 2) itemsSummary += ` (+${orderItems.length - 2})`;
+    }
+
+    return `
+      <tr class="hover:bg-[#131622] transition-colors border-b border-[#181b26]">
+        <td class="px-4 py-3">
+          <span class="block text-white font-bold tracking-wider">#${String(o.id).slice(-4)}</span>
+          <span class="text-[10px] text-slate-500">${fullDate} • ${dateStr}</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-white font-bold block truncate max-w-[120px]">${o.customer_name || 'Cliente'}</span>
+          <span class="text-[10px] text-slate-400 bg-[#161926] px-1.5 py-0.5 rounded font-mono">${o.status || 'Completado'}</span>
+        </td>
+        <td class="px-4 py-3 text-center">${originBadge}</td>
+        <td class="px-4 py-3 text-center">
+          <span class="bg-[#161926] text-slate-300 border border-[#232738] px-2 py-0.5 rounded text-[10px] font-bold uppercase">${o.payment_method || 'Efectivo'}</span>
+        </td>
+        <td class="px-4 py-3 text-slate-300 truncate max-w-[180px]" title="${itemsSummary}">${itemsSummary}</td>
+        <td class="px-4 py-3 text-right text-emerald-400 font-black text-sm">$${total.toLocaleString()}</td>
+        <td class="px-4 py-3 text-center">
+          <button onclick="printSpecificTicket('${o.id}')" class="bg-[#181b26] hover:bg-orange-500 hover:text-white text-slate-300 w-8 h-8 rounded-xl transition-all text-xs border border-[#2b3049] flex items-center justify-center mx-auto" title="Reimprimir comanda/ticket">
+            🖨️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.filterPOSReportOrdersTable = function() {
+  const query = (document.getElementById('posReportOrderSearchInput')?.value || '').toLowerCase().trim();
+  const rawList = window.currentPOSReport?.filteredOrders || window.currentPOSReportRawOrders || [];
+  if (!query) {
+    renderPOSReportOrdersTable(rawList);
+    return;
+  }
+  const filtered = rawList.filter(o => {
+    const id = String(o.id || '').toLowerCase();
+    const name = String(o.customer_name || '').toLowerCase();
+    const method = String(o.payment_method || '').toLowerCase();
+    const notes = String(o.notes || '').toLowerCase();
+    return id.includes(query) || name.includes(query) || method.includes(query) || notes.includes(query);
+  });
+  renderPOSReportOrdersTable(filtered);
+};
+
+window.exportPOSReportCSV = function() {
+  const r = window.currentPOSReport;
+  const orders = r?.filteredOrders || window.currentPOSReportRawOrders || [];
+  if (!orders.length) {
+    if (typeof showToast === 'function') showToast('No hay datos para exportar en este periodo', 'warning');
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+  csvContent += "ID,Fecha,Hora,Cliente,Estado,Canal,Metodo_Pago,Total,Notas\n";
+
+  orders.forEach(o => {
+    const d = new Date(o.created_at);
+    const dateStr = d.toLocaleDateString('es-CO');
+    const timeStr = d.toLocaleTimeString('es-CO');
+    const name = `"${(o.customer_name || 'Cliente').replace(/"/g, '""')}"`;
+    const status = o.status || 'Completado';
+    
+    let origin = 'POS';
+    const notes = (o.notes || '').replace(/"/g, '""');
+    if (notes.includes('[ORIGIN:KIOSKO]')) origin = 'Kiosko';
+    else if (notes.includes('[ORIGIN:MENU]')) origin = 'Menú QR';
+
+    const pMethod = o.payment_method || 'Efectivo';
+    const total = Number(o.total || 0);
+
+    csvContent += `"${o.id}",${dateStr},${timeStr},${name},${status},${origin},${pMethod},${total},"${notes}"\n`;
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `Corte_POS_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  if (typeof showToast === 'function') showToast('✅ Reporte CSV exportado exitosamente', 'success');
+};
+
+window.printPOSReportExecutive = function() {
+  const r = window.currentPOSReport;
+  if (!r) return;
+
+  const businessName = posSettings?.name || 'Mi Negocio';
+  const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="height:60px; border-radius:12px; margin-bottom:12px;">` : '';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Informe Ejecutivo - Corte de Caja</title>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 30px; color: #1e293b; background: #fff; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 25px; }
+          .title { font-size: 24px; font-weight: 900; color: #0f172a; margin: 0; }
+          .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
+          .badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; }
+          .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+          .kpi-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
+          .kpi-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
+          .kpi-value { font-size: 22px; font-weight: 900; color: #0f172a; }
+          .section-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #334155; margin-top: 25px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th { background: #f1f5f9; text-align: left; padding: 8px 12px; font-weight: 700; color: #475569; border-bottom: 1px solid #cbd5e1; }
+          td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+          .text-right { text-align: right; }
+          .font-bold { font-weight: bold; }
+          @media print { body { padding: 15px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            ${logoUrl}
+            <h1 class="title">${businessName}</h1>
+            <p class="subtitle">Informe Ejecutivo de Auditoría y Corte de Caja Z</p>
+          </div>
+          <div style="text-align: right;">
+            <div class="badge">Periodo: ${r.filter}</div>
+            <div class="subtitle" style="margin-top: 6px;">Generado: ${new Date().toLocaleString('es-ES')}</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="kpi-card">
+            <div class="kpi-title">Ingresos Totales</div>
+            <div class="kpi-value" style="color:#059669;">$${r.total.toLocaleString()}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Total Pedidos</div>
+            <div class="kpi-value">${r.orderCount}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Ticket Promedio</div>
+            <div class="kpi-value" style="color:#d97706;">$${Math.round(r.ticketPromedio).toLocaleString()}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Esperado en Caja</div>
+            <div class="kpi-value">$${r.expectedCash.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Desglose de Métodos de Pago y Canales</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <table>
+              <thead><tr><th>Método de Pago</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>
+                <tr><td>Efectivo</td><td class="text-right font-bold">$${r.cash.toLocaleString()}</td></tr>
+                <tr><td>NEQUI / Tarjeta</td><td class="text-right font-bold">$${r.card.toLocaleString()}</td></tr>
+                <tr><td>Transferencia</td><td class="text-right font-bold">$${r.transfer.toLocaleString()}</td></tr>
+                <tr style="background:#f8fafc;"><td class="font-bold">Total Ventas</td><td class="text-right font-bold" style="color:#059669;">$${r.total.toLocaleString()}</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <table>
+              <thead><tr><th>Canal de Origen</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>
+                <tr><td>Caja (POS)</td><td class="text-right font-bold">$${r.originPOS.toLocaleString()}</td></tr>
+                <tr><td>Kiosko Auto-Servicio</td><td class="text-right font-bold">$${r.originKiosko.toLocaleString()}</td></tr>
+                <tr><td>Menú QR Digital</td><td class="text-right font-bold">$${r.originMenu.toLocaleString()}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section-title">Flujo de Arqueo de Caja</div>
+        <table>
+          <thead><tr><th>Concepto</th><th class="text-right">Monto</th></tr></thead>
+          <tbody>
+            <tr><td>(+) Base Inicial de Caja</td><td class="text-right font-bold">+$${r.openingCash.toLocaleString()}</td></tr>
+            <tr><td>(+) Ventas en Efectivo</td><td class="text-right font-bold">+$${r.cash.toLocaleString()}</td></tr>
+            <tr><td>(+) Entradas / Ingresos Manuales</td><td class="text-right font-bold">+$${r.cashIn.toLocaleString()}</td></tr>
+            <tr><td>(-) Salidas / Retiros / Gastos</td><td class="text-right font-bold" style="color:#dc2626;">-$${r.cashOut.toLocaleString()}</td></tr>
+            <tr style="background:#f8fafc; font-size:13px;"><td class="font-bold">(=) Saldo Efectivo Esperado en Caja</td><td class="text-right font-bold" style="color:#0f172a;">$${r.expectedCash.toLocaleString()}</td></tr>
+          </tbody>
+        </table>
+
+        <script>
+          setTimeout(() => { window.print(); }, 500);
+        </script>
+      </body>
+    </html>
+  `;
+
+  const pWin = window.open('', '_blank', 'width=850,height=900');
+  pWin.document.write(html);
+  pWin.document.close();
+};
+
+window.printPOSReport = async function() {
+  if (!window.currentPOSReport) return;
+  
+  // Try PrintBridge first
+  if (typeof bridgePrintReport === 'function') {
+    const ok = await bridgePrintReport(window.currentPOSReport, posSettings);
+    if (ok) { 
+      if (typeof showToast === 'function') showToast('🖨️ Reporte Z impreso (PrintBridge)', 'success'); 
+      return; 
+    }
+  }
+
+  // Fallback: browser thermal print
+  const r = window.currentPOSReport;
+  const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:50px;height:50px;border-radius:25px;margin-bottom:10px;">` : '';
+  const businessName = posSettings?.name || 'Mi Negocio';
+
+  const html = `
+  <html>
+    <head>
+      <title>Corte de Caja Z</title>
+      <style>
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 500; margin: 0; padding: 8px; width: 80mm; color: #000; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .mb-2 { margin-bottom: 6px; }
+        .border-b { border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
+        .border-t { border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
+        .flex { display: flex; justify-content: space-between; }
+        @media print { body { width: 100%; margin:0; padding:0; } }
+      </style>
+    </head>
+    <body>
+      <div class="text-center mb-2">${logoUrl}</div>
+      <div class="text-center font-bold text-base mb-1">
+        ${businessName}<br>
+        CORTE DE CAJA Z
+      </div>
+      <div class="text-center border-b mb-2" style="font-size:11px;">
+        <strong>Fecha:</strong> ${new Date().toLocaleString()}
+      </div>
+      
+      <div class="flex" style="margin-top:10px;">
+        <span>Periodo:</span>
+        <span class="font-bold">${r.filter}</span>
+      </div>
+      <div class="flex">
+        <span>Pedidos Totales:</span>
+        <span class="font-bold">${r.orderCount}</span>
+      </div>
+      <div class="flex">
+        <span>Ticket Promedio:</span>
+        <span class="font-bold">$${Math.round(r.ticketPromedio).toLocaleString()}</span>
+      </div>
+      
+      <div class="border-t mb-2 mt-2" style="padding-top:6px;">
+        <div class="font-bold text-center mb-1">ORIGEN DE VENTAS</div>
+        <div class="flex"><span>Caja (POS):</span> <span>$${r.originPOS.toLocaleString()}</span></div>
+        <div class="flex"><span>Kiosko:</span> <span>$${r.originKiosko.toLocaleString()}</span></div>
+        <div class="flex"><span>Menú QR:</span> <span>$${r.originMenu.toLocaleString()}</span></div>
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:6px;">
+        <div class="font-bold text-center mb-1">PRODUCTOS VENDIDOS</div>
+        ${Object.keys(r.productsSold || {}).length > 0 ? 
+            Object.keys(r.productsSold).map(name => `
+              <div class="flex" style="font-size:12px; margin-bottom:3px;">
+                <span style="flex:1; text-transform:uppercase; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.productsSold[name].qty}x ${name}</span>
+                <span>$${r.productsSold[name].total.toLocaleString()}</span>
+              </div>
+            `).join('')
+          : '<div class="text-center text-xs">Sin productos</div>'
+        }
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:6px;">
+        <div class="font-bold text-center mb-1">DESGLOSE DE PAGOS</div>
+        <div class="flex"><span>Efectivo:</span> <span>$${r.cash.toLocaleString()}</span></div>
+        <div class="flex"><span>NEQUI:</span> <span>$${r.card.toLocaleString()}</span></div>
+        <div class="flex"><span>Transferencia:</span> <span>$${r.transfer.toLocaleString()}</span></div>
+      </div>
+      
+      <div class="flex border-t font-bold text-base" style="margin-top:10px; padding-top:6px;">
+        <span>TOTAL VENTAS:</span>
+        <span>$${r.total.toLocaleString()}</span>
+      </div>
+
+      <div class="border-t mb-2 mt-2" style="padding-top:6px;">
+        <div class="font-bold text-center mb-1">FLUJO DE EFECTIVO</div>
+        <div class="flex"><span>Fondo Apertura:</span> <span>+$${(r.openingCash||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Ventas Efectivo:</span> <span>+$${(r.cash||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Entradas Extra:</span> <span>+$${(r.cashIn||0).toLocaleString()}</span></div>
+        <div class="flex"><span>Gastos/Retiros:</span> <span>-$${(r.cashOut||0).toLocaleString()}</span></div>
+      </div>
+      
+      <div class="flex border-t font-bold text-base" style="margin-top:10px; padding-top:6px;">
+        <span>EFECTIVO ESPERADO:</span>
+        <span>$${(r.expectedCash||0).toLocaleString()}</span>
+      </div>
+
+      ${typeof r.declaredCash !== 'undefined' ? `
+      <div class="border-t mb-2 mt-2" style="padding-top:6px;">
+        <div class="font-bold text-center mb-1">CIERRE DE CAJA</div>
+        <div class="flex"><span>Efectivo Declarado:</span> <span>$${(r.declaredCash||0).toLocaleString()}</span></div>
+        <div class="flex font-bold"><span>${Number(r.difference||0) > 0 ? 'Sobrante:' : Number(r.difference||0) < 0 ? 'Faltante:' : 'Diferencia:'}</span> <span>$${Math.abs(Number(r.difference||0)).toLocaleString()}</span></div>
+      </div>
+      ` : ''}
+      
+      <div class="text-center border-t text-xs" style="margin-top:15px; padding-top:6px;">
+        FIN DEL REPORTE Z
+      </div>
+      <script>
+        setTimeout(() => { window.print(); window.close(); }, 500);
+      </script>
+    </body>
+  </html>
+  `;
+
+  const printWindow = window.open('', '_blank', 'width=400,height=600');
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
+
+// ==========================================
+// MODAL DETALLE Y AUDITORÍA DE TURNO INDIVIDUAL
+// ==========================================
+window.openTurnoDetail = async function(closingId) {
+  const modal = document.getElementById('modalDetalleTurnoPOS');
+  const body = document.getElementById('turnoDetailBody');
+  const title = document.getElementById('turnoDetailTitle');
+  const subtitle = document.getElementById('turnoDetailSubtitle');
+
+  if (!modal || !body) return;
+  modal.classList.remove('hidden');
+  body.innerHTML = `
+    <div class="text-center py-16 text-slate-400 font-bold flex flex-col items-center justify-center gap-3">
+      <div class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      <span>Cargando auditoría detallada del turno #${String(closingId).slice(-6).toUpperCase()}...</span>
+    </div>
+  `;
+
+  try {
+    // 1. Fetch closing info
+    const { data: closing, error: closingErr } = await supabaseClient
+      .from('cash_closings')
+      .select('*')
+      .eq('id', closingId)
+      .single();
+
+    if (closingErr || !closing) throw new Error("Turno no encontrado");
+
+    const staff = extractStaffName(closing);
+    const shortId = String(closing.id).slice(-6).toUpperCase();
+    const openedAt = closing.opened_at || new Date(0).toISOString();
+    const closedAt = closing.is_open ? new Date().toISOString() : (closing.closed_at || closing.date || closing.created_at);
+
+    if (title) title.textContent = `Turno #${shortId} • ${staff}`;
+    if (subtitle) {
+      subtitle.textContent = `Apertura: ${formatTurnoDateTime(openedAt)} • ${closing.is_open ? 'En Curso (Abierta)' : 'Cierre: ' + formatTurnoDateTime(closedAt)}`;
+    }
+
+    // 2. Fetch orders in this shift
+    const { data: shiftOrders } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .eq('business_id', businessId)
+      .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado', 'Aceptado'])
+      .gte('created_at', openedAt)
+      .lte('created_at', closedAt)
+      .order('created_at', { ascending: false });
+
+    // 3. Fetch movements in this shift
+    const { data: shiftMovements } = await supabaseClient
+      .from('cash_movements')
+      .select('*')
+      .eq('business_id', businessId)
+      .gte('created_at', openedAt)
+      .lte('created_at', closedAt)
+      .order('created_at', { ascending: false });
+
+    // Compute detailed metrics for this shift
+    let totalSales = 0, cashSales = 0, cardSales = 0, transferSales = 0, splitSales = 0;
     let productsSold = {};
+    const orders = shiftOrders || [];
+    const movements = shiftMovements || [];
 
     orders.forEach(o => {
-      const total = Number(o.total) || 0;
-      totalVendido += total;
+      const tot = Number(o.total) || 0;
+      totalSales += tot;
 
-      // Payments
-      if (o.payment_method === 'Dividido' && o.split_payments) {
-        totalEfectivo += Number(o.split_payments.cash || 0);
-        totalTarjeta += Number(o.split_payments.card || 0);
-        totalTransferencia += Number(o.split_payments.transfer || 0);
-      } else if (o.payment_method === 'Efectivo') {
-        totalEfectivo += total;
-      } else if (o.payment_method === 'NEQUI') {
-        totalTarjeta += total;
-      } else if (o.payment_method === 'Transferencia' || o.payment_method === 'Nequi') {
-        totalTransferencia += total;
+      const pMethod = (o.payment_method || 'Efectivo').toLowerCase();
+      if (pMethod.includes('dividid') && o.split_payments) {
+        splitSales += tot;
+        cashSales += Number(o.split_payments.cash || 0);
+        cardSales += Number(o.split_payments.card || 0);
+        transferSales += Number(o.split_payments.transfer || 0);
+      } else if (pMethod.includes('efectivo') || pMethod.includes('cash')) {
+        cashSales += tot;
+      } else if (pMethod.includes('nequi') || pMethod.includes('tarjeta') || pMethod.includes('card') || pMethod.includes('datafono')) {
+        cardSales += tot;
+      } else if (pMethod.includes('transferencia') || pMethod.includes('banco') || pMethod.includes('daviplata')) {
+        transferSales += tot;
+      } else {
+        cashSales += tot;
       }
 
-      // Origins
-      let originStr = 'Desconocido';
-      if (o.notes && o.notes.includes('[ORIGIN:KIOSKO]')) { originKiosko += total; originStr = 'Kiosko'; }
-      else if (o.notes && o.notes.includes('[ORIGIN:MENU]')) { originMenu += total; originStr = 'Menú QR'; }
-      else if (o.notes && o.notes.includes('[ORIGIN:POS]')) { originPOS += total; originStr = 'Caja (POS)'; }
-      else if (o.notes && o.notes.includes('Kiosko Auto-Servicio')) { originKiosko += total; originStr = 'Kiosko'; }
-      else { originPOS += total; originStr = 'Caja (POS)'; } // default to POS for older orders
-
-      // Calculate products sold
+      // Products
       let orderItems = o.cart || o.items || [];
       if (typeof orderItems === 'string') {
         try { orderItems = JSON.parse(orderItems); } catch(e) { orderItems = []; }
@@ -2131,147 +3907,231 @@ window.openPOSReport = async function() {
         orderItems.forEach(item => {
           const qty = Number(item.quantity || item.qty) || 1;
           const price = Number(item.price) || 0;
-          let name = item.name || 'Desconocido';
+          let name = item.name || 'Producto';
           if (item.extrasLabel) name += ` (${item.extrasLabel})`;
-          
-          if (!productsSold[name]) {
-            productsSold[name] = { qty: 0, total: 0 };
-          }
+          if (!productsSold[name]) productsSold[name] = { qty: 0, total: 0 };
           productsSold[name].qty += qty;
           productsSold[name].total += (qty * price);
         });
       }
-
-      // Table Row
-      const dateStr = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      historyHtml += `
-        <tr class="hover:bg-[#222] transition-colors">
-          <td class="px-4 py-3"><span class="block text-white font-bold">#${String(o.id).slice(-4)}</span><span class="text-[10px]">${dateStr}</span></td>
-          <td class="px-4 py-3 text-white font-bold truncate max-w-[100px]">${o.customer_name || 'Sin Nombre'}</td>
-          <td class="px-4 py-3 text-center"><span class="bg-[#333] text-gray-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">${originStr}</span></td>
-          <td class="px-4 py-3 text-center text-[10px] uppercase font-bold text-gray-400">${o.payment_method}</td>
-          <td class="px-4 py-3 text-right text-green-500 font-black">$${total.toLocaleString()}</td>
-          <td class="px-4 py-3 text-center">
-            <button onclick="printSpecificTicket('${o.id}')" class="bg-[#222] hover:bg-white text-gray-400 hover:text-black w-8 h-8 rounded-full transition-all text-sm shadow-lg border border-[#333]">🖨️</button>
-          </td>
-        </tr>
-      `;
     });
 
-    const ticketPromedio = orders.length > 0 ? (totalVendido / orders.length) : 0;
-    const expectedCash = openingCash + totalEfectivo + cashIn - cashOut;
+    let deposits = 0, withdrawals = 0;
+    movements.forEach(m => {
+      const amt = Number(m.amount) || 0;
+      if (m.type === 'deposit' || m.type === 'in') deposits += amt;
+      else withdrawals += amt;
+    });
 
-    window.currentPOSReport = {
-      filter,
-      orderCount: orders.length,
-      total: totalVendido,
-      cash: totalEfectivo,
-      card: totalTarjeta,
-      transfer: totalTransferencia,
-      originKiosko, originPOS, originMenu,
-      ticketPromedio,
-      openingCash,
-      cashIn,
-      cashOut,
+    const openingBase = Number(closing.opening_amount) || 0;
+    const expectedCash = openingBase + cashSales + deposits - withdrawals;
+    const declaredCash = Number(closing.declared_total) || 0;
+    const diff = closing.is_open ? 0 : (closing.difference !== undefined ? Number(closing.difference) : (declaredCash - expectedCash));
+
+    // Store for reprint button
+    window.currentTurnoDetailData = {
+      closing,
+      staff,
+      orders,
+      movements,
+      totalSales,
+      cashSales,
+      cardSales,
+      transferSales,
+      productsSold,
+      openingBase,
       expectedCash,
-      productsSold
+      declaredCash,
+      diff
     };
 
-    // Render KPIs
-    document.getElementById('posReportKPIs').innerHTML = `
-      <div class="col-span-1 sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
-          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ingresos Totales</div>
-          <div class="text-3xl font-black text-green-500">$${totalVendido.toLocaleString()}</div>
+    let diffBadge = `<span class="text-xs font-bold text-slate-400">En Curso</span>`;
+    if (!closing.is_open) {
+      if (diff > 0) diffBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full text-xs font-black">+$${diff.toLocaleString()} Sobrante</span>`;
+      else if (diff < 0) diffBadge = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-full text-xs font-black">-$${Math.abs(diff).toLocaleString()} Faltante</span>`;
+      else diffBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full text-xs font-black">Exacto ($0)</span>`;
+    }
+
+    body.innerHTML = `
+      <!-- Row 1: Key Metrics Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">Base Inicial</span>
+          <span class="text-xl font-black text-white">$${openingBase.toLocaleString()}</span>
         </div>
-        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
-          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Total Pedidos</div>
-          <div class="text-3xl font-black text-white">${orders.length}</div>
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">Ventas Totales</span>
+          <span class="text-xl font-black text-emerald-400">$${totalSales.toLocaleString()}</span>
         </div>
-        <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222] flex flex-col justify-center">
-          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ticket Promedio</div>
-          <div class="text-3xl font-black text-orange-500">$${Math.round(ticketPromedio).toLocaleString()}</div>
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">Efectivo en Caja</span>
+          <span class="text-xl font-black text-white">$${expectedCash.toLocaleString()}</span>
+        </div>
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">Discrepancia</span>
+          <div class="mt-1">${diffBadge}</div>
         </div>
       </div>
-      
-      <!-- Seccion Flujo de Efectivo -->
-      <div class="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222] flex flex-col justify-between">
-        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3 border-b border-[#333] pb-2">Flujo de Efectivo</div>
-        
-        <div class="space-y-2 flex-1">
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-400">Apertura</span>
-            <span class="font-bold text-orange-500">+$${openingCash.toLocaleString()}</span>
+
+      <!-- Row 2: Payments & Products Sold -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Breakdown of Payments -->
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a] space-y-2.5">
+          <h4 class="text-xs font-black text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span>💳</span> Desglose de Pagos del Turno
+          </h4>
+          <div class="flex justify-between items-center bg-[#111] p-2.5 rounded-xl border border-[#222] text-xs">
+            <span class="text-gray-300 font-bold">Efectivo</span>
+            <span class="font-black text-emerald-400">$${cashSales.toLocaleString()}</span>
           </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-400">Ventas (Efec)</span>
-            <span class="font-bold text-green-500">+$${totalEfectivo.toLocaleString()}</span>
+          <div class="flex justify-between items-center bg-[#111] p-2.5 rounded-xl border border-[#222] text-xs">
+            <span class="text-gray-300 font-bold">NEQUI / Tarjeta</span>
+            <span class="font-black text-cyan-400">$${cardSales.toLocaleString()}</span>
           </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-400">Entradas</span>
-            <span class="font-bold text-blue-500">+$${cashIn.toLocaleString()}</span>
-          </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-400">Salidas</span>
-            <span class="font-bold text-red-500">-$${cashOut.toLocaleString()}</span>
+          <div class="flex justify-between items-center bg-[#111] p-2.5 rounded-xl border border-[#222] text-xs">
+            <span class="text-gray-300 font-bold">Transferencia</span>
+            <span class="font-black text-purple-400">$${transferSales.toLocaleString()}</span>
           </div>
         </div>
-        
-        <div class="mt-3 pt-3 border-t border-[#333]">
-          <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Esperado en Caja</div>
-          <div class="text-2xl font-black text-white">$${expectedCash.toLocaleString()}</div>
+
+        <!-- Top Products in Shift -->
+        <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a] flex flex-col">
+          <h4 class="text-xs font-black text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span>🏆</span> Productos Vendidos (${Object.keys(productsSold).length})
+          </h4>
+          <div class="flex-1 overflow-y-auto max-h-48 custom-scroll pr-1 space-y-1.5">
+            ${Object.keys(productsSold).length > 0 ? 
+              Object.keys(productsSold).sort((a,b) => productsSold[b].qty - productsSold[a].qty).map(pName => `
+                <div class="flex justify-between items-center bg-[#111] p-2 rounded-xl border border-[#222] text-xs">
+                  <span class="text-gray-300 truncate max-w-[200px]" title="${pName}">${pName}</span>
+                  <span class="font-black text-amber-400">${productsSold[pName].qty}x ($${productsSold[pName].total.toLocaleString()})</span>
+                </div>
+              `).join('') : '<p class="text-xs text-gray-500 text-center py-6">Sin productos vendidos</p>'
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Cash Movements in Shift -->
+      <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+        <h4 class="text-xs font-black text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <span>💸</span> Movimientos de Caja del Turno (${movements.length})
+        </h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-[10px] uppercase text-gray-500 border-b border-[#222]">
+              <tr>
+                <th class="py-2 px-3">Hora</th>
+                <th class="py-2 px-3">Tipo</th>
+                <th class="py-2 px-3">Motivo / Descripción</th>
+                <th class="py-2 px-3 text-right">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#222]">
+              ${movements.length > 0 ? movements.map(m => `
+                <tr>
+                  <td class="py-2 px-3 text-gray-400">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                  <td class="py-2 px-3">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase ${(m.type === 'deposit' || m.type === 'in') ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
+                      ${(m.type === 'deposit' || m.type === 'in') ? 'Ingreso' : 'Egreso'}
+                    </span>
+                  </td>
+                  <td class="py-2 px-3 text-gray-300">${m.description || m.notes || m.reason || 'Movimiento'}</td>
+                  <td class="py-2 px-3 text-right font-black ${(m.type === 'deposit' || m.type === 'in') ? 'text-emerald-400' : 'text-rose-400'}">
+                    ${(m.type === 'deposit' || m.type === 'in') ? '+' : '-'}$${Number(m.amount).toLocaleString()}
+                  </td>
+                </tr>
+              `).join('') : '<tr><td colspan="4" class="text-center py-4 text-gray-500">Sin ingresos ni egresos en este turno</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Row 4: Orders in Shift -->
+      <div class="bg-[#181818] p-4 rounded-2xl border border-[#2a2a2a]">
+        <h4 class="text-xs font-black text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <span>📋</span> Pedidos Registrados en este Turno (${orders.length})
+        </h4>
+        <div class="overflow-x-auto max-h-60 custom-scroll">
+          <table class="w-full text-left text-xs">
+            <thead class="text-[10px] uppercase text-gray-500 border-b border-[#222]">
+              <tr>
+                <th class="py-2 px-3">ID / Hora</th>
+                <th class="py-2 px-3">Cliente</th>
+                <th class="py-2 px-3">Método</th>
+                <th class="py-2 px-3 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#222]">
+              ${orders.length > 0 ? orders.map(o => `
+                <tr>
+                  <td class="py-2 px-3">
+                    <span class="font-bold text-white block">#${String(o.id).slice(-4)}</span>
+                    <span class="text-[10px] text-gray-500">${new Date(o.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                  </td>
+                  <td class="py-2 px-3 text-gray-300">${o.customer_name || 'Cliente'}</td>
+                  <td class="py-2 px-3"><span class="bg-[#111] px-1.5 py-0.5 rounded text-[10px] text-gray-300">${o.payment_method || 'Efectivo'}</span></td>
+                  <td class="py-2 px-3 text-right font-black text-emerald-400">$${Number(o.total).toLocaleString()}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="4" class="text-center py-4 text-gray-500">Sin pedidos registrados en este turno</td></tr>'}
+            </tbody>
+          </table>
         </div>
       </div>
     `;
-    
-    // Render History
-    if (orders.length > 0) {
-      document.getElementById('posReportHistoryBody').innerHTML = historyHtml;
-      document.getElementById('posReportHistoryContainer').classList.remove('hidden');
-    } else {
-      document.getElementById('posReportHistoryBody').innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500 font-bold">No hay pedidos en este periodo.</td></tr>`;
-      document.getElementById('posReportHistoryContainer').classList.remove('hidden');
-    }
-
-    // Render Charts
-    document.getElementById('posReportCharts').classList.remove('hidden');
-    
-    if (window.chartOriginInstance) window.chartOriginInstance.destroy();
-    const ctxOrigin = document.getElementById('chartOrigin').getContext('2d');
-    window.chartOriginInstance = new Chart(ctxOrigin, {
-      type: 'doughnut',
-      data: {
-        labels: ['Caja (POS)', 'Kiosko', 'Menú QR'],
-        datasets: [{
-          data: [originPOS, originKiosko, originMenu],
-          backgroundColor: ['#f97316', '#3b82f6', '#10b981'],
-          borderWidth: 0
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10, weight: 'bold' } } } }, cutout: '70%' }
-    });
-
-    if (window.chartPaymentInstance) window.chartPaymentInstance.destroy();
-    const ctxPayment = document.getElementById('chartPayment').getContext('2d');
-    window.chartPaymentInstance = new Chart(ctxPayment, {
-      type: 'doughnut',
-      data: {
-        labels: ['Efectivo', 'NEQUI', 'Transf.'],
-        datasets: [{
-          data: [totalEfectivo, totalTarjeta, totalTransferencia],
-          backgroundColor: ['#22c55e', '#3b82f6', '#a855f7'],
-          borderWidth: 0
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10, weight: 'bold' } } } }, cutout: '70%' }
-    });
-
-    document.getElementById('btnPrintPOSReport').disabled = false;
 
   } catch (err) {
-    console.error('Error loading report:', err);
-    document.getElementById('posReportKPIs').innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-4">Error cargando el reporte.</div>';
+    console.error('Error opening turno detail:', err);
+    body.innerHTML = '<div class="text-center py-10 text-red-400 font-bold">Error cargando detalles del turno.</div>';
   }
+};
+
+window.closeTurnoDetail = function() {
+  const modal = document.getElementById('modalDetalleTurnoPOS');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.reprintCurrentTurnoModal = function() {
+  if (!window.currentTurnoDetailData) return;
+  const d = window.currentTurnoDetailData;
+  const dummyReport = {
+    filter: `Turno #${String(d.closing.id).slice(-6).toUpperCase()} (${d.staff})`,
+    orderCount: d.orders.length,
+    total: d.totalSales,
+    cash: d.cashSales,
+    card: d.cardSales,
+    transfer: d.transferSales,
+    originKiosko: 0,
+    originPOS: d.totalSales,
+    originMenu: 0,
+    ticketPromedio: d.orders.length > 0 ? (d.totalSales / d.orders.length) : 0,
+    openingCash: d.openingBase,
+    cashIn: 0,
+    cashOut: 0,
+    expectedCash: d.expectedCash,
+    declaredCash: d.declaredCash,
+    difference: d.diff,
+    productsSold: d.productsSold
+  };
+  window.currentPOSReport = dummyReport;
+  printPOSReport();
+};
+
+window.reprintTurnoZ = async function(closingId, event) {
+  if (event) event.stopPropagation();
+  try {
+    if (typeof showToast === 'function') showToast('Preparando ticket Z del turno...', 'info');
+    await openTurnoDetail(closingId);
+    setTimeout(() => {
+      reprintCurrentTurnoModal();
+    }, 400);
+  } catch (e) {
+    console.error('Error in reprintTurnoZ:', e);
+  }
+};
+
+window.closePOSReport = function() {
+  document.getElementById('posReportModal').classList.add('hidden');
 };
 
 window.printSpecificTicket = async function(orderId) {
@@ -2291,198 +4151,6 @@ window.printSpecificTicket = async function(orderId) {
     console.error('Error fetching order for print:', err);
     showToast('❌ Error al imprimir el ticket', 'error');
   }
-};
-
-window.closeCashAndPrintZ = async function() {
-  if (!window.currentPOSReport || !activeCashClosingId) {
-    showToast('⚠️ No hay caja abierta o no se cargó el reporte', 'error');
-    return;
-  }
-  
-  if (!confirm('¿Estás seguro que deseas CERRAR LA CAJA e imprimir el Ticket Z con los montos actuales?')) return;
-
-  const btn = document.getElementById('btnCloseCashAndPrintZ');
-  if (btn) { btn.textContent = 'CERRANDO...'; btn.disabled = true; }
-
-  try {
-    const expectedCash = window.currentPOSReport.expectedCash || 0;
-
-    // Obtener los datos actuales de la caja
-    const { data: closingInfo } = await supabaseClient
-      .from('cash_closings')
-      .select('*')
-      .eq('id', activeCashClosingId)
-      .single();
-
-    // Actualizar registro de caja cerrada
-    const { data: updateData, error: updateError } = await supabaseClient
-      .from('cash_closings')
-      .update({
-        is_open: false,
-        date: new Date().toISOString().split('T')[0],
-        expected_total: expectedCash,
-        declared_total: expectedCash,
-        difference: 0,
-        cash_sales: window.currentPOSReport.cash || 0,
-        transfer_sales: window.currentPOSReport.transfer || 0,
-        card_sales: window.currentPOSReport.card || 0,
-        total_expenses: window.currentPOSReport.cashOut || 0
-      })
-      .eq('id', activeCashClosingId)
-      .select();
-
-    if (updateError) {
-        console.error('Error en Supabase UPDATE:', updateError);
-        throw updateError;
-    }
-    if (!updateData || updateData.length === 0) {
-        alert('⚠️ ERROR DE PERMISOS (RLS) EN SUPABASE\n\nNo se pudo cerrar la caja porque falta la política de UPDATE en Supabase.\n\nVe a Supabase -> SQL Editor y ejecuta:\n\nCREATE POLICY "Enable update for users" ON "public"."cash_closings" FOR UPDATE USING (true);');
-        throw new Error('Fallo al cerrar caja por falta de permisos RLS en Supabase.');
-    }
-
-    showToast('🖨️ Turno Cerrado. Imprimiendo Ticket Z...', 'success');
-    
-    // Imprimir Z report y esperar a que termine
-    try {
-      await printPOSReport();
-    } catch (printErr) {
-      console.error('Error imprimiendo Z:', printErr);
-    }
-
-    // Recargar la página después de dar tiempo suficiente a la impresora
-    // (Se recarga para limpiar el estado de la caja, pero no se cierra la sesión)
-    setTimeout(() => {
-      window.location.reload();
-    }, 4000);
-
-  } catch (err) {
-    showToast('❌ Error al cerrar la caja', 'error');
-    console.error(err);
-    if (btn) { btn.innerHTML = '<span>🔒</span> Cerrar Caja e Imprimir Z'; btn.disabled = false; }
-  }
-};
-
-window.closePOSReport = function() {
-  document.getElementById('posReportModal').classList.add('hidden');
-};
-
-window.printPOSReport = async function() {
-  if (!window.currentPOSReport) return;
-  
-  // Try PrintBridge first
-  if (typeof bridgePrintReport === 'function') {
-    const ok = await bridgePrintReport(window.currentPOSReport, posSettings);
-    if (ok) { showToast('🖨️ Reporte impreso (PrintBridge)'); return; }
-  }
-  // Fallback: browser print
-  const r = window.currentPOSReport;
-  const logoUrl = posSettings?.logo_url ? `<img src="${posSettings.logo_url}" style="width:50px;height:50px;border-radius:25px;margin-bottom:10px;">` : '';
-  const businessName = posSettings?.name || 'Mi Negocio';
-
-  const html = `
-  <html>
-    <head>
-      <title>Corte de Caja</title>
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 500; margin: 0; padding: 10px; width: 80mm; color: #000; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .mb-2 { margin-bottom: 8px; }
-        .border-b { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .border-t { border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
-        .flex { display: flex; justify-content: space-between; }
-        @media print { body { width: 100%; margin:0; padding:0; } }
-      </style>
-    </head>
-    <body>
-      <div class="text-center mb-2">${logoUrl}</div>
-      <div class="text-center font-bold text-lg mb-2">
-        ${businessName}<br>
-        CORTE DE CAJA Z
-      </div>
-      <div class="text-center border-b mb-2" style="font-size:12px;">
-        <strong>Fecha:</strong> ${new Date().toLocaleString()}
-      </div>
-      
-      <div class="flex" style="margin-top:15px;">
-        <span>Periodo:</span>
-        <span class="font-bold">${r.filter === 'today' ? 'Hoy' : r.filter === 'yesterday' ? 'Ayer' : r.filter === 'this_week' ? 'Esta Semana' : 'Este Mes'}</span>
-      </div>
-      <div class="flex">
-        <span>Pedidos Totales:</span>
-        <span class="font-bold">${r.orderCount}</span>
-      </div>
-      <div class="flex">
-        <span>Ticket Promedio:</span>
-        <span class="font-bold">$${Math.round(r.ticketPromedio).toLocaleString()}</span>
-      </div>
-      
-      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
-        <div class="font-bold text-center mb-2">ORIGEN DE VENTAS</div>
-        <div class="flex"><span>Caja (POS):</span> <span>$${r.originPOS.toLocaleString()}</span></div>
-        <div class="flex"><span>Kiosko:</span> <span>$${r.originKiosko.toLocaleString()}</span></div>
-        <div class="flex"><span>Menú QR:</span> <span>$${r.originMenu.toLocaleString()}</span></div>
-      </div>
-
-      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
-        <div class="font-bold text-center mb-2">PRODUCTOS VENDIDOS</div>
-        ${Object.keys(r.productsSold || {}).length > 0 ? 
-            Object.keys(r.productsSold).map(name => `
-              <div class="flex" style="font-size:14px; margin-bottom:4px;">
-                <span style="flex:1; text-transform:uppercase; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${r.productsSold[name].qty}x ${name}</span>
-                <span>$${r.productsSold[name].total.toLocaleString()}</span>
-              </div>
-            `).join('')
-          : '<div class="text-center text-sm">Sin productos</div>'
-        }
-      </div>
-
-      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
-        <div class="font-bold text-center mb-2">DESGLOSE DE PAGOS</div>
-        <div class="flex"><span>Efectivo:</span> <span>$${r.cash.toLocaleString()}</span></div>
-        <div class="flex"><span>NEQUI:</span> <span>$${r.card.toLocaleString()}</span></div>
-        <div class="flex"><span>Transferencia:</span> <span>$${r.transfer.toLocaleString()}</span></div>
-      </div>
-      
-      <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
-        <span>TOTAL VENTAS:</span>
-        <span>$${r.total.toLocaleString()}</span>
-      </div>
-
-      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
-        <div class="font-bold text-center mb-2">FLUJO DE EFECTIVO</div>
-        <div class="flex"><span>Fondo Apertura:</span> <span>+$${(r.openingCash||0).toLocaleString()}</span></div>
-        <div class="flex"><span>Ventas Efectivo:</span> <span>+$${(r.cash||0).toLocaleString()}</span></div>
-        <div class="flex"><span>Entradas Extra:</span> <span>+$${(r.cashIn||0).toLocaleString()}</span></div>
-        <div class="flex"><span>Gastos/Retiros:</span> <span>-$${(r.cashOut||0).toLocaleString()}</span></div>
-      </div>
-      
-      <div class="flex border-t font-bold text-lg" style="margin-top:15px; padding-top:10px;">
-        <span>EFECTIVO ESPERADO:</span>
-        <span>$${(r.expectedCash||0).toLocaleString()}</span>
-      </div>
-
-      ${typeof r.declaredCash !== 'undefined' ? `
-      <div class="border-t mb-2 mt-2" style="padding-top:10px;">
-        <div class="font-bold text-center mb-2">CIERRE DE CAJA</div>
-        <div class="flex"><span>Efectivo Declarado:</span> <span>$${(r.declaredCash||0).toLocaleString()}</span></div>
-        <div class="flex font-bold"><span>${Number(r.difference||0) > 0 ? 'Sobrante:' : Number(r.difference||0) < 0 ? 'Faltante:' : 'Diferencia:'}</span> <span>$${Math.abs(Number(r.difference||0)).toLocaleString()}</span></div>
-      </div>
-      ` : ''}
-      
-      <div class="text-center border-t text-sm" style="margin-top:20px; padding-top:10px;">
-        FIN DEL REPORTE
-      </div>
-      <script>
-        setTimeout(() => { window.print(); window.close(); }, 500);
-      </script>
-    </body>
-  </html>
-  `;
-
-  const printWindow = window.open('', '_blank', 'width=400,height=600');
-  printWindow.document.write(html);
-  printWindow.document.close();
 };
 
 window.copyToClipboardPOS = function(text, btn) {
@@ -2511,10 +4179,23 @@ window.copyToClipboardPOS = function(text, btn) {
 // NOTIFICATIONS SYSTEM (Pedidos Entrantes)
 // ==========================================
 window.notifOrders = [];
-window.notifFilter = 'all';
+window.notifFilter = 'pendiente';
 
 window.openNotificationsModal = async function() {
   document.getElementById('notificationsModal').classList.remove('hidden');
+  window.notifFilter = 'pendiente';
+  
+  // Reset active button to Pendientes
+  document.querySelectorAll('.notif-filter-btn').forEach(btn => {
+    btn.classList.remove('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+    btn.classList.add('bg-[#222]', 'text-gray-300', 'border-[#333]');
+  });
+  const btnPendiente = document.getElementById('btnNotifPendiente');
+  if (btnPendiente) {
+    btnPendiente.classList.remove('bg-[#222]', 'text-gray-300', 'border-[#333]');
+    btnPendiente.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+  }
+
   await refreshNotifications();
 };
 
@@ -2539,10 +4220,10 @@ window.refreshNotifications = async function() {
 
     if (error) throw error;
 
-    // Filter to only non-POS origin orders (kiosk, menu, etc.)
+    // Filter to only non-POS origin orders (kiosk, menu, etc.) or pending orders
     window.notifOrders = (data || []).filter(o => {
       const notes = o.notes || '';
-      return notes.includes('[ORIGIN:KIOSKO]') || notes.includes('[ORIGIN:MENU]') || (!notes.includes('[ORIGIN:POS]') && o.payment_method === 'Pendiente');
+      return notes.includes('[ORIGIN:KIOSKO]') || notes.includes('[ORIGIN:MENU]') || (!notes.includes('[ORIGIN:POS]') && o.payment_method === 'Pendiente') || o.status === 'Pendiente';
     });
 
     renderNotifications();
@@ -2558,10 +4239,26 @@ window.filterNotifications = function(filter) {
     btn.classList.remove('active', 'bg-orange-500', 'text-white', 'border-orange-500');
     btn.classList.add('bg-[#222]', 'text-gray-300', 'border-[#333]');
   });
-  event.target.classList.remove('bg-[#222]', 'text-gray-300', 'border-[#333]');
-  event.target.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+  if (event && event.target) {
+    const targetBtn = event.target.closest('.notif-filter-btn') || event.target;
+    targetBtn.classList.remove('bg-[#222]', 'text-gray-300', 'border-[#333]');
+    targetBtn.classList.add('active', 'bg-orange-500', 'text-white', 'border-orange-500');
+  }
   renderNotifications();
 };
+
+function extractOrderCashier(notes) {
+  if (!notes) return null;
+  const match = notes.match(/\[CASHIER:([^|\]]+)(?:\|([^|\]]*))?(?:\|([^\]]*))?\]/);
+  if (match) {
+    return {
+      name: match[1] ? match[1].trim() : 'Cajero',
+      email: match[2] ? match[2].trim() : '',
+      shiftId: match[3] ? match[3].trim() : ''
+    };
+  }
+  return null;
+}
 
 function renderNotifications() {
   const container = document.getElementById('notificationsList');
@@ -2572,20 +4269,39 @@ function renderNotifications() {
   } else if (window.notifFilter === 'menu') {
     orders = orders.filter(o => (o.notes || '').includes('[ORIGIN:MENU]'));
   } else if (window.notifFilter === 'pendiente') {
-    orders = orders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación');
+    orders = orders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación' || o.payment_method === 'Pendiente');
+  } else if (window.notifFilter === 'my_shift') {
+    const currentStaffLower = (staffName || '').toLowerCase();
+    orders = orders.filter(o => {
+      const c = extractOrderCashier(o.notes);
+      if (c && currentStaffLower && c.name.toLowerCase().includes(currentStaffLower)) return true;
+      if (activeCashClosingId && (o.notes || '').includes(`SHIFT_${activeCashClosingId}`)) return true;
+      return false;
+    });
   }
 
-  const pendingCount = window.notifOrders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación').length;
+  const pendingOrders = window.notifOrders.filter(o => o.status === 'Pendiente' || o.status === 'En preparación' || o.payment_method === 'Pendiente');
+  const pendingCount = pendingOrders.length;
+  
   const badge = document.getElementById('notifBadge');
   const modalCount = document.getElementById('notifModalCount');
+  const pendingFilterBadge = document.getElementById('notifFilterPendingBadge');
+  
   if (badge) {
     badge.textContent = pendingCount;
     badge.classList.toggle('hidden', pendingCount === 0);
   }
   if (modalCount) modalCount.textContent = pendingCount;
+  if (pendingFilterBadge) pendingFilterBadge.textContent = pendingCount;
 
   if (!orders.length) {
-    container.innerHTML = '<div class="text-center text-gray-500 py-10 font-bold">No hay pedidos en esta categoría</div>';
+    container.innerHTML = `
+      <div class="text-center text-gray-500 py-16 flex flex-col items-center justify-center">
+        <span class="text-4xl mb-2">✨</span>
+        <span class="font-bold text-sm">No hay pedidos en esta categoría</span>
+        <span class="text-xs text-gray-400 mt-1">Todos los pedidos pendientes están al día</span>
+      </div>
+    `;
     return;
   }
 
@@ -2594,59 +4310,85 @@ function renderNotifications() {
     let originLabel = 'Desconocido';
     let originColor = 'gray';
     if (notes.includes('[ORIGIN:KIOSKO]')) { originLabel = '🖥️ Kiosko'; originColor = 'blue'; }
-    else if (notes.includes('[ORIGIN:MENU]')) { originLabel = '📱 Menú QR'; originColor = 'green'; }
+    else if (notes.includes('[ORIGIN:MENU]')) { originLabel = '📱 Menú QR'; originColor = 'purple'; }
+    else if (notes.includes('[ORIGIN:POS]')) { originLabel = '🏪 POS Local'; originColor = 'amber'; }
 
     let statusColor = 'yellow';
     if (o.status === 'Entregado' || o.status === 'Completado') statusColor = 'green';
     else if (o.status === 'Pendiente') statusColor = 'red';
 
+    const isPendingPayment = (o.payment_method === 'Pendiente' || !o.payment_method);
+    const cashierInfo = extractOrderCashier(notes);
+
     const timeStr = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     const ticketId = String(o.id).split('-')[0];
 
     const itemsHtml = (o.items || []).map(it =>
-      `<div class="flex justify-between text-xs py-1 border-b border-[#222]">
-        <span class="text-gray-300">${it.qty || it.quantity || 1}x ${it.name}</span>
+      `<div class="flex justify-between items-center text-xs py-1 border-b border-[#222] last:border-0">
+        <span class="text-gray-300 font-medium">${it.qty || it.quantity || 1}x ${it.name}</span>
         <span class="text-white font-bold">$${Number(it.price * (it.qty || it.quantity || 1)).toLocaleString()}</span>
       </div>`
     ).join('');
 
     return `
-      <div class="bg-[#111] border border-[#222] rounded-2xl overflow-hidden hover:border-[#444] transition-all">
+      <div class="bg-[#111] border border-[#222] rounded-2xl overflow-hidden hover:border-[#444] transition-all shadow-sm">
         <div class="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#222] bg-[#1a1a1a]">
           <div class="flex items-center gap-3">
-            <span class="bg-${originColor}-500/20 text-${originColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest">${originLabel}</span>
+            <span class="bg-${originColor}-500/20 text-${originColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border border-${originColor}-500/30">${originLabel}</span>
             <span class="font-black text-white text-sm">#${ticketId}</span>
-            <span class="text-gray-500 text-xs">${timeStr}</span>
+            <span class="text-gray-400 text-xs font-semibold">🕒 ${timeStr}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="bg-${statusColor}-500/20 text-${statusColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest">${o.status}</span>
+            ${isPendingPayment ? 
+              `<span class="bg-red-500/20 text-red-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border border-red-500/30 animate-pulse">⚠️ Pendiente de Cobro</span>` : 
+              `<span class="bg-green-500/20 text-green-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border border-green-500/30">✅ Pagado (${o.payment_method})</span>`
+            }
+            <span class="bg-${statusColor}-500/20 text-${statusColor}-400 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest border border-${statusColor}-500/30">${o.status}</span>
           </div>
         </div>
         <div class="p-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Cliente</p>
-              <p class="text-sm font-bold text-white">${escapeHTML(o.customer_name) || 'Sin nombre'}</p>
-              <p class="text-xs text-gray-400">${escapeHTML(o.customer_phone) || 'N/A'}</p>
-              <p class="text-xs text-gray-400 mt-1">${o.delivery_method || 'N/A'} — ${escapeHTML(o.address) || 'N/A'}</p>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Cliente & Entrega</p>
+              <p class="text-sm font-black text-white">${escapeHTML(o.customer_name) || 'Sin nombre'}</p>
+              <p class="text-xs text-gray-400 font-medium">${escapeHTML(o.customer_phone) || 'Sin teléfono'}</p>
+              <p class="text-xs text-orange-400 font-bold mt-1">📍 ${o.delivery_method || 'Local'} ${o.address ? `— ${escapeHTML(o.address)}` : ''}</p>
+              
+              ${cashierInfo ? `
+                <div class="mt-2.5 inline-flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                  <span>👤 Atendido por:</span>
+                  <span class="text-white">${cashierInfo.name}</span>
+                  ${cashierInfo.email ? `<span class="text-blue-400/70 text-[10px]">(${cashierInfo.email})</span>` : ''}
+                </div>
+              ` : ''}
             </div>
             <div>
-              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Productos</p>
-              <div class="max-h-32 overflow-y-auto custom-scroll">${itemsHtml}</div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Productos (${(o.items || []).length})</p>
+              <div class="max-h-32 overflow-y-auto custom-scroll bg-[#0a0a0a] p-2.5 rounded-xl border border-[#222]">${itemsHtml}</div>
             </div>
           </div>
           <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-[#222]">
-            <div>
+            <div class="flex items-baseline gap-2">
               <span class="text-2xl font-black text-orange-500">$${Number(o.total).toLocaleString()}</span>
-              <span class="text-xs text-gray-500 ml-2">${o.payment_method || 'Pendiente'}</span>
+              <span class="text-xs ${isPendingPayment ? 'text-red-400 font-black' : 'text-gray-400 font-semibold'}">${isPendingPayment ? 'Por Cobrar' : o.payment_method}</span>
             </div>
-            <div class="flex gap-2">
-              ${(o.payment_method === 'Pendiente' || !o.payment_method) ? `
-                <button onclick="notifRegisterPayment('${o.id}')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm">💵 Cobrar</button>
+            <div class="flex gap-2 flex-wrap">
+              ${isPendingPayment ? `
+                <button onclick="notifRegisterPayment('${o.id}')" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2 rounded-xl text-xs font-black transition-all active:scale-95 shadow-md shadow-orange-500/20 flex items-center gap-1.5">
+                  <span>💵</span> <span>Cobrar en Turno</span>
+                </button>
               ` : ''}
-              <button onclick="notifPrintComanda('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🖨️ Comanda</button>
-              <button onclick="notifPrintTicket('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">🧾 Ticket</button>
-              <button onclick="notifMarkReady('${o.id}')" class="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">✅ Listo</button>
+              <button onclick="notifPrintComanda('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] hover:border-gray-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                <span>🖨️</span> <span>Comanda</span>
+              </button>
+              <button onclick="notifPrintTicket('${o.id}')" class="bg-[#222] hover:bg-[#333] border border-[#333] hover:border-gray-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                <span>🧾</span> <span>Ticket</span>
+              </button>
+              ${o.status !== 'Entregado' ? `
+                <button onclick="notifMarkReady('${o.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                  <span>✅</span> <span>Listo</span>
+                </button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -2795,14 +4537,17 @@ window.closeCashModal = function() {
 
 window.submitOpenCash = async function() {
   const amount = parseFloat(document.getElementById('cashOpenAmount').value) || 0;
-  
+  const cashierIdentifier = `${staffName || 'Cajero'} ${staffEmail ? `(${staffEmail})` : ''}`.trim();
+
   try {
     const { data, error } = await supabaseClient
       .from('cash_closings')
       .insert([{
         business_id: businessId,
         is_open: true,
-        opening_amount: amount
+        opening_amount: amount,
+        opened_by: cashierIdentifier,
+        opened_at: new Date().toISOString()
       }])
       .select('id')
       .single();
@@ -3003,12 +4748,15 @@ window.submitBlindClose = async function() {
     const expectedCash = Number(closingInfo.opening_amount) + cashSales + totalDeposits - totalWithdrawals;
     const difference = declaredCash - expectedCash;
 
+    const cashierClosedIdentifier = `${staffName || 'Cajero'} ${staffEmail ? `(${staffEmail})` : ''}`.trim();
+
     // Update the cash_closing record
     await supabaseClient
       .from('cash_closings')
       .update({
         is_open: false,
         closed_at: new Date().toISOString(),
+        closed_by: cashierClosedIdentifier,
         expected_total: expectedCash,
         declared_total: declaredCash,
         difference: difference,

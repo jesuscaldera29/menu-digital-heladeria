@@ -118,6 +118,60 @@
       color: white;
     }
 
+    /* POS Report Modal Admin Light Theme Styling */
+    #posReportModalAdmin > div:nth-child(2) {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #111827 !important;
+    }
+    #posReportModalAdmin .bg-\[\#10121a\],
+    #posReportModalAdmin .bg-\[\#131622\] {
+      background-color: #f9fafb !important;
+      border-color: #e5e7eb !important;
+    }
+    #posReportModalAdmin .bg-\[\#0b0c10\] {
+      background-color: #f3f4f6 !important;
+      border-color: #e5e7eb !important;
+    }
+    #posReportModalAdmin .bg-\[\#161926\],
+    #posReportModalAdmin .bg-\[\#181b26\] {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #111827 !important;
+    }
+    #posReportModalAdmin .bg-\[\#1c2030\] {
+      background-color: #f3f4f6 !important;
+      border-color: #d1d5db !important;
+      color: #374151 !important;
+    }
+    #posReportModalAdmin .border-\[\#1c2030\],
+    #posReportModalAdmin .border-\[\#232738\],
+    #posReportModalAdmin .border-\[\#2b3049\] {
+      border-color: #e5e7eb !important;
+    }
+    #posReportModalAdmin .text-white,
+    #posReportModalAdmin .text-slate-100,
+    #posReportModalAdmin .text-slate-200 {
+      color: #111827 !important;
+    }
+    #posReportModalAdmin .text-slate-300,
+    #posReportModalAdmin .text-slate-400 {
+      color: #4b5563 !important;
+    }
+    #posReportModalAdmin .text-slate-500 {
+      color: #6b7280 !important;
+    }
+    #posReportModalAdmin select,
+    #posReportModalAdmin input {
+      background-color: #ffffff !important;
+      color: #111827 !important;
+      border-color: #d1d5db !important;
+    }
+    #posReportModalAdmin .bg-gradient-to-r.from-orange-500,
+    #posReportModalAdmin .bg-orange-500 {
+      color: #ffffff !important;
+    }
+
     .preview {
       width: 100%;
       height: 220px;
@@ -1239,7 +1293,7 @@
       <!-- ========================================== -->
       <!-- SUB-VIEW: HISTORIAL DE CAJA -->
       <!-- ========================================== -->
-      <div id="cajaViewHistorial" class="max-w-xl mx-auto hidden">
+      <div id="cajaViewHistorial" class="max-w-3xl mx-auto hidden">
         <div class="flex items-center gap-3 mb-4">
           <button onclick="showCajaView('menu')" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all">‹</button>
           <h2 class="text-xl font-black text-gray-800">Historial de la caja</h2>
@@ -2885,80 +2939,282 @@
     </div>
   </div>
 
-  <!-- DASHBOARD FINANCIERO / CORTE DE CAJA Z MODAL (Copia de POS) -->
-  <div id="posReportModalAdmin" class="hidden fixed inset-0 z-[1200] flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePOSReportAdmin()"></div>
-    <div class="bg-[#111] border border-[#333] w-full max-w-6xl h-[95vh] md:h-[90vh] rounded-2xl relative z-10 flex flex-col shadow-2xl mx-4 overflow-hidden text-white">
+  <!-- DASHBOARD FINANCIERO / CORTE DE CAJA Z MODAL (SUPERCHARGED) -->
+  <div id="posReportModalAdmin" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-2 sm:p-4">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity" onclick="closePOSReportAdmin()"></div>
+    <div class="bg-[#0b0c10] border border-[#232738] w-full max-w-6xl max-h-[94vh] rounded-3xl relative z-10 flex flex-col shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden text-slate-100 font-sans animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Header -->
-      <div class="p-5 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
-        <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3">
-          <span>📊</span> Dashboard Financiero (Corte Z)
-        </h3>
-        <button onclick="closePOSReportAdmin()" class="w-10 h-10 flex items-center justify-center bg-[#333] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-xl">✕</button>
+      <div class="p-4 sm:p-5 border-b border-[#1c2030] flex flex-wrap justify-between items-center bg-[#10121a] shrink-0 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-orange-500/20">
+            📊
+          </div>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2 tracking-tight">
+              Dashboard Financiero & Corte Z
+            </h3>
+            <p class="text-xs text-slate-400 font-medium" id="posReportSubheaderAdmin">
+              Auditoría financiera consolidada, desglose multicanal y arqueo de caja
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="exportPOSReportCSV()" id="btnExportPOSReportCSV" class="bg-[#181b26] hover:bg-[#232738] active:scale-95 text-slate-200 border border-[#2b3049] font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm" title="Exportar a CSV">
+            <span>📥</span> <span class="hidden md:inline">Exportar CSV</span>
+          </button>
+          <button onclick="printPOSReportExecutive()" id="btnPrintPOSReportExecutive" class="bg-[#181b26] hover:bg-[#232738] active:scale-95 text-slate-200 border border-[#2b3049] font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm" title="Informe Imprimible">
+            <span>📄</span> <span class="hidden md:inline">Informe A4</span>
+          </button>
+          <button onclick="printPOSReportAdmin()" id="btnPrintPOSReportAdmin" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50">
+            <span>🖨️</span> <span>Ticket Térmico Z</span>
+          </button>
+          <button onclick="closePOSReportAdmin()" class="w-9 h-9 flex items-center justify-center bg-[#1c2030] text-slate-400 rounded-full hover:bg-white hover:text-black transition-all text-lg font-bold ml-1">✕</button>
+        </div>
       </div>
 
-      <!-- Content -->
-      <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 bg-[#0a0a0a]">
-        
-        <!-- Filters -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-[#1a1a1a] p-4 rounded-2xl border border-[#222]">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">PERIODO:</span>
-            <select id="posReportDateFilterAdmin" class="bg-[#222] text-white text-sm font-bold p-2.5 rounded-xl border border-[#333] focus:border-orange-500 outline-none cursor-pointer" onchange="openPOSReportAdmin()">
-              <option value="today">Hoy</option>
-              <option value="yesterday">Ayer</option>
-              <option value="this_week">Esta Semana</option>
-              <option value="this_month">Este Mes</option>
+      <!-- Filters Toolbar & View Switcher -->
+      <div class="px-4 py-3 bg-[#131622] border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- View Navigation Tabs -->
+          <div class="inline-flex bg-[#0b0c10] p-1 rounded-xl border border-[#232738] gap-1">
+            <button id="posTabBtnOverview" onclick="switchPOSReportTab('overview')" class="px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center gap-1.5">
+              <span>📊</span> <span>Visión Financiera</span>
+            </button>
+            <button id="posTabBtnTurnos" onclick="switchPOSReportTab('turnos')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030] flex items-center gap-1.5">
+              <span>👥</span> <span>Turnos y Cajeros</span>
+              <span id="posTabTurnosBadge" class="bg-[#1c2030] text-orange-400 text-[10px] font-black px-1.5 py-0.2 rounded-full border border-orange-500/20">0</span>
+            </button>
+          </div>
+
+          <!-- Period Pills -->
+          <div class="inline-flex bg-[#0b0c10] p-1 rounded-xl border border-[#232738] gap-1" id="posPeriodPillsContainer">
+            <button onclick="setPOSReportPeriod('today')" data-period="today" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm">Hoy</button>
+            <button onclick="setPOSReportPeriod('yesterday')" data-period="yesterday" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Ayer</button>
+            <button onclick="setPOSReportPeriod('this_week')" data-period="this_week" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Esta Semana</button>
+            <button onclick="setPOSReportPeriod('this_month')" data-period="this_month" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Este Mes</button>
+            <button onclick="togglePOSCustomDates()" id="btnCustomDatesToggle" class="pos-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-[#1c2030]">Personalizado</button>
+          </div>
+
+          <input type="hidden" id="posReportDateFilterAdmin" value="today">
+
+          <!-- Custom Date Range picker (expandable) -->
+          <div id="posCustomDatesContainer" class="hidden items-center gap-2 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Desde:</span>
+            <input type="date" id="posCustomStartDateAdmin" class="bg-[#161926] text-white text-xs px-2 py-1 rounded-lg border border-[#2b3049] outline-none">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Hasta:</span>
+            <input type="date" id="posCustomEndDateAdmin" class="bg-[#161926] text-white text-xs px-2 py-1 rounded-lg border border-[#2b3049] outline-none">
+            <button onclick="applyPOSCustomDates()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg transition-all">Filtrar</button>
+          </div>
+        </div>
+
+        <!-- Filter Dropdowns (Cajero & Turno) & Refresh -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Filtro Cajero -->
+          <div class="flex items-center gap-1.5 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-xs">👤</span>
+            <select id="posReportCashierFilterAdmin" onchange="onPOSReportCashierFilterChanged()" class="bg-transparent text-slate-200 text-xs font-bold outline-none cursor-pointer">
+              <option value="all" class="bg-[#10121a] text-white">Todos los Cajeros</option>
             </select>
           </div>
-          <button onclick="printPOSReportAdmin()" id="btnPrintPOSReportAdmin" class="bg-white text-black font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
-            <span>🖨️</span> Imprimir Ticket Z
+
+          <!-- Filtro Turno -->
+          <div class="flex items-center gap-1.5 bg-[#0b0c10] px-2.5 py-1 rounded-xl border border-[#232738]">
+            <span class="text-xs">📋</span>
+            <select id="posReportTurnoFilterAdmin" onchange="onPOSReportTurnoFilterChanged()" class="bg-transparent text-slate-200 text-xs font-bold outline-none cursor-pointer">
+              <option value="all" class="bg-[#10121a] text-white">Todos los Turnos</option>
+            </select>
+          </div>
+
+          <button onclick="openPOSReportAdmin()" class="text-xs text-slate-400 hover:text-white bg-[#0b0c10] border border-[#232738] hover:border-slate-500 px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5">
+            <span>🔄</span> <span>Actualizar</span>
           </button>
-          <button onclick="closeCashAndPrintZAdmin()" id="btnCloseCashAndPrintZAdmin" class="bg-red-500 text-white font-black px-6 py-2.5 rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 hidden">
-            <span>🔒</span> Cerrar Caja e Imprimir Z
+        </div>
+      </div>
+
+      <!-- Scrollable Dashboard Body -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 bg-[#08090d]" id="posReportMainScroll">
+        
+        <!-- ============================================== -->
+        <!-- TAB 1: VISIÓN FINANCIERA (OVERVIEW) -->
+        <!-- ============================================== -->
+        <div id="posReportOverviewTabContent" class="space-y-6">
+          
+          <!-- KPIs Container -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="posReportKPIsAdmin">
+            <div class="col-span-full text-center text-slate-400 animate-pulse font-bold text-sm py-16">
+              ⏳ Cargando métricas financieras consolidadas...
+            </div>
+          </div>
+
+          <!-- Charts & Breakdowns Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 hidden" id="posReportChartsAdmin">
+            
+            <!-- Metodos de Pago Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>💳</span> Métodos de Pago
+                  </h4>
+                  <span class="text-[10px] bg-[#1c2030] text-slate-400 px-2 py-0.5 rounded-full font-bold" id="badgePaymentTotal">$0</span>
+                </div>
+                <div class="relative h-44 w-full flex items-center justify-center my-2">
+                  <canvas id="chartPaymentAdmin"></canvas>
+                </div>
+              </div>
+              <div class="space-y-2 pt-3 border-t border-[#1c2030]" id="posReportPaymentListAdmin">
+                <!-- Dynamically populated payment list with % -->
+              </div>
+            </div>
+
+            <!-- Canales de Venta Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>🌐</span> Canales de Origen
+                  </h4>
+                  <span class="text-[10px] bg-[#1c2030] text-slate-400 px-2 py-0.5 rounded-full font-bold" id="badgeOriginTotal">$0</span>
+                </div>
+                <div class="relative h-44 w-full flex items-center justify-center my-2">
+                  <canvas id="chartOriginAdmin"></canvas>
+                </div>
+              </div>
+              <div class="space-y-2 pt-3 border-t border-[#1c2030]" id="posReportOriginListAdmin">
+                <!-- Dynamically populated origin list with % -->
+              </div>
+            </div>
+
+            <!-- Top Productos Vendidos Card -->
+            <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030] flex flex-col">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <span>🏆</span> Top Productos
+                </h4>
+                <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold" id="badgeProductsCount">0 items</span>
+              </div>
+              <div class="flex-1 overflow-y-auto max-h-72 custom-scroll pr-1 space-y-2" id="posReportTopProductsAdmin">
+                <!-- Dynamically populated products ranking -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Order History Table Section -->
+          <div class="bg-[#10121a] rounded-2xl border border-[#1c2030] overflow-hidden hidden" id="posReportHistoryContainerAdmin">
+            <div class="p-4 border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 bg-[#131622]">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                  <span>📋</span> Pedidos del Periodo (<span id="posReportOrderCountLabel">0</span>)
+                </h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="relative">
+                  <input type="text" id="posReportOrderSearchInput" placeholder="🔍 Buscar cliente, ID o notas..." oninput="filterPOSReportOrdersTable()" class="bg-[#0b0c10] text-slate-200 text-xs px-3 py-1.5 pl-8 rounded-xl border border-[#232738] focus:border-orange-500 outline-none w-56 sm:w-64 transition-all">
+                  <span class="absolute left-2.5 top-1.5 text-xs text-slate-500">🔍</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="text-[11px] text-slate-400 uppercase bg-[#0c0d12] border-b border-[#1c2030] font-bold">
+                  <tr>
+                    <th class="px-4 py-3">ID / Hora</th>
+                    <th class="px-4 py-3">Cliente</th>
+                    <th class="px-4 py-3 text-center">Canal</th>
+                    <th class="px-4 py-3 text-center">Método</th>
+                    <th class="px-4 py-3">Productos</th>
+                    <th class="px-4 py-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="posReportHistoryBodyAdmin" class="divide-y divide-[#181b26]">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: AUDITORÍA DE TURNOS Y CAJEROS -->
+        <!-- ============================================== -->
+        <div id="posReportTurnosTabContent" class="space-y-6 hidden">
+          
+          <!-- Turnos & Cajeros KPI Summary Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="posReportTurnosKPIsAdmin">
+            <!-- Dynamically rendered Turnos KPIs -->
+          </div>
+
+          <!-- Section A: Rendimiento por Cajero -->
+          <div class="bg-[#10121a] p-5 rounded-2xl border border-[#1c2030]">
+            <div class="flex items-center justify-between mb-4 border-b border-[#1c2030] pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-base font-bold">👥</span>
+                <div>
+                  <h4 class="text-sm font-black text-white tracking-tight">Rendimiento por Cajero</h4>
+                  <p class="text-[11px] text-slate-400">Total recaudado, pedidos procesados y arqueo neto por cada cajero</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="posReportCashiersListAdmin">
+              <!-- Dynamically populated cashier cards -->
+            </div>
+          </div>
+
+          <!-- Section B: Historial de Turnos de Caja (Sesiones Z) -->
+          <div class="bg-[#10121a] rounded-2xl border border-[#1c2030] overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-[#1c2030] flex flex-wrap items-center justify-between gap-3 bg-[#131622]">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base font-bold">📋</span>
+                <div>
+                  <h4 class="text-sm font-black text-white tracking-tight">Sesiones y Turnos de Caja (Cierres Z)</h4>
+                  <p class="text-[11px] text-slate-400">Arqueo ciego, base inicial, diferencias y auditoría detallada de cada turno</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-4" id="posReportShiftsListAdmin">
+              <!-- Dynamically populated turnos cards -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE Y AUDITORÍA DE TURNO / CAJA (PUNTO 2) -->
+  <div id="modalDetalleTurnoAdmin" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-3 sm:p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeTurnoDetailAdmin()"></div>
+    <div class="bg-[#111] border border-[#2a2a2a] w-full max-w-4xl max-h-[92vh] rounded-3xl relative z-10 flex flex-col shadow-2xl overflow-hidden text-white animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-[#222] flex justify-between items-center bg-[#181818] shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold">📋</div>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2" id="turnoDetailTitle">
+              Auditoría del Turno
+            </h3>
+            <p class="text-xs text-gray-400" id="turnoDetailSubtitle">Cargando información del turno...</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnReprintTurnoModal" onclick="reprintCurrentTurnoModal()" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold px-3 sm:px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-900/30">
+            <span>🖨️</span> <span class="hidden sm:inline">Reimprimir Ticket Z</span><span class="sm:hidden">Ticket Z</span>
           </button>
+          <button onclick="closeTurnoDetailAdmin()" class="w-9 h-9 flex items-center justify-center bg-[#282828] text-gray-400 rounded-full hover:bg-white hover:text-black transition-all text-lg font-bold">✕</button>
         </div>
+      </div>
 
-        <!-- KPIs -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6" id="posReportKPIsAdmin">
-           <div class="col-span-full text-center text-gray-500 animate-pulse font-bold text-sm py-10">Cargando métricas...</div>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden" id="posReportChartsAdmin">
-          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Ventas por Origen</h4>
-            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartOriginAdmin"></canvas></div>
-          </div>
-          <div class="bg-[#1a1a1a] p-5 rounded-2xl border border-[#222]">
-            <h4 class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 text-center">Métodos de Pago</h4>
-            <div class="relative h-64 w-full flex items-center justify-center"><canvas id="chartPaymentAdmin"></canvas></div>
-          </div>
-        </div>
-
-        <!-- Order History Table -->
-        <div class="bg-[#1a1a1a] rounded-2xl border border-[#222] overflow-hidden hidden" id="posReportHistoryContainerAdmin">
-          <div class="p-4 border-b border-[#222]">
-            <h4 class="text-sm text-white font-bold uppercase tracking-widest">Historial de Pedidos</h4>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-400">
-              <thead class="text-xs text-gray-500 uppercase bg-[#111] border-b border-[#222]">
-                <tr>
-                  <th class="px-4 py-3">ID / Hora</th>
-                  <th class="px-4 py-3">Cliente</th>
-                  <th class="px-4 py-3 text-center">Origen</th>
-                  <th class="px-4 py-3 text-center">Pago</th>
-                  <th class="px-4 py-3 text-right">Total</th>
-                  <th class="px-4 py-3 text-center">Acción</th>
-                </tr>
-              </thead>
-              <tbody id="posReportHistoryBodyAdmin" class="divide-y divide-[#222]">
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <!-- Modal Body (Scrollable) -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 bg-[#0d0d0d] space-y-6" id="turnoDetailBody">
+        <div class="text-center py-16 text-gray-500 font-bold animate-pulse">Cargando reporte detallado del turno...</div>
       </div>
     </div>
   </div>
@@ -2969,8 +3225,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="js/sounds.js?v=1781800000000"></script>
   <script src="js/supabase-config.js?v=1781800000000"></script>
+  <script src="js/printbridge.js?v=1781800000000"></script>
   <script src="js/admin-v2.js?v=1781800000001"></script>
-  <script src="js/admin-expenses.js?v=1781800000002"></script>
+  <script src="js/admin-expenses.js?v=1781800000006"></script>
   <script src="js/admin-staff.js?v=1781800000000"></script>
   <script src="js/admin-branches.js?v=1781800000000"></script>
   <script src="js/admin-features.js?v=1781800000000"></script>
