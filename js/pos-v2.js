@@ -43,6 +43,10 @@ async function initPOS() {
     }
   }
 
+  window.businessId = businessId;
+  window.currentBusinessId = businessId;
+  if (businessId) localStorage.setItem('staff_business_id', businessId);
+
   document.getElementById('cashierName').textContent = '👤 ' + (staffName || 'Cajero').toUpperCase();
   await loadSettings();
   await loadCustomers();
@@ -2656,35 +2660,47 @@ window.openPOSReport = async function() {
       subheader.textContent = `Periodo: ${periodLabel} • Auditoría financiera consolidada`;
     }
 
+    const effectiveBizId = (typeof businessId !== 'undefined' && businessId) 
+      ? businessId 
+      : (window.businessId || window.currentBusinessId || localStorage.getItem('staff_business_id') || localStorage.getItem('business_id'));
+
+    if (!effectiveBizId) {
+      throw new Error('ID de negocio no encontrado. Por favor inicia sesión nuevamente.');
+    }
+
     // 1. Query orders in date range
-    const { data: orders, error } = await supabaseClient
+    const { data: orders, error: ordersErr } = await supabaseClient
       .from('orders')
       .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items, cart')
-      .eq('business_id', businessId)
+      .eq('business_id', effectiveBizId)
       .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado', 'Aceptado'])
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (ordersErr) throw ordersErr;
 
     // 2. Query cash closings / turnos in date range
-    const { data: closings } = await supabaseClient
+    const { data: closings, error: closingsErr } = await supabaseClient
       .from('cash_closings')
       .select('*')
-      .eq('business_id', businessId)
+      .eq('business_id', effectiveBizId)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false });
 
+    if (closingsErr) throw closingsErr;
+
     // 3. Query cash movements in date range
-    const { data: movements } = await supabaseClient
+    const { data: movements, error: movementsErr } = await supabaseClient
       .from('cash_movements')
       .select('*')
-      .eq('business_id', businessId)
+      .eq('business_id', effectiveBizId)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false });
+
+    if (movementsErr) throw movementsErr;
 
     window.currentPOSReportRawOrders = orders || [];
     window.currentPOSReportRawClosings = closings || [];
@@ -2705,7 +2721,12 @@ window.openPOSReport = async function() {
   } catch (err) {
     console.error('Error loading report:', err);
     if (kpisContainer) {
-      kpisContainer.innerHTML = '<div class="col-span-full text-center text-red-500 font-bold text-sm py-8">Error cargando métricas del reporte. Revisa la consola o conexión.</div>';
+      kpisContainer.innerHTML = `
+        <div class="col-span-full text-center text-red-500 font-bold text-sm py-8 flex flex-col items-center justify-center gap-2">
+          <span>❌ Error cargando métricas del reporte: ${err?.message || err || 'Error desconocido'}</span>
+          <span class="text-xs text-slate-400 font-normal">Revisa la consola o verifica los permisos RLS en Supabase.</span>
+        </div>
+      `;
     }
   }
 };
@@ -2825,16 +2846,22 @@ window.recalculateAndRenderPOSReport = function() {
   let totalItemsCount = 0;
 
   filteredOrders.forEach(o => {
+    if (!o) return;
     const total = Number(o.total) || 0;
     totalSales += total;
 
+    let split = o.split_payments;
+    if (typeof split === 'string') {
+      try { split = JSON.parse(split); } catch(e) { split = null; }
+    }
+
     const pMethod = (o.payment_method || 'Efectivo').toLowerCase();
-    if (pMethod.includes('dividid') && o.split_payments) {
+    if (pMethod.includes('dividid') && split && typeof split === 'object') {
       totalSplitSales += total;
       countSplit++;
-      totalCashSales += Number(o.split_payments.cash || 0);
-      totalCardSales += Number(o.split_payments.card || 0);
-      totalTransferSales += Number(o.split_payments.transfer || 0);
+      totalCashSales += Number(split.cash || 0);
+      totalCardSales += Number(split.card || 0);
+      totalTransferSales += Number(split.transfer || 0);
     } else if (pMethod.includes('efectivo') || pMethod.includes('cash')) {
       totalCashSales += total;
       countCash++;
@@ -2850,7 +2877,7 @@ window.recalculateAndRenderPOSReport = function() {
     }
 
     // Origin determination
-    const notes = (o.notes || '');
+    const notes = String(o.notes || '');
     if (notes.includes('[ORIGIN:KIOSKO]') || notes.includes('Kiosko Auto-Servicio')) {
       originKiosko += total;
     } else if (notes.includes('[ORIGIN:MENU]') || notes.includes('Menú Digital QR')) {
@@ -2868,9 +2895,10 @@ window.recalculateAndRenderPOSReport = function() {
     }
     if (Array.isArray(orderItems)) {
       orderItems.forEach(item => {
+        if (!item || typeof item !== 'object') return;
         const qty = Number(item.quantity || item.qty) || 1;
         const price = Number(item.price) || 0;
-        let name = item.name || 'Producto';
+        let name = String(item.name || 'Producto');
         if (item.extrasLabel) name += ` (${item.extrasLabel})`;
         
         totalItemsCount += qty;
@@ -3853,11 +3881,13 @@ window.openTurnoDetail = async function(closingId) {
       subtitle.textContent = `Apertura: ${formatTurnoDateTime(openedAt)} • ${closing.is_open ? 'En Curso (Abierta)' : 'Cierre: ' + formatTurnoDateTime(closedAt)}`;
     }
 
+    const effectiveBizId = closing.business_id || (typeof businessId !== 'undefined' && businessId) || window.businessId || window.currentBusinessId || localStorage.getItem('staff_business_id') || localStorage.getItem('business_id');
+
     // 2. Fetch orders in this shift
     const { data: shiftOrders } = await supabaseClient
       .from('orders')
       .select('*')
-      .eq('business_id', businessId)
+      .eq('business_id', effectiveBizId)
       .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado', 'Aceptado'])
       .gte('created_at', openedAt)
       .lte('created_at', closedAt)
@@ -3867,7 +3897,7 @@ window.openTurnoDetail = async function(closingId) {
     const { data: shiftMovements } = await supabaseClient
       .from('cash_movements')
       .select('*')
-      .eq('business_id', businessId)
+      .eq('business_id', effectiveBizId)
       .gte('created_at', openedAt)
       .lte('created_at', closedAt)
       .order('created_at', { ascending: false });
@@ -3879,15 +3909,21 @@ window.openTurnoDetail = async function(closingId) {
     const movements = shiftMovements || [];
 
     orders.forEach(o => {
+      if (!o) return;
       const tot = Number(o.total) || 0;
       totalSales += tot;
 
+      let split = o.split_payments;
+      if (typeof split === 'string') {
+        try { split = JSON.parse(split); } catch(e) { split = null; }
+      }
+
       const pMethod = (o.payment_method || 'Efectivo').toLowerCase();
-      if (pMethod.includes('dividid') && o.split_payments) {
+      if (pMethod.includes('dividid') && split && typeof split === 'object') {
         splitSales += tot;
-        cashSales += Number(o.split_payments.cash || 0);
-        cardSales += Number(o.split_payments.card || 0);
-        transferSales += Number(o.split_payments.transfer || 0);
+        cashSales += Number(split.cash || 0);
+        cardSales += Number(split.card || 0);
+        transferSales += Number(split.transfer || 0);
       } else if (pMethod.includes('efectivo') || pMethod.includes('cash')) {
         cashSales += tot;
       } else if (pMethod.includes('nequi') || pMethod.includes('tarjeta') || pMethod.includes('card') || pMethod.includes('datafono')) {
@@ -3905,9 +3941,10 @@ window.openTurnoDetail = async function(closingId) {
       }
       if (Array.isArray(orderItems)) {
         orderItems.forEach(item => {
+          if (!item || typeof item !== 'object') return;
           const qty = Number(item.quantity || item.qty) || 1;
           const price = Number(item.price) || 0;
-          let name = item.name || 'Producto';
+          let name = String(item.name || 'Producto');
           if (item.extrasLabel) name += ` (${item.extrasLabel})`;
           if (!productsSold[name]) productsSold[name] = { qty: 0, total: 0 };
           productsSold[name].qty += qty;

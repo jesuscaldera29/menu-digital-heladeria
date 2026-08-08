@@ -104,6 +104,10 @@ async function initAdmin() {
     businessId = biz.id;
     businessSlug = biz.slug;
     currentBusinessName = biz.business_name || '';
+    window.businessId = biz.id;
+    window.currentBusinessId = biz.id;
+    window.currentBusinessName = currentBusinessName;
+    localStorage.setItem('business_id', biz.id);
     
     // Enforce Staff Role routing and views
     if (staffRole === 'Repartidor') {
