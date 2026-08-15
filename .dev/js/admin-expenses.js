@@ -1065,7 +1065,7 @@ window.openPOSReportAdmin = async function() {
     // 1. Query orders in date range
     const { data: orders, error } = await supabaseClient
       .from('orders')
-      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items, cart')
+      .select('id, total, payment_method, split_payments, created_at, status, customer_name, notes, items')
       .eq('business_id', businessId)
       .in('status', ['Pagado', 'Completado', 'En preparación', 'Listo', 'En camino', 'Entregado', 'Aceptado'])
       .gte('created_at', startDate.toISOString())
