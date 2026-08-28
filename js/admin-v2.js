@@ -150,31 +150,20 @@ async function initAdmin() {
             if (el) el.style.display = 'none';
         });
 
-        // Ocultar botones y accesos directos al POS, Kiosko, Gastos y Caja
-        const selectorsToHide = [
-            'a[href="pos.html"]',
-            'a[href="kiosk.html"]',
-            '[onclick*="pos.html"]',
-            '[onclick*="kiosk.html"]',
-            '[onclick*="showSection(\\\'expenses\\\',"]',
-            '[onclick*="showSection(\'expenses\',"]',
-            '[onclick="downloadKioskApk()"]',
-            '#dashCashBtn'
+        // Ocultar botones y accesos directos al POS, Kiosko, Gastos y Caja mediante IDs
+        const idsToHide = [
+            'topNavPos', 'topNavKioskContainer', 
+            'sideNavPos', 'sideNavKiosk', 'sideNavApk',
+            'statCardExpenses', 'statCardProfit',
+            'dashCardPos', 'dashCardPurchases', 'dashCardExpenses', 'dashCardReports',
+            'dashCardCredits', 'dashCardSuppliers', 'dashCardCashStatus',
+            'bottomNavPos', 'bottomNavExpenses'
         ];
         
-        selectorsToHide.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                // Si es un dash-card, ocultamos el padre si es necesario, o solo el el
-                el.style.display = 'none';
-            });
+        idsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.setProperty('display', 'none', 'important');
         });
-
-        // Ocultar la tarjeta de estado de caja padre
-        const cashStatusDisplay = document.getElementById('dashCashStatus');
-        if (cashStatusDisplay) {
-            const cardParent = cashStatusDisplay.closest('.card');
-            if (cardParent) cardParent.style.display = 'none';
-        }
     }
 
     // Update header with business info

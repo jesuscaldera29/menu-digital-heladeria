@@ -507,10 +507,10 @@
         <button id="btnInstallApp"
           class="hidden bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all">📱
           Instalar App</button>
-        <a href="pos.html" target="_blank"
+        <a href="pos.html" target="_blank" id="topNavPos"
           class="bg-green-500/20 text-green-100 px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-green-500/40 transition-all border border-green-400/30">💰
           POS</a>
-        <div class="flex items-center">
+        <div class="flex items-center" id="topNavKioskContainer">
           <a href="kiosk.html" target="_blank"
             class="bg-blue-500/20 text-blue-100 px-4 py-2 rounded-l-xl font-bold text-sm shadow-lg hover:bg-blue-500/40 transition-all border border-blue-400/30 border-r-0">📱
             Kiosko</a>
@@ -539,13 +539,13 @@
     </div>
     <div class="p-5 flex-1 overflow-y-auto space-y-3">
       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Herramientas</p>
-      <a href="pos.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-green-50 text-green-700 font-bold active:scale-95 transition-all">
+      <a href="pos.html" target="_blank" id="sideNavPos" class="flex items-center gap-3 p-3 rounded-xl bg-green-50 text-green-700 font-bold active:scale-95 transition-all">
         <span class="text-xl">💰</span> Punto de Venta
       </a>
-      <a href="kiosk.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-bold active:scale-95 transition-all">
+      <a href="kiosk.html" target="_blank" id="sideNavKiosk" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-bold active:scale-95 transition-all">
         <span class="text-xl">📱</span> Kiosko Self-Service
       </a>
-      <button onclick="downloadKioskApk()" class="w-full flex items-center gap-3 p-3 rounded-xl bg-indigo-50 text-indigo-700 font-bold active:scale-95 transition-all text-left">
+      <button onclick="downloadKioskApk()" id="sideNavApk" class="w-full flex items-center gap-3 p-3 rounded-xl bg-indigo-50 text-indigo-700 font-bold active:scale-95 transition-all text-left">
         <span class="text-xl">⬇️</span> Descargar APK Kiosko
       </button>
       <a href="kds.html" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-orange-50 text-orange-700 font-bold active:scale-95 transition-all">
@@ -581,11 +581,11 @@
             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pedidos Hoy</p>
             <h3 id="dashTodayOrders" class="text-2xl font-black mt-1">0</h3>
           </div>
-          <div class="card !p-4 text-center">
+          <div class="card !p-4 text-center" id="statCardExpenses">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Gastos Hoy</p>
             <h3 id="dashTodayExpenses" class="text-2xl font-black text-red-500 mt-1">$0</h3>
           </div>
-          <div class="card !p-4 text-center">
+          <div class="card !p-4 text-center" id="statCardProfit">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Ganancia Neta</p>
             <h3 id="dashNetProfit" class="text-2xl font-black text-green-600 mt-1">$0</h3>
           </div>
@@ -593,28 +593,28 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="dash-card flex items-center gap-4" onclick="window.open('pos.html','_blank')">
+          <div class="dash-card flex items-center gap-4" id="dashCardPos" onclick="window.open('pos.html','_blank')">
             <div class="dash-icon bg-blue-50 text-blue-600">🛒</div>
             <div>
               <p class="font-black text-sm">Nueva Venta</p>
               <p class="text-[10px] text-gray-400">Abrir POS</p>
             </div>
           </div>
-          <div class="dash-card flex items-center gap-4" onclick="showSection('purchases',event)">
+          <div class="dash-card flex items-center gap-4" id="dashCardPurchases" onclick="showSection('purchases',event)">
             <div class="dash-icon bg-green-50 text-green-600">📦</div>
             <div>
               <p class="font-black text-sm">Nueva Compra</p>
               <p class="text-[10px] text-gray-400">Abastece inventario</p>
             </div>
           </div>
-          <div class="dash-card flex items-center gap-4" onclick="showSection('expenses',event); setTimeout(() => showCajaView('gastos'), 100)">
+          <div class="dash-card flex items-center gap-4" id="dashCardExpenses" onclick="showSection('expenses',event); setTimeout(() => showCajaView('gastos'), 100)">
             <div class="dash-icon bg-red-50 text-red-600">💰</div>
             <div>
               <p class="font-black text-sm">Nuevo Gasto</p>
               <p class="text-[10px] text-gray-400">Registra tus gastos</p>
             </div>
           </div>
-          <div class="dash-card flex items-center gap-4" onclick="showSection('reports',event)">
+          <div class="dash-card flex items-center gap-4" id="dashCardReports" onclick="showSection('reports',event)">
             <div class="dash-icon bg-purple-50 text-purple-600">📊</div>
             <div>
               <p class="font-black text-sm">Ver Estadísticas</p>
@@ -625,7 +625,7 @@
 
         <!-- Deudas Summary -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="card !p-5 border-l-4 border-orange-500 cursor-pointer" onclick="showSection('credits',event)">
+          <div class="card !p-5 border-l-4 border-orange-500 cursor-pointer" id="dashCardCredits" onclick="showSection('credits',event)">
             <div class="flex items-center gap-3">
               <div class="dash-icon bg-orange-50 text-orange-600">💸</div>
               <div>
@@ -634,7 +634,7 @@
               </div>
             </div>
           </div>
-          <div class="card !p-5 border-l-4 border-blue-500 cursor-pointer" onclick="showSection('suppliers',event)">
+          <div class="card !p-5 border-l-4 border-blue-500 cursor-pointer" id="dashCardSuppliers" onclick="showSection('suppliers',event)">
             <div class="flex items-center gap-3">
               <div class="dash-icon bg-blue-50 text-blue-600">💳</div>
               <div>
@@ -2869,11 +2869,11 @@
       <span class="nav-icon">📝</span>
       <span>ÓRDENES</span>
     </button>
-    <button class="bottom-nav-item" onclick="window.open('pos.html','_blank')">
+    <button class="bottom-nav-item" id="bottomNavPos" onclick="window.open('pos.html','_blank')">
       <span class="nav-icon">🛒</span>
       <span>VENTAS</span>
     </button>
-    <button class="bottom-nav-item" data-section="expenses" onclick="bottomNavClick('expenses',this)">
+    <button class="bottom-nav-item" id="bottomNavExpenses" data-section="expenses" onclick="bottomNavClick('expenses',this)">
       <span class="nav-icon">🏧</span>
       <span>CAJA</span>
     </button>
