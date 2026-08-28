@@ -118,6 +118,10 @@ function renderBusinesses() {
       ? `<span class="status-badge status-active">🟢 Activo</span>`
       : `<span class="status-badge status-inactive">🔴 Suspendido</span>`;
 
+    const planBadge = b.system_mode === 'menu_only' 
+      ? `<div class="mt-1"><span class="status-badge" style="background: rgba(249, 115, 22, 0.15); color: #fb923c;">📱 Solo Menú</span></div>`
+      : `<div class="mt-1"><span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">⭐ Completo</span></div>`;
+
     const actionBtn = b.is_active
       ? `<button onclick="toggleStatus('${b.id}', false)" class="btn-toggle btn-deactivate">Bloquear</button>`
       : `<button onclick="toggleStatus('${b.id}', true)" class="btn-toggle btn-activate">Activar</button>`;
@@ -145,11 +149,14 @@ function renderBusinesses() {
             <span class="bg-white/5 px-2 py-1 rounded">🛒 ${b.orders_count || 0} ped</span>
           </div>
         </td>
-        <td>${statusHtml}</td>
+        <td>
+          ${statusHtml}
+          ${planBadge}
+        </td>
         <td>
           <div class="flex gap-2">
             ${actionBtn}
-            <button onclick="openEditModal('${b.id}', '${b.business_name.replace(/'/g, "\\'")}', '${b.slug}')" class="px-3 py-1 bg-blue-900/50 text-blue-400 border border-blue-900 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition-all">✏️ Editar</button>
+            <button onclick="openEditModal('${b.id}', '${b.business_name.replace(/'/g, "\\'")}', '${b.slug}', '${b.system_mode || 'full'}')" class="px-3 py-1 bg-blue-900/50 text-blue-400 border border-blue-900 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition-all">✏️ Editar</button>
             <button onclick="deleteBusiness('${b.id}', '${b.business_name.replace(/'/g, "\\'")}')" class="px-3 py-1 bg-red-900/50 text-red-400 border border-red-900 rounded-lg text-sm hover:bg-red-600 hover:text-white transition-all">🗑️ Eliminar</button>
           </div>
         </td>
@@ -287,10 +294,13 @@ async function handleCreateClient(e) {
 // LÓGICA PARA EDITAR CLIENTE (MODAL)
 // ==========================================
 
-function openEditModal(id, name, slug) {
+function openEditModal(id, name, slug, system_mode = 'full') {
   document.getElementById('editBizId').value = id;
   document.getElementById('editBizName').value = name;
   document.getElementById('editBizSlug').value = slug;
+  if(document.getElementById('editBizMode')) {
+    document.getElementById('editBizMode').value = system_mode;
+  }
   document.getElementById('editClientModal').classList.remove('hidden');
 }
 
@@ -305,6 +315,7 @@ async function handleEditClient(e) {
   const id = document.getElementById('editBizId').value;
   const name = document.getElementById('editBizName').value.trim();
   const slug = document.getElementById('editBizSlug').value.trim();
+  const systemMode = document.getElementById('editBizMode') ? document.getElementById('editBizMode').value : 'full';
   const btn = document.getElementById('btnEditClient');
 
   btn.disabled = true;
@@ -317,6 +328,13 @@ async function handleEditClient(e) {
       .eq('id', id);
 
     if (error) throw error;
+
+    const { error: settingsError } = await supabaseClient
+      .from('settings')
+      .update({ system_mode: systemMode })
+      .eq('business_id', id);
+
+    if (settingsError) throw settingsError;
 
     showToast('✅ Cambios guardados correctamente.');
     closeEditModal();
