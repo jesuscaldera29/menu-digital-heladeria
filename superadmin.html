@@ -248,7 +248,7 @@
               <th>Enlace (Slug)</th>
               <th>Contacto</th>
               <th>Uso</th>
-              <th>Estado</th>
+              <th>Estado y Plan</th>
               <th>Acción</th>
             </tr>
           </thead>
@@ -315,6 +315,13 @@
         <div>
           <label class="text-gray-400 text-xs font-bold uppercase block mb-1">Enlace del Menú (Slug)</label>
           <input type="text" id="editBizSlug" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-orange-500" required>
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs font-bold uppercase block mb-1">Tipo de Plan</label>
+          <select id="editBizMode" class="w-full bg-[#111] border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-orange-500">
+            <option value="full">Plan Completo (POS + Kiosko + Finanzas)</option>
+            <option value="menu_only">Plan Básico (Solo Menú Digital)</option>
+          </select>
         </div>
         <button type="submit" id="btnEditClient" class="w-full mt-4 bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors">Guardar Cambios</button>
       </form>
