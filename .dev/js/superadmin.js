@@ -322,19 +322,14 @@ async function handleEditClient(e) {
   btn.textContent = '⏳ Guardando...';
 
   try {
-    const { error } = await supabaseClient
-      .from('businesses')
-      .update({ business_name: name, slug: slug })
-      .eq('id', id);
+    const { error } = await supabaseClient.rpc('update_business_plan', {
+      p_business_id: id,
+      p_business_name: name,
+      p_slug: slug,
+      p_system_mode: systemMode
+    });
 
     if (error) throw error;
-
-    const { error: settingsError } = await supabaseClient
-      .from('settings')
-      .update({ system_mode: systemMode })
-      .eq('business_id', id);
-
-    if (settingsError) throw settingsError;
 
     showToast('✅ Cambios guardados correctamente.');
     closeEditModal();
