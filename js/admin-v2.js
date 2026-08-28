@@ -66,10 +66,11 @@ async function initAdmin() {
     const biz = await getCurrentBusiness();
     if (!biz) { alert('No se encontró un negocio asociado a tu cuenta.'); await supabaseClient.auth.signOut(); window.location.href = 'login.html'; return false; }
 
-    // Store admin password for role switching fallback
-    const { data: settingsData } = await supabaseClient.from('settings').select('admin_password').eq('business_id', biz.id).single();
+    // Store admin password and system_mode
+    const { data: settingsData } = await supabaseClient.from('settings').select('admin_password, system_mode').eq('business_id', biz.id).single();
     if (settingsData) {
         window.bizAdminPassword = settingsData.admin_password;
+        window.systemMode = settingsData.system_mode || 'full';
     }
 
     if (biz.is_active === false) {
@@ -138,6 +139,42 @@ async function initAdmin() {
         if (secOrders) secOrders.classList.add('active');
         const tabOrders = document.getElementById('tab-orders');
         if (tabOrders) tabOrders.classList.add('active');
+    }
+
+    // Enforce System Mode (Menu Only Plan)
+    if (window.systemMode === 'menu_only') {
+        // Ocultar pestañas (Tabs)
+        const restrictedMenuTabs = ['tab-expenses', 'tab-staff', 'tab-purchases', 'tab-suppliers', 'tab-credits', 'tab-reports', 'tab-recipes'];
+        restrictedMenuTabs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        // Ocultar botones y accesos directos al POS, Kiosko, Gastos y Caja
+        const selectorsToHide = [
+            'a[href="pos.html"]',
+            'a[href="kiosk.html"]',
+            '[onclick*="pos.html"]',
+            '[onclick*="kiosk.html"]',
+            '[onclick*="showSection(\\\'expenses\\\',"]',
+            '[onclick*="showSection(\'expenses\',"]',
+            '[onclick="downloadKioskApk()"]',
+            '#dashCashBtn'
+        ];
+        
+        selectorsToHide.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                // Si es un dash-card, ocultamos el padre si es necesario, o solo el el
+                el.style.display = 'none';
+            });
+        });
+
+        // Ocultar la tarjeta de estado de caja padre
+        const cashStatusDisplay = document.getElementById('dashCashStatus');
+        if (cashStatusDisplay) {
+            const cardParent = cashStatusDisplay.closest('.card');
+            if (cardParent) cardParent.style.display = 'none';
+        }
     }
 
     // Update header with business info

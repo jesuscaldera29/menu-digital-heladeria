@@ -184,6 +184,12 @@ async function loadKioskSettings() {
     }
 
     if (data) {
+      if (data.system_mode === 'menu_only') {
+          alert('⚠️ Este negocio no tiene habilitado el módulo de Kiosko.');
+          window.location.href = `index.html?slug=${currentBusinessSlug}`;
+          return;
+      }
+      
       window.kioskSettings = data;
       currency = data.currency || 'COP';
       kioskDeliveryFeeAmount = Number(data.delivery_fee) || 0;

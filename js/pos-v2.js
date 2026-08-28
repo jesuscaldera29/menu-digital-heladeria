@@ -49,6 +49,13 @@ async function initPOS() {
 
   document.getElementById('cashierName').textContent = '👤 ' + (staffName || 'Cajero').toUpperCase();
   await loadSettings();
+
+  if (posSettings.system_mode === 'menu_only') {
+      alert('⚠️ Tu plan actual ("Solo Menú Digital") no incluye acceso al Punto de Venta (POS). Serás redirigido al panel principal.');
+      window.location.href = 'admin.html';
+      return;
+  }
+
   await loadCustomers();
   await loadDrivers();
   await reloadAllDataAndRender();
